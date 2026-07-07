@@ -1,24 +1,30 @@
-# README
+# Mutual Fund NAV Tracker
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A production-grade Mutual Fund NAV Tracking System built with:
 
-Things you may want to cover:
+- Ruby on Rails 7 (API)
+- PostgreSQL
+- Redis
+- Sidekiq
+- Docker & Docker Compose
+- Expo React Native (mobile client)
 
-* Ruby version
+## Features
 
-* System dependencies
+- Daily NAV tracking
+- OpenFIGI ticker lookup
+- Yahoo Finance NAV extraction
+- Automated background jobs
+- Historical performance calculations
+- REST API
+- Mobile application
 
-* Configuration
+## Development
 
-* Database creation
+```bash
+docker compose up --build
+```
 
-* Database initialization
+## Status
 
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+🚧 Project under active development.
