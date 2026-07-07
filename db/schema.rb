@@ -49,11 +49,5 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_07_104649) do
     t.index ["yahoo_symbol"], name: "index_mutual_funds_on_yahoo_symbol"
   end
 
-  create_table "test_models", force: :cascade do |t|
-    t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   add_foreign_key "daily_navs", "mutual_funds"
 end

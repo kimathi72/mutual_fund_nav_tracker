@@ -1,0 +1,55 @@
+- name: "AB American Growth Portfolio AP USD Inc (MDIS)"
+  isin: "LU2859284783"
+  currency: "USD"
+  domicile: "Luxembourg"
+  fund_house: "AB"
+  active: true
+
+- name: "Allianz China Equity A Dist (USD) Reinvest"
+  isin: "LU0348825331"
+  currency: "USD"
+  domicile: "Luxembourg"
+  fund_house: "Allianz"
+  active: true
+
+- name: "Allianz Income and Growth Fund AM Dist (USD) Cash"
+  isin: "LU0820561818"
+  currency: "USD"
+  domicile: "Luxembourg"
+  fund_house: "Allianz"
+  active: true
+
+- name: "BGF Dynamic High Income Fund A6 MDist (USD) Cash"
+  isin: "LU1564329115"
+  currency: "USD"
+  domicile: "Luxembourg"
+  fund_house: "BlackRock"
+  active: true
+
+- name: "BGF World Technology Fund A2 Acc (USD) Reinvest"
+  isin: "LU0056508442"
+  currency: "USD"
+  domicile: "Luxembourg"
+  fund_house: "BlackRock"
+  active: true
+
+- name: "Franklin Technology Fund A Acc USD"
+  isin: "LU0109392836"
+  currency: "USD"
+  domicile: "Luxembourg"
+  fund_house: "Franklin Templeton"
+  active: true
+
+- name: "FTIF - Franklin India Fund A Dist (GBP) Cash"
+  isin: "LU0231206078"
+  currency: "GBP"
+  domicile: "Luxembourg"
+  fund_house: "Franklin Templeton"
+  active: true
+
+- name: "FTIF - Franklin Income Fund (USD) Cash Div"
+  isin: "LU0098860793"
+  currency: "USD"
+  domicile: "Luxembourg"
+  fund_house: "Franklin Templeton"
+  active: true
