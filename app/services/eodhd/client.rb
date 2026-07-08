@@ -7,7 +7,9 @@ require "date"
 module Eodhd
   class Client < ExternalApi::BaseClient
     def initialize
-      @config = Rails.configuration.x.external_services.eodhd
+        super
+
+        @config = Rails.configuration.x.external_services.eodhd
     end
 
     def search(query)

@@ -1,0 +1,11 @@
+:concurrency: 5
+
+:queues:
+  - critical
+  - default
+  - market_data
+
+import_historical_navs:
+  cron: "15 20 * * 1-5"
+  class: ImportHistoricalNavsJob
+  queue: market_data

@@ -1,29 +1,41 @@
 # frozen_string_literal: true
 
 module ExternalApi
-  class BaseClient 
+  class BaseClient < ApplicationService
     include HTTParty
+
+    def initialize
+        @http_config =
+            Rails.configuration.x.external_services.http ||
+            ActiveSupport::OrderedOptions.new.tap do |config|
+            config.open_timeout = 5
+            config.read_timeout = 20
+            config.user_agent = "MutualFundNavTracker/1.0"
+            end
+    end
 
     private
 
-    def get(url, query: {})
-      Rails.logger.info("[#{provider_name}] GET #{url}")
+    attr_reader :http_config
+
+    def get(url, query: {}, headers: {})
+      Rails.logger.info("[#{self.class.name}] GET #{url}")
 
       response = self.class.get(
         url,
         query: query,
-        headers: headers,
+        headers: default_headers.merge(headers),
         open_timeout: http_config.open_timeout,
         read_timeout: http_config.read_timeout
       )
 
-      Rails.logger.info("[#{provider_name}] HTTP #{response.code}")
+      Rails.logger.info("[#{self.class.name}] HTTP #{response.code}")
 
-      parse_json(response)
+      parse_response(response)
     end
 
     def post(url, body:, headers: {})
-      Rails.logger.info("[#{provider_name}] POST #{url}")
+      Rails.logger.info("[#{self.class.name}] POST #{url}")
 
       response = self.class.post(
         url,
@@ -33,38 +45,27 @@ module ExternalApi
         read_timeout: http_config.read_timeout
       )
 
-      Rails.logger.info("[#{provider_name}] HTTP #{response.code}")
+      Rails.logger.info("[#{self.class.name}] HTTP #{response.code}")
 
-      parse_json(response)
-    end
-
-    def parse_json(response)
-      return [] unless response.success?
-
-      JSON.parse(response.body)
-    rescue JSON::ParserError => e
-      Rails.logger.error("[#{provider_name}] #{e.message}")
-
-      []
+      parse_response(response)
     end
 
     def default_headers
       {
-        "Accept" => "application/json",
-        "User-Agent" => http_config.user_agent
+        "User-Agent" => http_config.user_agent,
+        "Content-Type" => "application/json"
       }
     end
 
-    def headers
-      default_headers
-    end
+    def parse_response(response)
+      return [] if response.code == 404
 
-    def http_config
-      Rails.configuration.x.external_services.http
-    end
+      unless response.success?
+        raise StandardError,
+              "#{self.class.name} request failed (HTTP #{response.code})"
+      end
 
-    def provider_name
-      self.class.name
+      JSON.parse(response.body)
     end
   end
 end

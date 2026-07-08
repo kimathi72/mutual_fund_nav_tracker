@@ -5,7 +5,9 @@ module YahooFinance
     include HTTParty
 
     def initialize
-      @config = Rails.configuration.x.external_services
+        super
+
+        @config = Rails.configuration.x.external_services.yahoo_finance
     end
 
     def chart(symbol)

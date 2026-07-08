@@ -88,7 +88,7 @@ services:
     user: "${UID}:${GID}"
     container_name: mf_sidekiq
 
-    command: bundle exec sidekiq
+    command: bundle exec sidekiq -C config/sidekiq.yml
 
     working_dir: /app
 

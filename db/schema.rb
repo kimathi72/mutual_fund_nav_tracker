@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_07_184549) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_08_125519) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -24,10 +24,17 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_07_184549) do
     t.jsonb "raw_payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "previous_close", precision: 15, scale: 6
+    t.decimal "change_percent", precision: 10, scale: 6
+    t.date "provider_updated_at"
+    t.string "provider_symbol"
+    t.string "provider_exchange"
     t.index ["fetched_at"], name: "index_daily_navs_on_fetched_at"
     t.index ["mutual_fund_id", "nav_date"], name: "index_daily_navs_on_mutual_fund_id_and_nav_date", unique: true
     t.index ["mutual_fund_id"], name: "index_daily_navs_on_mutual_fund_id"
     t.index ["nav_date"], name: "index_daily_navs_on_nav_date"
+    t.index ["provider_exchange"], name: "index_daily_navs_on_provider_exchange"
+    t.index ["provider_symbol"], name: "index_daily_navs_on_provider_symbol"
     t.index ["raw_payload"], name: "index_daily_navs_on_raw_payload", using: :gin
     t.index ["source"], name: "index_daily_navs_on_source"
   end
@@ -47,9 +54,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_07_184549) do
     t.string "exchange_code"
     t.string "security_type"
     t.string "market_sector"
+    t.date "last_nav_date"
+    t.datetime "last_market_data_sync_at"
     t.index ["active"], name: "index_mutual_funds_on_active"
     t.index ["figi"], name: "index_mutual_funds_on_figi", unique: true
     t.index ["isin"], name: "index_mutual_funds_on_isin", unique: true
+    t.index ["last_nav_date"], name: "index_mutual_funds_on_last_nav_date"
     t.index ["market_data_symbol"], name: "index_mutual_funds_on_market_data_symbol"
   end
 

@@ -3,7 +3,9 @@
 module Openfigi
   class Client < ExternalApi::BaseClient
     def initialize
-      @config = Rails.configuration.x.external_services.openfigi
+        super
+
+        @config = Rails.configuration.x.external_services.openfigi
     end
 
     def lookup_by_isin(isin)
