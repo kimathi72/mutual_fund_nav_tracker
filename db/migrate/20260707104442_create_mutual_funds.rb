@@ -4,7 +4,8 @@ class CreateMutualFunds < ActiveRecord::Migration[7.1]
       t.string :name, null: false
       t.string :isin, null: false
       t.string :figi
-      t.string :yahoo_symbol
+      t.string :market_data_symbol
+      t.string :market_data_provider
 
       t.string :currency, null: false
       t.string :domicile, null: false
@@ -17,7 +18,7 @@ class CreateMutualFunds < ActiveRecord::Migration[7.1]
 
     add_index :mutual_funds, :isin, unique: true
     add_index :mutual_funds, :figi, unique: true
-    add_index :mutual_funds, :yahoo_symbol
+    add_index :mutual_funds, :market_data_symbol
     add_index :mutual_funds, :active
   end
 end

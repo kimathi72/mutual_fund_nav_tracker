@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_07_104649) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_07_184549) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -36,17 +36,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_07_104649) do
     t.string "name", null: false
     t.string "isin", null: false
     t.string "figi"
-    t.string "yahoo_symbol"
+    t.string "market_data_symbol"
+    t.string "market_data_provider"
     t.string "currency", null: false
     t.string "domicile", null: false
     t.string "fund_house"
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "exchange_code"
+    t.string "security_type"
+    t.string "market_sector"
     t.index ["active"], name: "index_mutual_funds_on_active"
     t.index ["figi"], name: "index_mutual_funds_on_figi", unique: true
     t.index ["isin"], name: "index_mutual_funds_on_isin", unique: true
-    t.index ["yahoo_symbol"], name: "index_mutual_funds_on_yahoo_symbol"
+    t.index ["market_data_symbol"], name: "index_mutual_funds_on_market_data_symbol"
   end
 
   add_foreign_key "daily_navs", "mutual_funds"
