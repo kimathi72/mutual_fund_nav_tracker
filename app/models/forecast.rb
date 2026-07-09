@@ -3,21 +3,28 @@
 class Forecast < ApplicationRecord
   belongs_to :mutual_fund
 
-  validates :forecast_date,
-            presence: true
+  validates :target_date, presence: true
 
-  validates :target_date,
-            presence: true
+  validates :model_name, presence: true
 
   validates :predicted_nav,
-            presence: true
+            presence: true,
+            numericality: true
 
-  scope :latest_first,
-        -> { order(target_date: :desc) }
+  validates :confidence_score,
+            numericality: true,
+            allow_nil: true
 
-  scope :latest_per_fund,
-        -> {
-          order(target_date: :desc)
-            .select("DISTINCT ON (mutual_fund_id) forecasts.*")
-        }
+  validates :mutual_fund_id,
+            uniqueness: {
+              scope: %i[target_date model_name]
+            }
+
+  scope :latest_first, -> { order(target_date: :desc) }
+
+  scope :latest, -> {
+    where(
+      target_date: maximum(:target_date)
+    )
+  }
 end

@@ -22,6 +22,7 @@ services:
       timeout: 5s
       retries: 5
 
+
   redis:
     image: redis:7-alpine
     container_name: mf_redis
@@ -36,6 +37,7 @@ services:
       timeout: 5s
       retries: 5
 
+
   web:
     build:
       context: .
@@ -43,16 +45,17 @@ services:
         UID: ${UID}
         GID: ${GID}
 
-    user: "${UID}:${GID}"
     container_name: mf_rails
-
-    command: bundle exec rails server -b 0.0.0.0
+    user: "${UID}:${GID}"
 
     working_dir: /app
+
+    command: bundle exec rails server -b 0.0.0.0
 
     volumes:
       - .:/app
       - bundle_cache:/usr/local/bundle
+      - ./exports:/app/exports
 
     ports:
       - "3000:3000"
@@ -78,6 +81,9 @@ services:
       OPENFIGI_API_KEY: ${OPENFIGI_API_KEY}
       YAHOO_FINANCE_BASE_URL: ${YAHOO_FINANCE_BASE_URL}
 
+      ML_SERVICE_URL: http://ml:8000
+
+
   sidekiq:
     build:
       context: .
@@ -85,16 +91,17 @@ services:
         UID: ${UID}
         GID: ${GID}
 
-    user: "${UID}:${GID}"
     container_name: mf_sidekiq
-
-    command: bundle exec sidekiq -C config/sidekiq.yml
+    user: "${UID}:${GID}"
 
     working_dir: /app
+
+    command: bundle exec sidekiq -C config/sidekiq.yml
 
     volumes:
       - .:/app
       - bundle_cache:/usr/local/bundle
+      - ./exports:/app/exports
 
     depends_on:
       postgres:
@@ -116,6 +123,31 @@ services:
 
       OPENFIGI_API_KEY: ${OPENFIGI_API_KEY}
       YAHOO_FINANCE_BASE_URL: ${YAHOO_FINANCE_BASE_URL}
+
+      ML_SERVICE_URL: http://ml:8000
+
+
+  ml:
+    build:
+      context: ./ml_service
+
+    container_name: mf_ml
+
+    restart: unless-stopped
+
+    working_dir: /app
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./ml_service:/app
+      - ./exports:/app/exports
+
+    environment:
+      DATASET_PATH: /app/exports/training_dataset.csv
+      MODEL_PATH: /app/models/model.pkl
+
 
 volumes:
   postgres_data:

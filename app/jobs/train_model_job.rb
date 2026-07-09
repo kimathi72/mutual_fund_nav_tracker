@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class DatasetExportJob < ApplicationJob
+class TrainModelJob < ApplicationJob
   queue_as :machine_learning
 
   retry_on StandardError,
@@ -8,8 +8,8 @@ class DatasetExportJob < ApplicationJob
            attempts: 5
 
   def perform
-    Ml::DatasetExportService.new.call
+    Ml::TrainModelService.new.call
 
-    TrainModelJob.perform_later
+    GenerateForecastsJob.perform_later
   end
 end

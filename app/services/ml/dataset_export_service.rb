@@ -1,3 +1,5 @@
+# app/services/ml/dataset_export_service.rb
+
 # frozen_string_literal: true
 
 require "csv"
@@ -5,11 +7,10 @@ require "fileutils"
 
 module Ml
   class DatasetExportService < ApplicationService
-    DEFAULT_PATH = Rails.root.join(
-      "tmp",
-      "ml",
-      "training_dataset.csv"
-    )
+    DEFAULT_PATH =
+      Rails.root
+           .join("exports")
+           .join("training_dataset.csv")
 
     def initialize(path: DEFAULT_PATH)
       @path = Pathname.new(path)
