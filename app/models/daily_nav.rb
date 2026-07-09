@@ -1,8 +1,16 @@
+# frozen_string_literal: true
+
 class DailyNav < ApplicationRecord
   belongs_to :mutual_fund
 
+  has_one :daily_nav_metric,
+          dependent: :destroy
+
   validates :nav_date,
-            presence: true
+            presence: true,
+            uniqueness: {
+              scope: :mutual_fund_id
+            }
 
   validates :nav,
             presence: true,
@@ -18,11 +26,6 @@ class DailyNav < ApplicationRecord
 
   validates :fetched_at,
             presence: true
-
-  validates :nav_date,
-            uniqueness: {
-              scope: :mutual_fund_id
-            }
 
   scope :latest_first, -> { order(nav_date: :desc) }
 
