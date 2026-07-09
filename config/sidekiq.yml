@@ -2,10 +2,14 @@
 
 :queues:
   - critical
-  - default
   - market_data
+  - analytics
+  - default
+  - mailers
 
-import_historical_navs:
-  cron: "15 20 * * 1-5"
-  class: ImportHistoricalNavsJob
-  queue: market_data
+:scheduler:
+  :schedule:
+    import_historical_navs:
+      cron: "15 20 * * 1-5"
+      class: ImportHistoricalNavsJob
+      queue: market_data

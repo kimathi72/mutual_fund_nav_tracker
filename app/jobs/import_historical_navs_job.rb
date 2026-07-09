@@ -4,14 +4,27 @@ class ImportHistoricalNavsJob < ApplicationJob
   queue_as :market_data
 
   retry_on StandardError,
-           wait: :exponentially_longer,
+           wait: :polynomially_longer,
            attempts: 5
 
   def perform
-    Rails.logger.info("[ImportHistoricalNavsJob] Starting...")
+    Rails.logger.info(
+      "[ImportHistoricalNavsJob] Starting..."
+    )
 
-    MarketData::ImportHistoricalNavsService.new.call
+    success =
+      MarketData::ImportHistoricalNavsService.new.call
 
-    Rails.logger.info("[ImportHistoricalNavsJob] Finished.")
+    if success
+      CalculateDailyMetricsJob.perform_later
+
+      Rails.logger.info(
+        "[ImportHistoricalNavsJob] Analytics job queued."
+      )
+    end
+
+    Rails.logger.info(
+      "[ImportHistoricalNavsJob] Finished."
+    )
   end
 end

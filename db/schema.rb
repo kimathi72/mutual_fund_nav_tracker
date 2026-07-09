@@ -10,9 +10,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_08_125519) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_09_081053) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "daily_nav_metrics", force: :cascade do |t|
+    t.bigint "daily_nav_id", null: false
+    t.bigint "mutual_fund_id", null: false
+    t.decimal "daily_return", precision: 12, scale: 8
+    t.decimal "weekly_return", precision: 12, scale: 8
+    t.decimal "monthly_return", precision: 12, scale: 8
+    t.decimal "ytd_return", precision: 12, scale: 8
+    t.decimal "volatility_30", precision: 12, scale: 8
+    t.decimal "drawdown", precision: 12, scale: 8
+    t.decimal "moving_average_7", precision: 18, scale: 6
+    t.decimal "moving_average_30", precision: 18, scale: 6
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["daily_nav_id"], name: "index_daily_nav_metrics_on_daily_nav_id", unique: true
+    t.index ["mutual_fund_id", "drawdown"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_drawdown"
+    t.index ["mutual_fund_id", "monthly_return"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_monthly_return"
+    t.index ["mutual_fund_id", "volatility_30"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_volatility_30"
+    t.index ["mutual_fund_id", "ytd_return"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_ytd_return"
+    t.index ["mutual_fund_id"], name: "index_daily_nav_metrics_on_mutual_fund_id"
+  end
 
   create_table "daily_navs", force: :cascade do |t|
     t.bigint "mutual_fund_id", null: false
@@ -63,5 +84,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_08_125519) do
     t.index ["market_data_symbol"], name: "index_mutual_funds_on_market_data_symbol"
   end
 
+  add_foreign_key "daily_nav_metrics", "daily_navs"
+  add_foreign_key "daily_nav_metrics", "mutual_funds"
   add_foreign_key "daily_navs", "mutual_funds"
 end
