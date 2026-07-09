@@ -14,6 +14,8 @@ class CalculateDailyMetricsJob < ApplicationJob
 
     Analytics::CalculateDailyMetricsService.new.call
 
+    BuildTrainingDatasetJob.perform_later
+
     Rails.logger.info(
       "[CalculateDailyMetricsJob] Finished."
     )
