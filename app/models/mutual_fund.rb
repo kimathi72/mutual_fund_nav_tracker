@@ -3,6 +3,14 @@
 class MutualFund < ApplicationRecord
   has_many :daily_navs, dependent: :destroy
   has_many :daily_nav_metrics, dependent: :destroy
+  has_many :market_data_snapshots,
+          dependent: :destroy
+
+  has_many :ml_training_rows,
+           dependent: :destroy
+
+  has_many :forecasts,
+           dependent: :destroy
 
   validates :name,
             presence: true

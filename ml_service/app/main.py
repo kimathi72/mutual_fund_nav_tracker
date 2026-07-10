@@ -1,31 +1,36 @@
 from fastapi import FastAPI
 
-from .trainer import ModelTrainer
 from .predictor import Predictor
+from .schemas import PredictionRequest
+from .trainer import ModelTrainer
 
-app = FastAPI(
-    title="Forecast Engine",
-    version="1.0"
-)
+app = FastAPI()
 
 
 @app.get("/")
 def root():
     return {
-        "status": "healthy"
+        "service": "Mutual Fund ML Service",
+        "status": "running"
     }
 
 
 @app.post("/train")
 def train():
-    return ModelTrainer().train()
+    result = ModelTrainer().train()
+
+    return {
+        "status": "success",
+        **result
+    }
 
 
 @app.post("/predict")
-def predict(payload: dict):
-    prediction = Predictor().predict(payload)
+def predict(request: PredictionRequest):
+    prediction = Predictor().predict(
+        request.model_dump()
+    )
 
     return {
-        "prediction": prediction,
-        "confidence": 0.95
+        "prediction": prediction
     }

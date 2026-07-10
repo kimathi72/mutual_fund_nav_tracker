@@ -36,3 +36,8 @@
 # Docker
 postgres_data
 bundle_cache
+
+# Python
+__pycache__/
+*.py[cod]
+

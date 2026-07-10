@@ -18,6 +18,14 @@ Rails.application.routes.draw do
           to: "reports#risk"
 
       resources :rankings, only: :index
+      get "forecasts/latest",
+          to: "forecasts#latest"
+
+      get "forecasts/:isin",
+          to: "forecasts#show"
+
+      resources :forecasts,
+                only: [:index]
     end
   end
 end

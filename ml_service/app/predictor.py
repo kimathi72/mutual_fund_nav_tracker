@@ -2,10 +2,21 @@ import joblib
 import pandas as pd
 
 from .config import MODEL_PATH
-from .trainer import ModelTrainer
 
 
 class Predictor:
+
+    FEATURES = [
+        "nav",
+        "daily_return",
+        "weekly_return",
+        "monthly_return",
+        "ytd_return",
+        "moving_average_7",
+        "moving_average_30",
+        "volatility_30",
+        "drawdown"
+    ]
 
     def __init__(self):
         self.model = joblib.load(MODEL_PATH)
@@ -14,7 +25,7 @@ class Predictor:
         frame = pd.DataFrame([payload])
 
         prediction = self.model.predict(
-            frame[ModelTrainer.FEATURES]
+            frame[self.FEATURES]
         )[0]
 
         return float(prediction)

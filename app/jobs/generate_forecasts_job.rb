@@ -8,6 +8,20 @@ class GenerateForecastsJob < ApplicationJob
            attempts: 5
 
   def perform
+    Rails.logger.info(
+      "[GenerateForecastsJob] Starting..."
+    )
+
     Ml::GenerateForecastsService.new.call
+
+    Rails.logger.info(
+      "[GenerateForecastsJob] Finished."
+    )
+  rescue StandardError => e
+    Rails.logger.error(
+      "[GenerateForecastsJob] #{e.class}: #{e.message}"
+    )
+
+    raise
   end
 end

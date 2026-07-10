@@ -17,8 +17,7 @@ module Reporting
               .new
               .call,
 
-          funds:
-            fund_reports
+          funds: fund_reports
         }
       end
 
@@ -26,23 +25,36 @@ module Reporting
 
       def fund_reports
         MutualFund
-          .where(active: true)
+          .active
+          .includes(
+            :daily_navs,
+            :forecasts
+          )
           .order(:name)
           .map do |fund|
 
-          {
-            performance:
-              Reporting::Performance::PerformanceReportService
-                .new(fund: fund)
-                .call,
+            {
+              fund_id: fund.id,
+              isin: fund.isin,
+              fund_name: fund.name,
 
-            risk:
-              Reporting::Risk::RiskReportService
-                .new(fund: fund)
-                .call
-          }
+              performance:
+                Reporting::Performance::PerformanceReportService
+                  .new(fund: fund)
+                  .call,
 
-        end
+              risk:
+                Reporting::Risk::RiskReportService
+                  .new(fund: fund)
+                  .call,
+
+              forecast:
+                Reporting::Forecast::ForecastReportService
+                  .new(fund: fund)
+                  .call
+            }
+
+          end
       end
     end
   end

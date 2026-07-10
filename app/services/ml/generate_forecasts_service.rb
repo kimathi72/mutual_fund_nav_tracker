@@ -2,7 +2,7 @@
 
 module Ml
   class GenerateForecastsService < ApplicationService
-    MODEL_NAME = "xgboost-v1"
+    MODEL_VERSION = "xgboost-v1"
 
     def initialize(
       client: Ml::Client.new,
@@ -14,19 +14,21 @@ module Ml
 
     def call
       Rails.logger.info(
-        "[GenerateForecastsService] Starting..."
+        "[GenerateForecastsService] Starting forecast generation..."
       )
 
+      generated = 0
+
       scope.find_each do |fund|
-        forecast_for(fund)
-      rescue => e
+        generated += 1 if forecast_for(fund)
+      rescue StandardError => e
         Rails.logger.error(
-          "[GenerateForecastsService] #{fund.isin}: #{e.message}"
+          "[GenerateForecastsService] #{fund.isin} - #{e.class}: #{e.message}"
         )
       end
 
       Rails.logger.info(
-        "[GenerateForecastsService] Finished."
+        "[GenerateForecastsService] Finished. #{generated} forecast(s) generated."
       )
 
       true
@@ -43,55 +45,71 @@ module Ml
           .latest_first
           .first
 
-      return unless row
+      unless row
+        Rails.logger.warn(
+          "[GenerateForecastsService] #{fund.isin} has no training row."
+        )
 
-      result =
+        return false
+      end
+
+      response =
         client.predict(
           prediction_payload(row)
         )
 
-      Forecast.upsert(
-        {
-          mutual_fund_id: fund.id,
+      prediction = response["prediction"]
 
-          target_date: row.feature_date + 1.day,
+      if prediction.blank?
+        Rails.logger.warn(
+          "[GenerateForecastsService] #{fund.isin} returned no prediction."
+        )
 
-          model_name: MODEL_NAME,
+        return false
+      end
 
-          predicted_nav: result.fetch("prediction"),
+      timestamp = Time.current
 
-          confidence_score: result["confidence"],
+      Forecast.transaction do
+        Forecast.upsert(
+            {
+                mutual_fund_id: fund.id,
 
-          created_at: Time.current,
+                forecast_date: row.feature_date,
 
-          updated_at: Time.current
-        },
-        unique_by: :idx_forecasts_unique
-      )
+                target_date: row.feature_date + 1.day,
+
+                model_version: MODEL_VERSION,
+
+                predicted_nav: prediction,
+
+                confidence_score: response["confidence"],
+
+                created_at: timestamp,
+
+                updated_at: timestamp
+            },
+            unique_by: :idx_forecasts_unique
+            )
+      end
 
       Rails.logger.info(
-        "[GenerateForecastsService] #{fund.isin} predicted."
+        "[GenerateForecastsService] #{fund.isin} => #{prediction.round(4)}"
       )
+
+      true
     end
 
     def prediction_payload(row)
       {
         nav: row.nav,
-
         daily_return: row.daily_return,
-
         weekly_return: row.weekly_return,
-
         monthly_return: row.monthly_return,
-
         ytd_return: row.ytd_return,
-
         moving_average_7: row.moving_average_7,
-
         moving_average_30: row.moving_average_30,
-
         volatility_30: row.volatility_30,
-
         drawdown: row.drawdown
       }
     end

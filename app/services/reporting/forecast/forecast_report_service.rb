@@ -8,40 +8,24 @@ module Reporting
       end
 
       def call
-        forecast =
-          ::Forecast
-            .where(mutual_fund: fund)
-            .latest_first
-            .first
+        forecast = fund.forecasts.first
 
         return no_forecast unless forecast
 
-        latest_nav =
-          fund
-            .daily_navs
-            .latest_first
-            .first
-
-        trend =
-          calculate_trend(
-            latest_nav&.nav,
-            forecast.predicted_nav
-          )
+        latest_nav = fund.daily_navs.latest_first.first
 
         {
           fund_id: fund.id,
-
           isin: fund.isin,
-
           fund_name: fund.name,
 
           latest_nav: latest_nav&.nav,
-
           latest_nav_date: latest_nav&.nav_date,
 
+          forecast_date: forecast.forecast_date,
           target_date: forecast.target_date,
 
-          model: forecast.model_name,
+          model_version: forecast.model_version,
 
           predicted_nav: forecast.predicted_nav,
 
@@ -51,9 +35,13 @@ module Reporting
               forecast.predicted_nav
             ),
 
-          confidence: forecast.confidence_score,
+          confidence: confidence(forecast),
 
-          trend: trend
+          trend:
+            calculate_trend(
+              latest_nav&.nav,
+              forecast.predicted_nav
+            )
         }
       end
 
@@ -61,23 +49,27 @@ module Reporting
 
       attr_reader :fund
 
+      def confidence(forecast)
+        forecast.confidence_score || forecast.confidence
+      end
+
       def percentage_change(current, predicted)
         return nil if current.blank?
         return nil if predicted.blank?
         return nil if current.zero?
 
-        ((predicted - current) / current) * 100.0
+        (((predicted - current) / current) * 100).round(2)
       end
 
       def calculate_trend(current, predicted)
-        return "Unknown" if current.blank?
-        return "Unknown" if predicted.blank?
+        return "Unavailable" if current.blank?
+        return "Unavailable" if predicted.blank?
 
-        diff =
-          ((predicted - current) / current) * 100.0
+        change =
+          percentage_change(current, predicted)
 
-        return "Bullish" if diff >= 1.0
-        return "Bearish" if diff <= -1.0
+        return "Bullish" if change >= 1
+        return "Bearish" if change <= -1
 
         "Neutral"
       end
@@ -85,18 +77,16 @@ module Reporting
       def no_forecast
         {
           fund_id: fund.id,
-
           isin: fund.isin,
-
           fund_name: fund.name,
 
           latest_nav: nil,
-
           latest_nav_date: nil,
 
+          forecast_date: nil,
           target_date: nil,
 
-          model: nil,
+          model_version: nil,
 
           predicted_nav: nil,
 

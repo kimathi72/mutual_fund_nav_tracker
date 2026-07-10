@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_09_133048) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_10_074417) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -68,11 +68,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_09_133048) do
     t.decimal "lower_bound", precision: 18, scale: 8
     t.decimal "upper_bound", precision: 18, scale: 8
     t.decimal "confidence", precision: 8, scale: 4
-    t.string "model_name"
     t.string "model_version"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["mutual_fund_id", "target_date", "model_name"], name: "idx_forecasts_unique", unique: true
+    t.decimal "confidence_score", precision: 8, scale: 6
+    t.index ["mutual_fund_id", "target_date", "model_version"], name: "idx_forecasts_unique", unique: true
     t.index ["mutual_fund_id"], name: "index_forecasts_on_mutual_fund_id"
   end
 
