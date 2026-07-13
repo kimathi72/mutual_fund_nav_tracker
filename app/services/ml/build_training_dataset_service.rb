@@ -3,17 +3,18 @@
 module Ml
   class BuildTrainingDatasetService < ApplicationService
     LOOKBACK_DAYS = 35
+    INITIAL_IMPORT_DATE = Date.new(2025, 1, 1)
 
-    def initialize(scope: MutualFund.active)
+    def initialize(scope: MutualFund.where(active: true))
       @scope = scope
     end
 
     def call
       Rails.logger.info(
-        "[BuildTrainingDatasetService] Starting..."
+        "[BuildTrainingDatasetService] Processing #{scope.size} funds..."
       )
 
-      scope.find_each do |fund|
+      each_fund do |fund|
         build_for_fund(fund)
       rescue => e
         Rails.logger.error(
@@ -31,7 +32,14 @@ module Ml
     private
 
     attr_reader :scope
-
+    def each_fund(&block)
+      if scope.respond_to?(:find_each)
+        scope.find_each(&block)
+      else
+        Array(scope).each(&block)
+      end
+    end
+    
     def build_for_fund(fund)
       last_feature_date =
         MlTrainingRow
@@ -44,21 +52,23 @@ module Ml
           .where(daily_navs: { mutual_fund_id: fund.id })
           .maximum("daily_navs.nav_date")
 
-      return unless latest_metric_date
+      return false unless latest_metric_date
 
       if last_feature_date.present? &&
          last_feature_date >= latest_metric_date
+
         Rails.logger.info(
           "[BuildTrainingDatasetService] #{fund.isin}: already up-to-date"
         )
-        return
+
+        return false
       end
 
       start_date =
         if last_feature_date.present?
           last_feature_date - LOOKBACK_DAYS.days
         else
-          Date.new(2025, 1, 1)
+          INITIAL_IMPORT_DATE
         end
 
       metrics =
@@ -70,12 +80,14 @@ module Ml
           .order("daily_navs.nav_date ASC")
           .to_a
 
-      return if metrics.empty?
+      return false if metrics.empty?
 
-      build_rows(metrics)
+      build_rows(fund, metrics)
+
+      true
     end
 
-    def build_rows(metrics)
+    def build_rows(fund, metrics)
       feature_builder = Ml::FeatureRowBuilder.new
       target_builder = Ml::TargetCalculator.new
 
@@ -98,7 +110,7 @@ module Ml
       )
 
       Rails.logger.info(
-        "[BuildTrainingDatasetService] Imported #{rows.size} feature rows"
+        "[BuildTrainingDatasetService] #{fund.isin}: #{rows.size} feature rows generated"
       )
     end
   end

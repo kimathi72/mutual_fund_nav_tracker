@@ -4,10 +4,15 @@ module Api
   module V1
     class DashboardController < BaseController
       def index
-        render json:
+        dashboard =
           Reporting::Dashboard::ExecutiveDashboardService
             .new
             .call
+
+        render json:
+          DashboardSerializer
+            .new(dashboard)
+            .as_json
       end
     end
   end

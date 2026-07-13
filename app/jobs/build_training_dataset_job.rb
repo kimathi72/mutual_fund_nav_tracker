@@ -7,9 +7,18 @@ class BuildTrainingDatasetJob < ApplicationJob
            wait: :polynomially_longer,
            attempts: 5
 
-  def perform
-    Ml::BuildTrainingDatasetService.new.call
+  def perform(fund_ids = nil)
+    scope =
+      if fund_ids.present?
+        MutualFund.where(id: fund_ids)
+      else
+        MutualFund.active
+      end
 
-    DatasetExportJob.perform_later
+    Ml::BuildTrainingDatasetService.new(
+      scope: scope
+    ).call
+
+    DatasetExportJob.perform_later(fund_ids)
   end
 end

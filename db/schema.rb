@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_10_074417) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_13_164344) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -58,6 +58,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_074417) do
     t.index ["provider_symbol"], name: "index_daily_navs_on_provider_symbol"
     t.index ["raw_payload"], name: "index_daily_navs_on_raw_payload", using: :gin
     t.index ["source"], name: "index_daily_navs_on_source"
+  end
+
+  create_table "executive_briefings", force: :cascade do |t|
+    t.date "as_of_date", null: false
+    t.string "provider", null: false
+    t.string "model", null: false
+    t.string "status", default: "success", null: false
+    t.text "prompt"
+    t.text "briefing"
+    t.text "error"
+    t.datetime "generated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["as_of_date", "provider", "model"], name: "idx_executive_briefings_unique", unique: true
+    t.index ["generated_at"], name: "index_executive_briefings_on_generated_at"
   end
 
   create_table "forecasts", force: :cascade do |t|

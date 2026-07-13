@@ -7,21 +7,18 @@ class GenerateForecastsJob < ApplicationJob
            wait: :polynomially_longer,
            attempts: 5
 
-  def perform
-    Rails.logger.info(
-      "[GenerateForecastsJob] Starting..."
-    )
+  def perform(fund_ids = nil)
+    scope =
+      if fund_ids.present?
+        MutualFund.where(id: fund_ids)
+      else
+        MutualFund.active
+      end
 
-    Ml::GenerateForecastsService.new.call
+    Ml::GenerateForecastsService.new(
+      scope: scope
+    ).call
 
-    Rails.logger.info(
-      "[GenerateForecastsJob] Finished."
-    )
-  rescue StandardError => e
-    Rails.logger.error(
-      "[GenerateForecastsJob] #{e.class}: #{e.message}"
-    )
-
-    raise
+    GenerateExecutiveBriefingJob.perform_later
   end
 end

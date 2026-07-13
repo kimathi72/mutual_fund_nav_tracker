@@ -1,35 +1,57 @@
 # frozen_string_literal: true
 
-class DashboardSerializer
-  def initialize(payload)
-    @payload = payload
+class DashboardSerializer < ApplicationSerializer
+  def initialize(dashboard)
+    @dashboard = dashboard
   end
 
   def as_json(*)
     {
-      status: "success",
+      generated_at: dashboard.generated_at,
 
-      summary: payload[:summary],
+      summary:
+        PortfolioSummarySerializer
+          .new(dashboard.summary)
+          .as_json,
 
-      top_gainers:
-        serialize_forecasts(
-          payload[:top_gainers]
-        ),
+      rankings: dashboard.rankings,
 
-      top_losers:
-        serialize_forecasts(
-          payload[:top_losers]
-        )
+      portfolio_insight:
+        serialize_portfolio_insight,
+
+      briefing:
+        serialize_briefing,
+
+      funds:
+        serialize_funds
     }
   end
 
   private
 
-  attr_reader :payload
+  attr_reader :dashboard
 
-  def serialize_forecasts(forecasts)
-    forecasts.map do |forecast|
-      ForecastSerializer.new(forecast).as_json
+  def serialize_portfolio_insight
+    return nil unless dashboard.portfolio_insight
+
+    PortfolioInsightSerializer
+      .new(dashboard.portfolio_insight)
+      .as_json
+  end
+
+  def serialize_briefing
+    return nil unless dashboard.briefing
+
+    ExecutiveBriefingSerializer
+      .new(dashboard.briefing)
+      .as_json
+  end
+
+  def serialize_funds
+    dashboard.funds.map do |fund|
+      ForecastReportSerializer
+        .new(fund[:forecast])
+        .as_json
     end
   end
 end

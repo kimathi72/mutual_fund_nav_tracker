@@ -7,17 +7,18 @@ class CalculateDailyMetricsJob < ApplicationJob
            wait: :polynomially_longer,
            attempts: 5
 
-  def perform
-    Rails.logger.info(
-      "[CalculateDailyMetricsJob] Starting..."
-    )
+  def perform(fund_ids = nil)
+    scope =
+      if fund_ids.present?
+        MutualFund.where(id: fund_ids)
+      else
+        MutualFund.active
+      end
 
-    Analytics::CalculateDailyMetricsService.new.call
+    Analytics::CalculateDailyMetricsService.new(
+      scope: scope
+    ).call
 
-    BuildTrainingDatasetJob.perform_later
-
-    Rails.logger.info(
-      "[CalculateDailyMetricsJob] Finished."
-    )
+    BuildTrainingDatasetJob.perform_later(fund_ids)
   end
 end

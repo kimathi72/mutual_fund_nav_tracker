@@ -19,6 +19,8 @@ module Ml
     def call
       FileUtils.mkdir_p(path.dirname)
 
+      total_rows = dataset.count
+
       CSV.open(path, "wb") do |csv|
         csv << headers
 
@@ -28,7 +30,7 @@ module Ml
       end
 
       Rails.logger.info(
-        "[DatasetExportService] Exported #{dataset.count} rows to #{path}"
+        "[DatasetExportService] Exported #{total_rows} training rows to #{path}"
       )
 
       path

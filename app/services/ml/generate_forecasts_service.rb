@@ -5,21 +5,21 @@ module Ml
     MODEL_VERSION = "xgboost-v1"
 
     def initialize(
-      client: Ml::Client.new,
-      scope: MutualFund.active
+      scope: MutualFund.active,
+      prediction_client: Ml::PredictionClient.new
     )
-      @client = client
       @scope = scope
+      @prediction_client = prediction_client
     end
 
     def call
       Rails.logger.info(
-        "[GenerateForecastsService] Starting forecast generation..."
+        "[GenerateForecastsService] Processing #{scope.size} fund(s)..."
       )
 
       generated = 0
 
-      scope.find_each do |fund|
+      each_fund do |fund|
         generated += 1 if forecast_for(fund)
       rescue StandardError => e
         Rails.logger.error(
@@ -36,7 +36,16 @@ module Ml
 
     private
 
-    attr_reader :client, :scope
+    attr_reader :scope,
+                :prediction_client
+
+    def each_fund(&block)
+      if scope.respond_to?(:find_each)
+        scope.find_each(&block)
+      else
+        Array(scope).each(&block)
+      end
+    end
 
     def forecast_for(fund)
       row =
@@ -54,7 +63,7 @@ module Ml
       end
 
       response =
-        client.predict(
+        prediction_client.predict(
           prediction_payload(row)
         )
 
@@ -70,28 +79,19 @@ module Ml
 
       timestamp = Time.current
 
-      Forecast.transaction do
-        Forecast.upsert(
-            {
-                mutual_fund_id: fund.id,
-
-                forecast_date: row.feature_date,
-
-                target_date: row.feature_date + 1.day,
-
-                model_version: MODEL_VERSION,
-
-                predicted_nav: prediction,
-
-                confidence_score: response["confidence"],
-
-                created_at: timestamp,
-
-                updated_at: timestamp
-            },
-            unique_by: :idx_forecasts_unique
-            )
-      end
+      Forecast.upsert(
+        {
+          mutual_fund_id: fund.id,
+          forecast_date: row.feature_date,
+          target_date: row.feature_date + 1.day,
+          model_version: MODEL_VERSION,
+          predicted_nav: prediction,
+          confidence_score: response["confidence"],
+          created_at: timestamp,
+          updated_at: timestamp
+        },
+        unique_by: :idx_forecasts_unique
+      )
 
       Rails.logger.info(
         "[GenerateForecastsService] #{fund.isin} => #{prediction.round(4)}"

@@ -12,14 +12,20 @@ class ImportHistoricalNavsJob < ApplicationJob
       "[ImportHistoricalNavsJob] Starting..."
     )
 
-    success =
+    imported_funds =
       MarketData::ImportHistoricalNavsService.new.call
 
-    if success
-      CalculateDailyMetricsJob.perform_later
+    if imported_funds.any?
+      CalculateDailyMetricsJob.perform_later(
+        imported_funds.map(&:id)
+      )
 
       Rails.logger.info(
-        "[ImportHistoricalNavsJob] Analytics job queued."
+        "[ImportHistoricalNavsJob] Queued #{imported_funds.size} updated funds."
+      )
+    else
+      Rails.logger.info(
+        "[ImportHistoricalNavsJob] No new NAVs found."
       )
     end
 

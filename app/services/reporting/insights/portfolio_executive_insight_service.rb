@@ -11,20 +11,20 @@ module Reporting
 
         return unavailable if summary.blank?
 
-        {
+        PortfolioExecutiveInsight.new(
           portfolio_health: portfolio_health(summary),
           market_sentiment: market_sentiment(summary),
           portfolio_risk: portfolio_risk(summary),
           executive_recommendation: executive_recommendation(summary),
           generated_at: Time.current
-        }
+        )
       end
 
       private
 
       def portfolio_health(summary)
         ytd =
-          summary[:average_ytd_return].to_f
+          summary.average_ytd_return.to_f
 
         return "Excellent" if ytd >= 15
         return "Strong" if ytd >= 8
@@ -36,7 +36,7 @@ module Reporting
 
       def market_sentiment(summary)
         weekly =
-          summary[:average_weekly_return].to_f
+          summary.average_weekly_return.to_f
 
         return "Bullish" if weekly > 0.5
         return "Bearish" if weekly < -0.5
@@ -46,7 +46,7 @@ module Reporting
 
       def portfolio_risk(summary)
         volatility =
-          summary[:average_volatility].to_f
+          summary.average_volatility.to_f
 
         return "Low" if volatility < 0.02
         return "Medium" if volatility < 0.05
@@ -56,7 +56,7 @@ module Reporting
 
       def executive_recommendation(summary)
         ytd =
-          summary[:average_ytd_return].to_f
+          summary.average_ytd_return.to_f
 
         risk =
           portfolio_risk(summary)
@@ -71,13 +71,13 @@ module Reporting
       end
 
       def unavailable
-        {
-          portfolio_health: "Unknown",
-          market_sentiment: "Unknown",
-          portfolio_risk: "Unknown",
-          executive_recommendation: "Portfolio data unavailable.",
+        PortfolioExecutiveInsight.new(
+          portfolio_health: portfolio_health(summary),
+          market_sentiment: market_sentiment(summary),
+          portfolio_risk: portfolio_risk(summary),
+          executive_recommendation: executive_recommendation(summary),
           generated_at: Time.current
-        }
+        )
       end
     end
   end

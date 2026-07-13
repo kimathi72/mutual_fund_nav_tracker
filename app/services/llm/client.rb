@@ -2,9 +2,12 @@
 
 module Llm
   class Client
+    def initialize(provider: Providers::GroqProvider.new)
+      @provider = provider
+    end
+
     def chat(prompt)
-      raise NotImplementedError,
-            "LLM provider not configured."
+      @provider.generate(prompt)
     end
   end
 end

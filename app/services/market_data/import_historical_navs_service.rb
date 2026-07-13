@@ -21,8 +21,12 @@ module MarketData
         "[ImportHistoricalNavsService] Starting NAV import..."
       )
 
+      imported_funds = []
+
       scope.find_each do |fund|
-        import_fund(fund)
+        imported = import_fund(fund)
+
+        imported_funds << fund if imported
       rescue => e
         Rails.logger.error(
           "[ImportHistoricalNavsService] #{fund.isin}: #{e.class} #{e.message}"
@@ -33,12 +37,15 @@ module MarketData
         "[ImportHistoricalNavsService] Finished."
       )
 
-      true
+      imported_funds
     end
 
     private
 
-    attr_reader :scope, :client, :from, :to
+    attr_reader :scope,
+                :client,
+                :from,
+                :to
 
     def import_fund(fund)
       unless fund.market_data_symbol.present? &&
@@ -48,7 +55,7 @@ module MarketData
           "[ImportHistoricalNavsService] #{fund.isin}: missing market data mapping"
         )
 
-        return
+        return false
       end
 
       import_from = next_missing_date(fund)
@@ -57,7 +64,8 @@ module MarketData
         Rails.logger.info(
           "[ImportHistoricalNavsService] #{fund.isin}: already up-to-date"
         )
-        return
+
+        return false
       end
 
       Rails.logger.info(
@@ -75,7 +83,8 @@ module MarketData
         Rails.logger.warn(
           "[ImportHistoricalNavsService] #{fund.isin}: provider returned no records"
         )
-        return
+
+        return false
       end
 
       timestamp = Time.current
@@ -100,25 +109,29 @@ module MarketData
         rows,
         unique_by: %i[mutual_fund_id nav_date]
       )
+
       latest_date = rows.max_by { |row| row[:nav_date] }[:nav_date]
+
       fund.update_columns(
-      last_nav_date: latest_date,
-      last_market_data_sync_at: Time.current
-   )
+        last_nav_date: latest_date,
+        last_market_data_sync_at: Time.current
+      )
 
       Rails.logger.info(
         "[ImportHistoricalNavsService] #{fund.isin}: imported #{rows.size} NAV records"
       )
+
+      true
     end
 
     def next_missing_date(fund)
-        return from unless fund.last_nav_date.present?
+      return from unless fund.last_nav_date.present?
 
-        next_date = fund.last_nav_date + 1.day
+      next_date = fund.last_nav_date + 1.day
 
-        return nil if next_date >= Date.current
+      return nil if next_date >= Date.current
 
-        next_date
+      next_date
     end
   end
 end

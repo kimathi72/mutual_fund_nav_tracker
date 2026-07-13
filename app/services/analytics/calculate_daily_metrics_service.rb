@@ -19,10 +19,10 @@ module Analytics
 
     def call
       Rails.logger.info(
-        "[CalculateDailyMetricsService] Starting..."
+        "[CalculateDailyMetricsService] Processing #{scope.size} funds..."
       )
 
-      scope.find_each do |fund|
+      each_fund do |fund|
         calculate_for_fund(fund)
       rescue => e
         Rails.logger.error(
@@ -47,14 +47,21 @@ module Analytics
                 :moving_average_calculator,
                 :volatility_calculator,
                 :drawdown_calculator
-
+    def each_fund(&block)
+      if scope.respond_to?(:find_each)
+        scope.find_each(&block)
+      else
+        Array(scope).each(&block)
+      end
+    end
+    
     def calculate_for_fund(fund)
       latest_nav_date =
         DailyNav
           .where(mutual_fund: fund)
           .maximum(:nav_date)
 
-      return unless latest_nav_date
+      return false unless latest_nav_date
 
       last_metric_date =
         DailyNavMetric
@@ -64,10 +71,12 @@ module Analytics
 
       if last_metric_date.present? &&
          last_metric_date >= latest_nav_date
+
         Rails.logger.info(
           "[CalculateDailyMetricsService] #{fund.isin}: already up-to-date"
         )
-        return
+
+        return false
       end
 
       start_date =
@@ -87,9 +96,11 @@ module Analytics
           .order(:nav_date)
           .to_a
 
-      return if navs.empty?
+      return false if navs.empty?
 
       build_metrics(fund, navs)
+
+      true
     end
 
     def build_metrics(fund, navs)

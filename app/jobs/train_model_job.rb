@@ -7,9 +7,9 @@ class TrainModelJob < ApplicationJob
            wait: :polynomially_longer,
            attempts: 5
 
-  def perform
+  def perform(fund_ids = nil)
     Ml::TrainModelService.new.call
 
-    GenerateForecastsJob.perform_later
+    GenerateForecastsJob.perform_later(fund_ids)
   end
 end

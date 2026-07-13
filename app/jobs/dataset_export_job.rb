@@ -7,9 +7,9 @@ class DatasetExportJob < ApplicationJob
            wait: :polynomially_longer,
            attempts: 5
 
-  def perform
+  def perform(fund_ids = nil)
     Ml::DatasetExportService.new.call
 
-    TrainModelJob.perform_later
+    TrainModelJob.perform_later(fund_ids)
   end
 end
