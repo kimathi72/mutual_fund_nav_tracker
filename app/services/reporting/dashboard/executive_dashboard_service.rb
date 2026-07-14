@@ -4,29 +4,35 @@ module Reporting
   module Dashboard
     class ExecutiveDashboardService < ApplicationService
       def call
+        dashboard_data =
+          DashboardDataLoaderService.call
+
         summary =
-          Reporting::Portfolio::PortfolioSummaryService
-            .new
-            .call
+          Reporting::Portfolio::PortfolioSummaryService.call(
+            report_date: dashboard_data.report_date,
+            metrics: dashboard_data.metrics
+          )
 
         rankings =
-          Reporting::Ranking::RankingReportService
-            .new
-            .call
+          Reporting::Ranking::RankingReportService.call(
+            report_date: dashboard_data.report_date,
+            metrics: dashboard_data.metrics
+          )
 
         portfolio_insight =
-          Reporting::Insights::PortfolioExecutiveInsightService
-            .new
-            .call
+          Reporting::Insights::PortfolioExecutiveInsightService.call(
+            summary: summary
+          )
 
-        funds = fund_reports
+        funds =
+          build_funds(dashboard_data)
 
         briefing =
-          Llm::ExecutiveBriefingService.new(
+          Llm::ExecutiveBriefingService.call(
             summary: summary,
             portfolio_insights: portfolio_insight,
-            fund_insights: funds.map { |f| f[:executive_insight] }
-          ).call
+            fund_insights: funds.map(&:executive_insight)
+          )
 
         ExecutiveDashboard.new(
           generated_at: Time.current,
@@ -38,36 +44,75 @@ module Reporting
         )
       end
 
+
       private
 
-      def fund_reports
-        MutualFund
-          .active
-          .includes(:daily_navs, :forecasts)
-          .order(:name)
-          .map do |fund|
-            {
-              performance:
-                Reporting::Performance::PerformanceReportService
-                  .new(fund: fund)
-                  .call,
+      def metric_for(fund, report_date)
+        fund.daily_nav_metrics.find do |metric|
+          metric.daily_nav.nav_date == report_date
+        end
+      end
 
-              risk:
-                Reporting::Risk::RiskReportService
-                  .new(fund: fund)
-                  .call,
+      def latest_nav_for(fund, report_date)
+        fund.daily_navs.find do |nav|
+          nav.nav_date == report_date
+        end
+      end
 
-              forecast:
-                Reporting::Forecast::ForecastReportService
-                  .new(fund: fund)
-                  .call,
+      def latest_forecast_for(fund)
+        fund.forecasts.max_by(&:forecast_date)
+      end
 
-              executive_insight:
-                Reporting::Insights::ExecutiveInsightService
-                  .new(fund: fund)
-                  .call
-            }
-          end
+      def build_funds(dashboard_data)
+        dashboard_data.funds.map do |fund|
+
+          metric =
+            metric_for(
+              fund,
+              dashboard_data.report_date
+            )
+
+          latest_nav =
+            latest_nav_for(
+              fund,
+              dashboard_data.report_date
+            )
+
+          forecast =
+            latest_forecast_for(fund)
+
+          performance =
+            Reporting::Performance::PerformanceReportService.call(
+              fund: fund,
+              metric: metric
+            )
+
+          risk =
+            Reporting::Risk::RiskReportService.call(
+              fund: fund,
+              metric: metric
+            )
+
+          forecast_report =
+            Reporting::Forecast::ForecastReportService.call(
+              fund: fund,
+              forecast: forecast,
+              latest_nav: latest_nav
+            )
+
+          executive_insight =
+            Reporting::Insights::ExecutiveInsightService.call(
+              fund: fund,
+              forecast_report: forecast_report
+            )
+
+          ExecutiveFund.new(
+            performance: performance,
+            risk: risk,
+            forecast: forecast_report,
+            executive_insight: executive_insight
+          )
+        end
       end
     end
   end

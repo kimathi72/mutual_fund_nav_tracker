@@ -3,16 +3,18 @@
 module Reporting
   module Forecast
     class ForecastReportService < ApplicationService
-      def initialize(fund:)
+      def initialize(
+        fund:,
+        forecast:,
+        latest_nav:
+      )
         @fund = fund
+        @forecast = forecast
+        @latest_nav = latest_nav
       end
 
       def call
-        forecast = fund.forecasts.latest_first.first
-
         return empty_report unless forecast
-
-        latest_nav = fund.daily_navs.latest_first.first
 
         ForecastReport.new(
           fund_id: fund.id,
@@ -38,7 +40,9 @@ module Reporting
 
       private
 
-      attr_reader :fund
+      attr_reader :fund,
+                  :forecast,
+                  :latest_nav
 
       def confidence(forecast)
         forecast.confidence_score || forecast.confidence
@@ -69,8 +73,8 @@ module Reporting
           fund_id: fund.id,
           isin: fund.isin,
           fund_name: fund.name,
-          latest_nav: nil,
-          latest_nav_date: nil,
+          latest_nav: latest_nav&.nav,
+          latest_nav_date: latest_nav&.nav_date,
           forecast_date: nil,
           target_date: nil,
           model_version: nil,

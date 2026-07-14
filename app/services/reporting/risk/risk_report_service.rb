@@ -3,38 +3,32 @@
 module Reporting
   module Risk
     class RiskReportService < ApplicationService
-      def initialize(fund:)
+      def initialize(
+        fund:,
+        metric:
+      )
         @fund = fund
+        @metric = metric
       end
 
       def call
-        metric =
-          DailyNavMetric
-            .includes(:daily_nav)
-            .where(mutual_fund: fund)
-            .order("daily_navs.nav_date DESC")
-            .references(:daily_nav)
-            .first
+        return empty_report unless metric
 
-        return {} unless metric
-
-        {
+        RiskReport.new(
           fund_id: fund.id,
           isin: fund.isin,
           fund_name: fund.name,
-
           nav_date: metric.daily_nav.nav_date,
-
           volatility_30: metric.volatility_30,
           drawdown: metric.drawdown,
-
           risk_level: risk_level(metric.volatility_30)
-        }
+        )
       end
 
       private
 
-      attr_reader :fund
+      attr_reader :fund,
+                  :metric
 
       def risk_level(volatility)
         return "Unknown" if volatility.nil?
@@ -51,6 +45,18 @@ module Reporting
         else
           "High"
         end
+      end
+
+      def empty_report
+        RiskReport.new(
+          fund_id: fund.id,
+          isin: fund.isin,
+          fund_name: fund.name,
+          nav_date: nil,
+          volatility_30: nil,
+          drawdown: nil,
+          risk_level: "Unknown"
+        )
       end
     end
   end

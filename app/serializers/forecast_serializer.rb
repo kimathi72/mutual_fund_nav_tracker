@@ -9,8 +9,6 @@ class ForecastSerializer
     {
       id: forecast.id,
 
-      isin: forecast.mutual_fund.isin,
-      fund_name: forecast.mutual_fund.name,
 
       forecast_date: forecast.forecast_date,
       target_date: forecast.target_date,

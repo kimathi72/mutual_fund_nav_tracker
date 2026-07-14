@@ -14,16 +14,25 @@ class DashboardSerializer < ApplicationSerializer
           .new(dashboard.summary)
           .as_json,
 
-      rankings: dashboard.rankings,
+      rankings:
+        RankingSerializer
+          .new(dashboard.rankings)
+          .as_json,
 
       portfolio_insight:
-        serialize_portfolio_insight,
+        PortfolioInsightSerializer
+          .new(dashboard.portfolio_insight)
+          .as_json,
 
       briefing:
         serialize_briefing,
 
       funds:
-        serialize_funds
+        dashboard.funds.map do |fund|
+          ExecutiveFundSerializer
+            .new(fund)
+            .as_json
+        end
     }
   end
 
@@ -31,27 +40,11 @@ class DashboardSerializer < ApplicationSerializer
 
   attr_reader :dashboard
 
-  def serialize_portfolio_insight
-    return nil unless dashboard.portfolio_insight
-
-    PortfolioInsightSerializer
-      .new(dashboard.portfolio_insight)
-      .as_json
-  end
-
   def serialize_briefing
     return nil unless dashboard.briefing
 
     ExecutiveBriefingSerializer
       .new(dashboard.briefing)
       .as_json
-  end
-
-  def serialize_funds
-    dashboard.funds.map do |fund|
-      ForecastReportSerializer
-        .new(fund[:forecast])
-        .as_json
-    end
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_13_164344) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_13_190214) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -89,6 +89,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_13_164344) do
     t.decimal "confidence_score", precision: 8, scale: 6
     t.index ["mutual_fund_id", "target_date", "model_version"], name: "idx_forecasts_unique", unique: true
     t.index ["mutual_fund_id"], name: "index_forecasts_on_mutual_fund_id"
+  end
+
+  create_table "ml_models", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "version", null: false
+    t.string "framework"
+    t.string "algorithm"
+    t.string "status", default: "development"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name", "version"], name: "index_ml_models_on_name_and_version", unique: true
   end
 
   create_table "ml_training_rows", force: :cascade do |t|

@@ -6,32 +6,32 @@ module Reporting
       HIGH_CONFIDENCE = 0.85
       MEDIUM_CONFIDENCE = 0.65
 
-      def initialize(fund:)
+      def initialize(
+        fund:,
+        forecast_report:
+      )
         @fund = fund
+        @forecast_report = forecast_report
       end
 
       def call
-        report =
-          Reporting::Forecast::ForecastReportService
-            .new(fund: fund)
-            .call
-
-        return unavailable unless forecast_available?(report)
+        return unavailable unless forecast_available?(forecast_report)
 
         ExecutiveInsight.new(
-          executive_summary: executive_summary(report),
-          recommendation: recommendation(report),
-          opportunity_score: opportunity_score(report),
-          market_outlook: market_outlook(report),
-          risk_level: risk_level(report.confidence),
-          confidence: confidence_label(report.confidence),
+          executive_summary: executive_summary(forecast_report),
+          recommendation: recommendation(forecast_report),
+          opportunity_score: opportunity_score(forecast_report),
+          market_outlook: market_outlook(forecast_report),
+          risk_level: risk_level(forecast_report.confidence),
+          confidence: confidence_label(forecast_report.confidence),
           generated_at: Time.current
         )
       end
 
       private
 
-      attr_reader :fund
+      attr_reader :fund,
+                  :forecast_report
 
       def forecast_available?(report)
         report.predicted_nav.present?

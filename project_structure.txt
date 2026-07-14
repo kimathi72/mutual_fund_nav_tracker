@@ -13,6 +13,7 @@
 │   ├── controllers
 │   │   ├── api
 │   │   │   └── v1
+│   │   │       ├── analytics_controller.rb
 │   │   │       ├── base_controller.rb
 │   │   │       ├── dashboard_controller.rb
 │   │   │       ├── forecasts_controller.rb
@@ -28,6 +29,7 @@
 │   │   ├── build_training_dataset_job.rb
 │   │   ├── calculate_daily_metrics_job.rb
 │   │   ├── dataset_export_job.rb
+│   │   ├── generate_executive_briefing_job.rb
 │   │   ├── generate_forecasts_job.rb
 │   │   ├── import_historical_navs_job.rb
 │   │   └── train_model_job.rb
@@ -40,31 +42,39 @@
 │   │   ├── daily_nav_metric.rb
 │   │   ├── executive_briefing.rb
 │   │   ├── forecast.rb
+│   │   ├── ml_model.rb
 │   │   ├── ml_training_row.rb
 │   │   └── mutual_fund.rb
 │   ├── serializers
+│   │   ├── analytics_dashboard_serializer.rb
 │   │   ├── application_serializer.rb
 │   │   ├── dashboard_serializer.rb
 │   │   ├── executive_briefing_serializer.rb
+│   │   ├── executive_fund_serializer.rb
 │   │   ├── executive_insight_serializer.rb
 │   │   ├── forecast_report_serializer.rb
 │   │   ├── forecast_serializer.rb
+│   │   ├── fund_ranking_serializer.rb
 │   │   ├── fund_serializer.rb
 │   │   ├── fund_summary_serializer.rb
+│   │   ├── performance_report_serializer.rb
 │   │   ├── portfolio_insight_serializer.rb
-│   │   └── portfolio_summary_serializer.rb
+│   │   ├── portfolio_summary_serializer.rb
+│   │   ├── ranking_serializer.rb
+│   │   └── risk_report_serializer.rb
 │   ├── services
 │   │   ├── analytics
 │   │   │   ├── calculate_daily_metrics_service.rb
-│   │   │   └── calculators
-│   │   │       ├── base_calculator.rb
-│   │   │       ├── daily_return_calculator.rb
-│   │   │       ├── drawdown_calculator.rb
-│   │   │       ├── monthly_return_calculator.rb
-│   │   │       ├── moving_average_calculator.rb
-│   │   │       ├── volatility_calculator.rb
-│   │   │       ├── weekly_return_calculator.rb
-│   │   │       └── ytd_return_calculator.rb
+│   │   │   ├── calculators
+│   │   │   │   ├── base_calculator.rb
+│   │   │   │   ├── daily_return_calculator.rb
+│   │   │   │   ├── drawdown_calculator.rb
+│   │   │   │   ├── monthly_return_calculator.rb
+│   │   │   │   ├── moving_average_calculator.rb
+│   │   │   │   ├── volatility_calculator.rb
+│   │   │   │   ├── weekly_return_calculator.rb
+│   │   │   │   └── ytd_return_calculator.rb
+│   │   │   └── dashboard_service.rb
 │   │   ├── application_service.rb
 │   │   ├── eodhd
 │   │   │   ├── candidate_ranker.rb
@@ -100,6 +110,7 @@
 │   │   │   └── client.rb
 │   │   ├── reporting
 │   │   │   ├── dashboard
+│   │   │   │   ├── dashboard_data_loader_service.rb
 │   │   │   │   └── executive_dashboard_service.rb
 │   │   │   ├── forecast
 │   │   │   │   └── forecast_report_service.rb
@@ -115,6 +126,7 @@
 │   │   │   │   └── portfolio_summary_service.rb
 │   │   │   ├── ranking
 │   │   │   │   └── ranking_report_service.rb
+│   │   │   ├── reporting_date_service.rb
 │   │   │   └── risk
 │   │   │       └── risk_report_service.rb
 │   │   └── yahoo_finance
@@ -126,11 +138,17 @@
 │   │   └── openfigi
 │   │       └── mapping.rb
 │   ├── view_models
+│   │   ├── dashboard_data.rb
 │   │   ├── executive_dashboard.rb
+│   │   ├── executive_fund.rb
 │   │   ├── executive_insight.rb
 │   │   ├── forecast_report.rb
+│   │   ├── fund_ranking.rb
 │   │   ├── fund_summary.rb
-│   │   └── portfolio_summary.rb
+│   │   ├── performance_report.rb
+│   │   ├── portfolio_summary.rb
+│   │   ├── ranking_report.rb
+│   │   └── risk_report.rb
 │   └── views
 │       └── layouts
 │           ├── mailer.html.erb
@@ -183,7 +201,8 @@
 │   │   ├── 20260710072959_remove_model_name_from_forecasts.rb
 │   │   ├── 20260710073723_add_unique_index_to_forecasts.rb
 │   │   ├── 20260710074417_add_confidence_score_to_forecasts.rb
-│   │   └── 20260713164344_create_executive_briefings.rb
+│   │   ├── 20260713164344_create_executive_briefings.rb
+│   │   └── 20260713190214_create_ml_models.rb
 │   ├── schema.rb
 │   ├── seeds
 │   │   └── mutual_funds.yml
@@ -217,6 +236,87 @@
 │   ├── models
 │   │   └── model.pkl
 │   └── requirements.txt
+├── mobile
+│   ├── AGENTS.md
+│   ├── CLAUDE.md
+│   ├── LICENSE
+│   ├── README.md
+│   ├── app.json
+│   ├── assets
+│   │   ├── expo.icon
+│   │   │   ├── Assets
+│   │   │   │   ├── expo-symbol 2.svg
+│   │   │   │   └── grid.png
+│   │   │   └── icon.json
+│   │   └── images
+│   │       ├── android-icon-background.png
+│   │       ├── android-icon-foreground.png
+│   │       ├── android-icon-monochrome.png
+│   │       ├── expo-badge-white.png
+│   │       ├── expo-badge.png
+│   │       ├── expo-logo.png
+│   │       ├── favicon.png
+│   │       ├── icon.png
+│   │       ├── logo-glow.png
+│   │       ├── react-logo.png
+│   │       ├── react-logo@2x.png
+│   │       ├── react-logo@3x.png
+│   │       ├── splash-icon.png
+│   │       ├── tabIcons
+│   │       │   ├── explore.png
+│   │       │   ├── explore@2x.png
+│   │       │   ├── explore@3x.png
+│   │       │   ├── home.png
+│   │       │   ├── home@2x.png
+│   │       │   └── home@3x.png
+│   │       └── tutorial-web.png
+│   ├── example
+│   │   ├── scripts
+│   │   │   └── reset-project.js
+│   │   └── src
+│   │       ├── app
+│   │       │   ├── _layout.tsx
+│   │       │   ├── explore.tsx
+│   │       │   └── index.tsx
+│   │       ├── components
+│   │       │   ├── animated-icon.module.css
+│   │       │   ├── animated-icon.tsx
+│   │       │   ├── animated-icon.web.tsx
+│   │       │   ├── app-tabs.tsx
+│   │       │   ├── app-tabs.web.tsx
+│   │       │   ├── external-link.tsx
+│   │       │   ├── hint-row.tsx
+│   │       │   ├── themed-text.tsx
+│   │       │   ├── themed-view.tsx
+│   │       │   ├── ui
+│   │       │   │   └── collapsible.tsx
+│   │       │   └── web-badge.tsx
+│   │       ├── constants
+│   │       │   └── theme.ts
+│   │       ├── global.css
+│   │       └── hooks
+│   │           ├── use-color-scheme.ts
+│   │           ├── use-color-scheme.web.ts
+│   │           └── use-theme.ts
+│   ├── expo-env.d.ts
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── src
+│   │   ├── App.js
+│   │   ├── api
+│   │   │   └── client.js
+│   │   ├── app
+│   │   │   ├── _layout.tsx
+│   │   │   ├── fund
+│   │   │   │   └── [id].tsx
+│   │   │   └── index.tsx
+│   │   ├── components
+│   │   │   └── FundCard.js
+│   │   ├── screens
+│   │   │   └── Dashboard.js
+│   │   └── types
+│   │       └── fund.ts
+│   └── tsconfig.json
 ├── project_structure.txt
 ├── public
 │   └── robots.txt
@@ -236,4 +336,4 @@
 │   └── spec_helper.rb
 └── test.txt
 
-61 directories, 176 files
+82 directories, 255 files

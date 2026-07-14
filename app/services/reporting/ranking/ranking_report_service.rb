@@ -5,110 +5,82 @@ module Reporting
     class RankingReportService < ApplicationService
       DEFAULT_LIMIT = 10
 
-      def initialize(limit: DEFAULT_LIMIT)
+      def initialize(
+        report_date:,
+        metrics:,
+        limit: DEFAULT_LIMIT
+      )
+        @report_date = report_date
+        @metrics = metrics.values
         @limit = limit
       end
 
       def call
-        return {} if latest_metrics.none?
+        return empty_report if metrics.empty?
 
-        {
+        RankingReport.new(
           report_date: report_date,
-
-          top_ytd:
-            serialize(
-              latest_metrics
-                .order(ytd_return: :desc)
-                .limit(limit)
-            ),
-
-          top_monthly:
-            serialize(
-              latest_metrics
-                .order(monthly_return: :desc)
-                .limit(limit)
-            ),
-
-          top_weekly:
-            serialize(
-              latest_metrics
-                .order(weekly_return: :desc)
-                .limit(limit)
-            ),
-
-          top_daily:
-            serialize(
-              latest_metrics
-                .order(daily_return: :desc)
-                .limit(limit)
-            ),
-
-          lowest_risk:
-            serialize(
-              latest_metrics
-                .order(volatility_30: :asc)
-                .limit(limit)
-            ),
-
-          highest_risk:
-            serialize(
-              latest_metrics
-                .order(volatility_30: :desc)
-                .limit(limit)
-            ),
-
-          largest_drawdown:
-            serialize(
-              latest_metrics
-                .order(drawdown: :asc)
-                .limit(limit)
-            )
-        }
+          top_ytd: serialize(top(:ytd_return)),
+          top_monthly: serialize(top(:monthly_return)),
+          top_weekly: serialize(top(:weekly_return)),
+          top_daily: serialize(top(:daily_return)),
+          lowest_risk: serialize(bottom(:volatility_30)),
+          highest_risk: serialize(top(:volatility_30)),
+          largest_drawdown: serialize(bottom(:drawdown))
+        )
       end
 
       private
 
-      attr_reader :limit
+      attr_reader :report_date,
+                  :metrics,
+                  :limit
 
-      def latest_metrics
-        @latest_metrics ||= begin
-          latest_date = DailyNav.maximum(:nav_date)
-
-          return DailyNavMetric.none unless latest_date
-
-          DailyNavMetric
-            .includes(:mutual_fund, :daily_nav)
-            .joins(:daily_nav)
-            .where(daily_navs: { nav_date: latest_date })
-        end
+      def top(attribute)
+        metrics
+          .select { |m| m.public_send(attribute).present? }
+          .sort_by { |m| -m.public_send(attribute).to_f }
+          .first(limit)
       end
 
-      def report_date
-        @report_date ||= latest_metrics.first&.daily_nav&.nav_date
+      def bottom(attribute)
+        metrics
+          .select { |m| m.public_send(attribute).present? }
+          .sort_by { |m| m.public_send(attribute).to_f }
+          .first(limit)
+      end
+
+      def empty_report
+        RankingReport.new(
+          report_date: report_date,
+          top_ytd: [],
+          top_monthly: [],
+          top_weekly: [],
+          top_daily: [],
+          lowest_risk: [],
+          highest_risk: [],
+          largest_drawdown: []
+        )
       end
 
       def serialize(records)
         records.map do |metric|
-          {
+          FundRanking.new(
             fund_id: metric.mutual_fund.id,
             fund_name: metric.mutual_fund.name,
             isin: metric.mutual_fund.isin,
-
             nav_date: metric.daily_nav.nav_date,
             nav: metric.daily_nav.nav,
             currency: metric.daily_nav.currency,
-
             daily_return: metric.daily_return,
             weekly_return: metric.weekly_return,
             monthly_return: metric.monthly_return,
             ytd_return: metric.ytd_return,
-
             moving_average_7: metric.moving_average_7,
             moving_average_30: metric.moving_average_30,
-
             volatility_30: metric.volatility_30,
             drawdown: metric.drawdown
-          }
+          )
         end
       end
     end

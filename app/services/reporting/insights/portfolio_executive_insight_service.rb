@@ -3,28 +3,28 @@
 module Reporting
   module Insights
     class PortfolioExecutiveInsightService < ApplicationService
-      def call
-        summary =
-          Reporting::Portfolio::PortfolioSummaryService
-            .new
-            .call
+      def initialize(summary:)
+        @summary = summary
+      end
 
-        return unavailable if summary.blank?
+      def call
+        return unavailable unless summary.report_date.present?
 
         PortfolioExecutiveInsight.new(
-          portfolio_health: portfolio_health(summary),
-          market_sentiment: market_sentiment(summary),
-          portfolio_risk: portfolio_risk(summary),
-          executive_recommendation: executive_recommendation(summary),
+          portfolio_health: portfolio_health,
+          market_sentiment: market_sentiment,
+          portfolio_risk: portfolio_risk,
+          executive_recommendation: executive_recommendation,
           generated_at: Time.current
         )
       end
 
       private
 
-      def portfolio_health(summary)
-        ytd =
-          summary.average_ytd_return.to_f
+      attr_reader :summary
+
+      def portfolio_health
+        ytd = summary.average_ytd_return.to_f
 
         return "Excellent" if ytd >= 15
         return "Strong" if ytd >= 8
@@ -34,9 +34,8 @@ module Reporting
         "Declining"
       end
 
-      def market_sentiment(summary)
-        weekly =
-          summary.average_weekly_return.to_f
+      def market_sentiment
+        weekly = summary.average_weekly_return.to_f
 
         return "Bullish" if weekly > 0.5
         return "Bearish" if weekly < -0.5
@@ -44,9 +43,8 @@ module Reporting
         "Neutral"
       end
 
-      def portfolio_risk(summary)
-        volatility =
-          summary.average_volatility.to_f
+      def portfolio_risk
+        volatility = summary.average_volatility.to_f
 
         return "Low" if volatility < 0.02
         return "Medium" if volatility < 0.05
@@ -54,14 +52,10 @@ module Reporting
         "High"
       end
 
-      def executive_recommendation(summary)
-        ytd =
-          summary.average_ytd_return.to_f
+      def executive_recommendation
+        ytd = summary.average_ytd_return.to_f
 
-        risk =
-          portfolio_risk(summary)
-
-        if ytd > 8 && risk == "Low"
+        if ytd > 8 && portfolio_risk == "Low"
           "Increase exposure to outperforming funds."
         elsif ytd > 0
           "Maintain current allocation while monitoring volatility."
@@ -72,10 +66,10 @@ module Reporting
 
       def unavailable
         PortfolioExecutiveInsight.new(
-          portfolio_health: portfolio_health(summary),
-          market_sentiment: market_sentiment(summary),
-          portfolio_risk: portfolio_risk(summary),
-          executive_recommendation: executive_recommendation(summary),
+          portfolio_health: "Unknown",
+          market_sentiment: "Unknown",
+          portfolio_risk: "Unknown",
+          executive_recommendation: "No portfolio data available.",
           generated_at: Time.current
         )
       end
