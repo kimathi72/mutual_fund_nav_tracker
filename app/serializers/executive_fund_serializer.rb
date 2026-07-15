@@ -25,7 +25,29 @@ class ExecutiveFundSerializer < ApplicationSerializer
       executive_insight:
         ExecutiveInsightSerializer
           .new(fund.executive_insight)
-          .as_json
+          .as_json,
+
+      "nav_history": [
+          {
+              "date":"2026-04-01",
+              "value":1.145
+          }
+      ],
+
+      "volatility_history":[
+          {
+              "date":"2026-04-01",
+              "value":0.18
+          }
+      ],
+
+      "forecast_series":[
+          {
+              "date":"2026-07-18",
+              "value":1.162,
+              "confidence":92.4
+          }
+      ]
     }
   end
 

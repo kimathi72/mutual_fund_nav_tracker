@@ -1,18 +1,21 @@
 import colors from "@/constants/colors";
 
 export default function riskColor(
-  risk?: string | null
+  risk: number | string
 ): string {
-  switch (risk?.toLowerCase()) {
-    case "low":
+  if (typeof risk === "number") {
+    if (risk < 0.05) return colors.success;
+    if (risk < 0.10) return colors.warning;
+    return colors.danger;
+  }
+
+  switch (risk.toUpperCase()) {
+    case "LOW":
       return colors.success;
-
-    case "medium":
+    case "MEDIUM":
       return colors.warning;
-
-    case "high":
+    case "HIGH":
       return colors.danger;
-
     default:
       return colors.subtitle;
   }

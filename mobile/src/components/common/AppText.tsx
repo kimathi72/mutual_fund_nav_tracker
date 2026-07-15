@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Text,
   TextProps,
@@ -5,35 +6,30 @@ import {
   TextStyle,
 } from "react-native";
 
-import Typography from "@/constants/typography";
 import Colors from "@/constants/colors";
+import Typography from "@/constants/typography";
 
 interface Props extends TextProps {
-  variant?:
-    | "title"
-    | "heading"
-    | "subheading"
-    | "body"
-    | "caption";
+  variant?: "title" | "heading" | "body" | "caption";
 
-  color?: string;
+  size?: number;
 
   weight?:
     | "400"
     | "500"
     | "600"
     | "700"
-    | "bold"
-    | "normal";
+    | "normal"
+    | "bold";
 
-  align?: TextStyle["textAlign"];
+  color?: string;
 }
 
 export default function AppText({
   variant = "body",
-  color,
+  size,
   weight,
-  align,
+  color,
   style,
   ...props
 }: Props) {
@@ -43,9 +39,9 @@ export default function AppText({
       style={[
         styles.base,
         styles[variant],
-        color && { color },
-        weight && { fontWeight: weight },
-        align && { textAlign: align },
+        size !== undefined ? { fontSize: size } : undefined,
+        weight ? { fontWeight: weight as TextStyle["fontWeight"] } : undefined,
+        color ? { color } : undefined,
         style,
       ]}
     />
@@ -64,11 +60,6 @@ const styles = StyleSheet.create({
 
   heading: {
     fontSize: Typography.heading,
-    fontWeight: "600",
-  },
-
-  subheading: {
-    fontSize: Typography.subheading,
     fontWeight: "600",
   },
 

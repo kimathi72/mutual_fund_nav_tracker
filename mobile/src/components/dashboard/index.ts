@@ -5,3 +5,4 @@ export { default as ExecutiveBriefingCard } from "./ExecutiveBriefingCard";
 export { default as TopMoversSection } from "./TopMoversSection";
 export { default as FundCarousel } from "./FundCarousel";
 export { default as FundCard } from "./FundCard";
+export { default as KPITrendCard } from "./KPITrendCard";

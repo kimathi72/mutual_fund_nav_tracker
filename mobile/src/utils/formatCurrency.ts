@@ -1,5 +1,5 @@
 export default function formatCurrency(
-  value?: number | string | null,
+  value?: number | string | null | undefined,
   currency = "USD"
 ): string {
   if (value === null || value === undefined || value === "") {
@@ -8,7 +8,7 @@ export default function formatCurrency(
 
   const numeric =
     typeof value === "string"
-      ? parseFloat(value)
+      ? Number(value)
       : value;
 
   if (Number.isNaN(numeric)) {

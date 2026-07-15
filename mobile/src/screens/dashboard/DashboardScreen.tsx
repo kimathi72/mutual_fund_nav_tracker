@@ -7,6 +7,7 @@ import {
   ExecutiveBriefingCard,
   FundCarousel,
   TopMoversSection,
+  KPITrendCard,
 } from "@/components/dashboard";
 
 import { useDashboard } from "@/hooks/useDashboard";
@@ -14,6 +15,16 @@ import { useDashboard } from "@/hooks/useDashboard";
 export default function DashboardScreen() {
 
   const { data, isLoading } = useDashboard();
+  const sparkline = [
+  98.2,
+  99.4,
+  100.5,
+  101.7,
+  102.8,
+  103.4,
+  102.9,
+  104.1,
+];
 
   if (isLoading || !data) {
     return <AppScreen />;
@@ -25,26 +36,41 @@ export default function DashboardScreen() {
       <DashboardHeader
         reportDate={data.summary.report_date}
       />
-
-      <KPIGrid
-        summary={data.summary}
-      />
-
-      <PortfolioHealthCard
-        insight={data.portfolio_insight}
-      />
-
       {data.briefing ? (
         <ExecutiveBriefingCard briefing={data.briefing} />
       ) : null}
+      <FundCarousel
+        funds={data.funds}
+      />
+      <PortfolioHealthCard
+        insight={data.portfolio_insight}
+      />
+      <KPIGrid
+        summary={data.summary}
+      />
+      
+      <KPITrendCard
+          title="Portfolio Return"
+          value="+5.52%"
+          trend={[
+              2.1,
+              2.4,
+              2.7,
+              3.4,
+              3.6,
+              4.4,
+              5.5,
+          ]}
+      />
+  
+
+
+
 
       <TopMoversSection
         rankings={data.rankings}
       />
 
-      <FundCarousel
-        funds={data.funds}
-      />
 
     </AppScreen>
   );

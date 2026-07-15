@@ -12,9 +12,12 @@ import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
 import SectionHeader from "@/components/common/SectionHeader";
 
+import NavHistoryChart from "@/components/charts/NavHistoryChart";
+import VolatilityChart from "@/components/charts/VolatilityChart";
+import RiskHeatMap from "@/components/charts/RiskHeatMap";
+
 import { useDashboard } from "@/hooks/useDashboard";
 
-import colors from "@/constants/colors";
 import spacing from "@/constants/spacing";
 
 import formatCurrency from "@/utils/formatCurrency";
@@ -37,25 +40,33 @@ export default function FundDetailsScreen() {
   if (!fund) {
     return (
       <AppScreen>
-        <AppText>Fund not found.</AppText>
+        <AppText>
+          Fund not found.
+        </AppText>
       </AppScreen>
     );
   }
 
   return (
     <AppScreen>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+      >
         <SectionHeader
           title={fund.performance.fund_name}
           subtitle={fund.performance.isin}
         />
+
+        {/* NAV */}
 
         <AppCard>
           <AppText variant="caption">
             Latest NAV
           </AppText>
 
-          <AppText size={30} weight="bold">
+          <AppText
+            variant="title"
+          >
             {formatCurrency(
               fund.performance.latest_nav,
               fund.performance.currency
@@ -63,49 +74,95 @@ export default function FundDetailsScreen() {
           </AppText>
         </AppCard>
 
+        {/* NAV History */}
+
         <AppCard style={styles.card}>
-          <AppText weight="bold">
+          <AppText variant="heading">
+            NAV History
+          </AppText>
+
+          <NavHistoryChart
+            history={fund.nav_history}
+          />
+        </AppCard>
+
+        {/* Performance */}
+
+        <AppCard style={styles.card}>
+          <AppText variant="heading">
             Performance
           </AppText>
 
           <AppText>
-            Daily: {formatPercentage(fund.performance.daily_return)}
+            Daily:{" "}
+            {formatPercentage(
+              fund.performance.daily_return
+            )}
           </AppText>
 
           <AppText>
-            Weekly: {formatPercentage(fund.performance.weekly_return)}
+            Weekly:{" "}
+            {formatPercentage(
+              fund.performance.weekly_return
+            )}
           </AppText>
 
           <AppText>
-            Monthly: {formatPercentage(fund.performance.monthly_return)}
+            Monthly:{" "}
+            {formatPercentage(
+              fund.performance.monthly_return
+            )}
           </AppText>
 
           <AppText>
-            YTD: {formatPercentage(fund.performance.ytd_return)}
+            YTD:{" "}
+            {formatPercentage(
+              fund.performance.ytd_return
+            )}
           </AppText>
         </AppCard>
 
+        {/* Risk */}
+
         <AppCard style={styles.card}>
-          <AppText weight="bold">
-            Risk
+          <AppText variant="heading">
+            Risk Analysis
           </AppText>
 
           <AppText
             style={{
-              color: riskColor(fund.risk.volatility),
+              color: riskColor(
+                fund.risk.volatility
+              ),
             }}
           >
-            Volatility: {formatPercentage(fund.risk.volatility)}
+            Volatility:{" "}
+            {formatPercentage(
+              fund.risk.volatility
+            )}
           </AppText>
 
           <AppText>
-            Drawdown: {formatPercentage(fund.risk.drawdown)}
+            Drawdown:{" "}
+            {formatPercentage(
+              fund.risk.drawdown
+            )}
           </AppText>
+
+          <VolatilityChart
+            history={fund.volatility_history}
+          />
+
+          <RiskHeatMap
+            value={fund.risk.volatility}
+          />
         </AppCard>
 
+        {/* Forecast */}
+
         <AppCard style={styles.card}>
-          <AppText weight="bold">
-            Forecast
+          <AppText variant="heading">
+            AI Forecast
           </AppText>
 
           <AppText>
@@ -122,13 +179,22 @@ export default function FundDetailsScreen() {
 
           <AppText>
             Confidence:{" "}
-            {Math.round(fund.executive_insight.confidence * 100)}%
+            {Math.round(
+              fund.executive_insight.confidence * 100
+            )}
+            %
           </AppText>
+
+          <NavHistoryChart
+            history={fund.forecast_series}
+          />
         </AppCard>
 
+        {/* Executive Insight */}
+
         <AppCard style={styles.card}>
-          <AppText weight="bold">
-            AI Executive Insight
+          <AppText variant="heading">
+            Executive Insight
           </AppText>
 
           <AppText>

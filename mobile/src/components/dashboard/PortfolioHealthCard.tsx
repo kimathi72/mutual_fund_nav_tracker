@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
 
   caption: {
-    color: colors.secondaryText,
+    color: colors.subtitle,
     marginBottom: spacing.sm,
   },
 

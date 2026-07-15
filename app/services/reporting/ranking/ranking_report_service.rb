@@ -11,7 +11,7 @@ module Reporting
         limit: DEFAULT_LIMIT
       )
         @report_date = report_date
-        @metrics = metrics.values
+        @metrics = metrics
         @limit = limit
       end
 

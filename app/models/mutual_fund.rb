@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 class MutualFund < ApplicationRecord
-  has_many :daily_navs, dependent: :destroy
-  has_many :daily_nav_metrics, dependent: :destroy
+  has_many :daily_navs,  -> {order(nav_date: :asc)},
+           dependent: :destroy
+  has_many :daily_nav_metrics, -> { joins(:daily_nav).order("daily_navs.nav_date ASC") },
+           dependent: :destroy
   has_many :market_data_snapshots,
           dependent: :destroy
 
@@ -10,6 +12,7 @@ class MutualFund < ApplicationRecord
            dependent: :destroy
 
   has_many :forecasts,
+         -> { order(forecast_date: :asc) },
            dependent: :destroy
 
   validates :name,

@@ -6,17 +6,18 @@ module Reporting
       def call
         dashboard_data =
           DashboardDataLoaderService.call
-
+        metrics =
+          metrics(dashboard_data)
         summary =
           Reporting::Portfolio::PortfolioSummaryService.call(
             report_date: dashboard_data.report_date,
-            metrics: dashboard_data.metrics
+            metrics: metrics
           )
 
         rankings =
           Reporting::Ranking::RankingReportService.call(
             report_date: dashboard_data.report_date,
-            metrics: dashboard_data.metrics
+            metrics: metrics
           )
 
         portfolio_insight =
@@ -46,6 +47,14 @@ module Reporting
 
 
       private
+      def metrics(dashboard_data)
+        dashboard_data.funds.filter_map do |fund|
+          metric_for(
+            fund,
+            dashboard_data.report_date
+          )
+        end
+      end
 
       def metric_for(fund, report_date)
         fund.daily_nav_metrics.find do |metric|
@@ -99,7 +108,7 @@ module Reporting
               forecast: forecast,
               latest_nav: latest_nav
             )
-
+          
           executive_insight =
             Reporting::Insights::ExecutiveInsightService.call(
               fund: fund,
@@ -110,7 +119,10 @@ module Reporting
             performance: performance,
             risk: risk,
             forecast: forecast_report,
-            executive_insight: executive_insight
+            executive_insight: executive_insight,
+            nav_history: fund.nav_history,
+            volatility_history: fund.volatility_history,
+            forecast_series: fund.forecast_series
           )
         end
       end

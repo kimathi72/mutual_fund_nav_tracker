@@ -33,5 +33,6 @@ export default function FundCarousel({
 const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
 });

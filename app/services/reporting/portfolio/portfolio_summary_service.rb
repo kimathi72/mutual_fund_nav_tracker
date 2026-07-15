@@ -8,7 +8,7 @@ module Reporting
         metrics:
       )
         @report_date = report_date
-        @metrics = metrics.values
+        @metrics = metrics
       end
 
       def call
