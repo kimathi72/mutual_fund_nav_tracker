@@ -1,4 +1,4 @@
-import Dashboard from "../screens/Dashboard";
+import Dashboard from "../screens/dashboard/DashboardScreen";
 
 
 export default function Index(){
