@@ -1,19 +1,31 @@
-import Colors from "@/constants/colors";
+// ExecutiveChartTheme.ts
 
-export const ExecutiveChartTheme = {
-  background: Colors.surface,
+const ExecutiveChartTheme = {
+  background: "#FFFFFF",
 
-  line: Colors.primary,
+  line: "#1E3A8A",
 
-  area: "#2563EB22",
+  area: "rgba(30,58,138,0.15)",
 
-  grid: Colors.border,
+  grid: "#E5E7EB",
 
-  text: Colors.subtitle,
+  text: "#6B7280",
 
-  positive: Colors.success,
+  positive: "#16A34A",
 
-  negative: Colors.danger,
+  negative: "#DC2626",
+
+  success: "#16A34A",
+
+  warning: "#F59E0B",
+
+  danger: "#DC2626",
+
+  forecast: "#16A34A",
+
+  historical: "#1E3A8A",
+
+  volatility: "#F59E0B",
 };
 
 export default ExecutiveChartTheme;

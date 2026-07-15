@@ -20,16 +20,18 @@ export interface RendererProps {
   height: number;
 
   color?: string;
+
+  strokeWidth?: number;
+
+  dashed?: boolean;
 }
 
-export interface AreaRendererProps
-  extends RendererProps {
+export interface AreaRendererProps extends RendererProps {
   fillColor?: string;
 }
 
 export interface HeatMapCell {
   label: string;
-
   value: number;
 }
 
@@ -39,4 +41,16 @@ export interface HeatMapProps {
   width: number;
 
   height: number;
+}
+
+export interface TooltipPoint {
+  index: number;
+
+  x: number;
+
+  y: number;
+
+  value: number;
+
+  label: string;
 }

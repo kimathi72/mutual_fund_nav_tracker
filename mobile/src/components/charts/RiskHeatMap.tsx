@@ -1,55 +1,44 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
 
-import AppCard from "@/components/common/AppCard";
-import AppText from "@/components/common/AppText";
+import ChartCard from "./ChartCard";
+import ChartSurface from "./ChartSurface";
 
-import spacing from "@/constants/spacing";
+import { HeatMapRenderer } from "./renderers";
 
-import riskColor from "@/utils/riskColor";
-import formatPercentage from "@/utils/formatPercentage";
+import { HeatMapCell } from "./types";
 
 type Props = {
-  value: number;
+  data: HeatMapCell[];
+
+  width?: number;
+
+  height?: number;
 };
 
 export default function RiskHeatMap({
-  value,
+  data,
+  width = 340,
+  height = 120,
 }: Props) {
+  if (!data || data.length === 0) {
+    return null;
+  }
+
   return (
-    <AppCard style={styles.card}>
-      <AppText variant="heading">
-        Risk Level
-      </AppText>
-
-      <View
-        style={[
-          styles.bar,
-          {
-            backgroundColor: riskColor(value),
-          },
-        ]}
-      />
-
-      <AppText variant="caption">
-        Current Volatility
-      </AppText>
-
-      <AppText>
-        {formatPercentage(value)}
-      </AppText>
-    </AppCard>
+    <ChartCard
+      title="Risk Heat Map"
+      subtitle="Current risk exposure"
+    >
+      <ChartSurface
+        width={width}
+        height={height}
+      >
+        <HeatMapRenderer
+          data={data}
+          width={width}
+          height={height}
+        />
+      </ChartSurface>
+    </ChartCard>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginTop: spacing.md,
-  },
-
-  bar: {
-    height: 18,
-    borderRadius: 10,
-    marginVertical: spacing.md,
-  },
-});

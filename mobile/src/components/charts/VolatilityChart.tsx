@@ -1,64 +1,48 @@
 import React from "react";
-import { Dimensions } from "react-native";
 
 import ChartCard from "./ChartCard";
+import ChartSurface from "./ChartSurface";
 
-import ChartCanvas from "./skia/ChartCanvas";
-import LinePath from "./skia/LinePath";
+import { AreaRenderer } from "./renderers";
 
 import ExecutiveChartTheme from "./ExecutiveChartTheme";
 
-type Point = {
-
-  date: string;
-
-  volatility: number;
-
-};
+import { TimeSeriesPoint } from "./types";
 
 type Props = {
+  history: TimeSeriesPoint[];
 
-  history: Point[];
+  width?: number;
 
+  height?: number;
 };
 
-const WIDTH = Dimensions.get("window").width - 48;
-
-const HEIGHT = 180;
-
 export default function VolatilityChart({
-
   history,
-
+  width = 340,
+  height = 180,
 }: Props) {
-
-  if (!history.length)
+  if (history.length < 2) {
     return null;
+  }
 
   return (
-
-    <ChartCard title="30-Day Volatility">
-
-      <ChartCanvas
-        width={WIDTH}
-        height={HEIGHT}
+    <ChartCard
+      title="Volatility"
+      subtitle="30-day rolling volatility"
+    >
+      <ChartSurface
+        width={width}
+        height={height}
       >
-
-        <LinePath
-          values={
-            history.map(
-              h => h.volatility
-            )
-          }
-          width={WIDTH}
-          height={HEIGHT}
-          color={ExecutiveChartTheme.negative}
+        <AreaRenderer
+          data={history}
+          width={width}
+          height={height}
+          color={ExecutiveChartTheme.volatility}
+          fillColor="rgba(245,158,11,0.18)"
         />
-
-      </ChartCanvas>
-
+      </ChartSurface>
     </ChartCard>
-
   );
-
 }

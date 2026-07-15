@@ -1,22 +1,19 @@
 import colors from "@/constants/colors";
 
 export default function riskColor(
-  risk: number | string
+  volatility?: number | null
 ): string {
-  if (typeof risk === "number") {
-    if (risk < 0.05) return colors.success;
-    if (risk < 0.10) return colors.warning;
-    return colors.danger;
+  if (volatility == null) {
+    return colors.text;
   }
 
-  switch (risk.toUpperCase()) {
-    case "LOW":
-      return colors.success;
-    case "MEDIUM":
-      return colors.warning;
-    case "HIGH":
-      return colors.danger;
-    default:
-      return colors.subtitle;
+  if (volatility < 0.05) {
+    return colors.success;
   }
+
+  if (volatility < 0.15) {
+    return colors.warning;
+  }
+
+  return colors.danger;
 }

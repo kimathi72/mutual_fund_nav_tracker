@@ -1,49 +1,42 @@
 import React from "react";
 
-import ChartCanvas from "./skia/ChartCanvas";
-import LinePath from "./skia/LinePath";
+import ChartSurface from "./ChartSurface";
+
+import { LineRenderer } from "./renderers";
 
 import ExecutiveChartTheme from "./ExecutiveChartTheme";
 
-type Props = {
+import { TimeSeriesPoint } from "./types";
 
-  values: number[];
+type Props = {
+  data: TimeSeriesPoint[];
 
   width?: number;
 
   height?: number;
-
 };
 
-export default function Sparkline({
-
-  values,
-
+export default function SparkLine({
+  data,
   width = 120,
-
   height = 50,
-
 }: Props) {
-
-  if (values.length < 2)
+  if (data.length < 2) {
     return null;
+  }
 
   return (
-
-    <ChartCanvas
+    <ChartSurface
       width={width}
       height={height}
     >
-
-      <LinePath
-        values={values}
+      <LineRenderer
+        data={data}
         width={width}
         height={height}
         color={ExecutiveChartTheme.line}
+        strokeWidth={2}
       />
-
-    </ChartCanvas>
-
+    </ChartSurface>
   );
-
 }

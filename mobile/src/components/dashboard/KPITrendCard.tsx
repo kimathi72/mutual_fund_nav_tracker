@@ -4,10 +4,11 @@ import { StyleSheet, View } from "react-native";
 import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
 
-import { Sparkline } from "@/components/charts";
+import { SparkLine } from "@/components/charts";
 
 import colors from "@/constants/colors";
 import Spacing from "@/constants/spacing";
+import FundCard from "./FundCard";
 
 type Props = {
   title: string;
@@ -31,8 +32,11 @@ export default function KPITrendCard({
       </AppText>
 
       <View style={styles.chart}>
-        <Sparkline
-          values={trend}
+        <SparkLine
+          data={trend.map((value, index) => ({
+            date: String(index),
+            value,
+          }))}
         />
       </View>
     </AppCard>
