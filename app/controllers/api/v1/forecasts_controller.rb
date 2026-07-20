@@ -36,6 +36,18 @@ module Api
         }
       end
 
+      def bulk
+        imported =
+          Ml::ForecastImportService.new(
+            params.require(:forecasts)
+          ).call
+
+        render json: {
+          status: "success",
+          imported: imported
+        }, status: :created
+      end
+
       def show
         fund =
           MutualFund.find_by!(

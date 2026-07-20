@@ -145,7 +145,7 @@ services:
       - ./exports:/app/exports
 
     environment:
-      DATASET_PATH: /app/exports/training_dataset.csv
+      DATASET_PATH: /app/exports/mutual_funds_dataset.csv
       MODEL_PATH: /app/models/model.pkl
 
 

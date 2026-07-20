@@ -10,15 +10,15 @@ class ForecastSerializer
       id: forecast.id,
 
 
-      forecast_date: forecast.forecast_date,
+      predicted_at: forecast.predicted_at,
       target_date: forecast.target_date,
-
+      horizon: forecast.horizon,
       predicted_nav: forecast.predicted_nav&.to_f,
-
+      expected_return_pct: forecast.expected_return_pct&.to_f,
       lower_bound: forecast.lower_bound&.to_f,
       upper_bound: forecast.upper_bound&.to_f,
 
-      confidence: forecast.confidence_score&.to_f,
+      confidence_score: forecast.confidence_score&.to_f,
 
       model_version: forecast.model_version,
 

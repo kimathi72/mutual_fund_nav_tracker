@@ -11,5 +11,7 @@ interface ExecutiveFund {
   forecast: ForecastReport;
 
   executive_insight: ExecutiveInsight;
+
+  nav_history: [];
 }
 export default ExecutiveFund;

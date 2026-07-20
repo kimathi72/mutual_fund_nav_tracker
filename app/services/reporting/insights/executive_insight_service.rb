@@ -15,15 +15,15 @@ module Reporting
       end
 
       def call
-        return unavailable unless forecast_available?(forecast_report)
+        return unavailable if forecasts.empty?
 
         ExecutiveInsight.new(
-          executive_summary: executive_summary(forecast_report),
-          recommendation: recommendation(forecast_report),
-          opportunity_score: opportunity_score(forecast_report),
-          market_outlook: market_outlook(forecast_report),
-          risk_level: risk_level(forecast_report.confidence),
-          confidence: confidence_label(forecast_report.confidence),
+          executive_summary: executive_summary,
+          recommendation: recommendation,
+          opportunity_score: opportunity_score,
+          market_outlook: market_outlook,
+          risk_level: risk_level,
+          confidence: confidence_label,
           generated_at: Time.current
         )
       end
@@ -33,73 +33,148 @@ module Reporting
       attr_reader :fund,
                   :forecast_report
 
-      def forecast_available?(report)
-        report.predicted_nav.present?
+      def forecasts
+        @forecasts ||=
+          Array(
+            forecast_report[:forecasts]
+          )
       end
 
-      def executive_summary(report)
-        change = report.expected_change_pct.to_f.round(2)
-
-        direction =
-          change.positive? ? "increase" : "decrease"
-
-        <<~TEXT.squish
-          #{fund.name} is forecast to #{direction}
-          by #{change.abs}% on #{report.target_date}.
-          Overall outlook is #{report.trend.downcase}.
-        TEXT
-      end
-
-      def recommendation(report)
-        case report.trend
-        when "Bullish"
-          "Increase exposure"
-        when "Bearish"
-          "Reduce exposure"
-        else
-          "Hold position"
+      def forecast(horizon)
+        forecasts.find do |forecast|
+          forecast[:horizon] == horizon
         end
       end
 
-      def opportunity_score(report)
+      def one_day
+        forecast("1d")
+      end
+
+      def thirty_day
+        forecast("30d")
+      end
+
+      def ninety_day
+        forecast("90d")
+      end
+
+      def executive_summary
+        parts = []
+
+        [one_day, thirty_day, ninety_day].compact.each do |forecast|
+
+          next if forecast[:predicted_nav].blank?
+
+          direction =
+            forecast[:expected_return_pct].to_f >= 0 ?
+            "increase" :
+            "decrease"
+
+          parts << "#{forecast[:horizon]}: #{direction} #{forecast[:expected_return_pct].abs.round(2)}%"
+        end
+
+        "#{fund.name} outlook — #{parts.join(', ')}."
+      end
+
+      def recommendation
+
+        long_term = ninety_day || thirty_day || one_day
+
+        return "Unavailable" unless long_term
+
+        long_term[:recommendation]
+
+      end
+
+      def opportunity_score
+
+        returns =
+          forecasts.filter_map do |forecast|
+            forecast[:expected_return_pct]
+          end
+
+        return nil if returns.empty?
+
+        (
+          returns.map(&:abs).sum /
+          returns.size *
+          10
+        ).round.clamp(0, 100)
+
+      end
+
+      def market_outlook
+
+        bullish =
+          forecasts.count do |forecast|
+            forecast[:trend] == "Bullish"
+          end
+
+        bearish =
+          forecasts.count do |forecast|
+            forecast[:trend] == "Bearish"
+          end
+
+        return "Bullish" if bullish > bearish
+        return "Bearish" if bearish > bullish
+
+        "Neutral"
+
+      end
+
+      def risk_level
+
         score =
-          (report.expected_change_pct.to_f.abs * 10).round
+          average_confidence
 
-        score.clamp(0, 100)
-      end
+        return "Unknown" if score.nil?
 
-      def market_outlook(report)
-        report.trend
-      end
-
-      def risk_level(confidence)
-        return "Unknown" if confidence.blank?
-
-        return "Low" if confidence >= HIGH_CONFIDENCE
-        return "Medium" if confidence >= MEDIUM_CONFIDENCE
+        return "Low" if score >= HIGH_CONFIDENCE
+        return "Medium" if score >= MEDIUM_CONFIDENCE
 
         "High"
+
       end
 
-      def confidence_label(confidence)
-        return "Unknown" if confidence.blank?
+      def confidence_label
 
-        return "High" if confidence >= HIGH_CONFIDENCE
-        return "Medium" if confidence >= MEDIUM_CONFIDENCE
+        score =
+          average_confidence
+
+        return "Unknown" if score.nil?
+
+        return "High" if score >= HIGH_CONFIDENCE
+        return "Medium" if score >= MEDIUM_CONFIDENCE
 
         "Low"
+
+      end
+
+      def average_confidence
+
+        values =
+          forecasts.filter_map do |forecast|
+            forecast[:confidence_score]
+          end
+
+        return nil if values.empty?
+
+        values.sum / values.size
+
       end
 
       def unavailable
+
         ExecutiveInsight.new(
           executive_summary: "Forecast unavailable.",
-          recommendation: nil,
+          recommendation: "Unavailable",
           opportunity_score: nil,
           market_outlook: "Unavailable",
           risk_level: "Unknown",
           confidence: "Unknown",
           generated_at: Time.current
         )
+
       end
     end
   end

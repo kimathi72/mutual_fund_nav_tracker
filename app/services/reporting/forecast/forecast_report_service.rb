@@ -3,86 +3,134 @@
 module Reporting
   module Forecast
     class ForecastReportService < ApplicationService
-      def initialize(
-        fund:,
-        forecast:,
-        latest_nav:
-      )
+      HORIZONS = %w[1d 30d 90d].freeze
+
+      def initialize(fund:)
         @fund = fund
-        @forecast = forecast
-        @latest_nav = latest_nav
       end
 
       def call
-        return empty_report unless forecast
+        latest_nav =
+          fund.daily_navs.max_by(&:nav_date)
 
-        ForecastReport.new(
-          fund_id: fund.id,
-          isin: fund.isin,
-          fund_name: fund.name,
-          latest_nav: latest_nav&.nav,
-          latest_nav_date: latest_nav&.nav_date,
-          forecast_date: forecast.forecast_date,
-          target_date: forecast.target_date,
-          model_version: forecast.model_version,
-          predicted_nav: forecast.predicted_nav,
-          expected_change_pct: percentage_change(
-            latest_nav&.nav,
-            forecast.predicted_nav
-          ),
-          confidence: confidence(forecast),
-          trend: calculate_trend(
-            latest_nav&.nav,
-            forecast.predicted_nav
-          )
-        )
+        forecasts =
+          fund.forecasts
+              .latest
+              .index_by(&:horizon)
+
+        {
+          fund: {
+            id: fund.id,
+            isin: fund.isin,
+            name: fund.name
+          },
+
+          latest_nav: {
+            value: latest_nav&.nav,
+            date: latest_nav&.nav_date
+          },
+
+          forecasts:
+            HORIZONS.map do |horizon|
+
+              build_forecast(
+                latest_nav,
+                forecasts[horizon],
+                horizon
+              )
+
+            end
+        }
       end
 
       private
 
-      attr_reader :fund,
-                  :forecast,
-                  :latest_nav
+      attr_reader :fund
 
-      def confidence(forecast)
-        forecast.confidence_score || forecast.confidence
+      def build_forecast(
+        latest_nav,
+        forecast,
+        horizon
+      )
+
+        return empty_forecast(horizon) unless forecast
+
+        {
+          horizon: horizon,
+
+          predicted_at:
+            forecast.predicted_at,
+
+          target_date:
+            forecast.target_date,
+
+          predicted_nav:
+            forecast.predicted_nav,
+
+          lower_bound:
+            forecast.lower_bound,
+
+          upper_bound:
+            forecast.upper_bound,
+
+          confidence_score:
+            forecast.confidence_score,
+
+          expected_return_pct:
+            forecast.expected_return_pct,
+
+          model_version:
+            forecast.model_version,
+
+          trend:
+            trend(
+              latest_nav&.nav,
+              forecast.predicted_nav
+            ),
+
+          recommendation:
+            recommendation(
+              forecast.expected_return_pct,
+              forecast.confidence_score
+            )
+        }
       end
 
-      def percentage_change(current, predicted)
-        return nil if current.blank?
-        return nil if predicted.blank?
-        return nil if current.zero?
-
-        (((predicted - current) / current) * 100).round(2)
+      def empty_forecast(horizon)
+        {
+          horizon: horizon,
+          predicted_at: nil,
+          target_date: nil,
+          predicted_nav: nil,
+          lower_bound: nil,
+          upper_bound: nil,
+          confidence_score: nil,
+          expected_return_pct: nil,
+          model_version: nil,
+          trend: "Unavailable",
+          recommendation: "Unavailable"
+        }
       end
 
-      def calculate_trend(current, predicted)
+      def trend(current, predicted)
         return "Unavailable" if current.blank?
-        return "Unavailable" if predicted.blank?
-
-        change = percentage_change(current, predicted)
-
-        return "Bullish" if change >= 1
-        return "Bearish" if change <= -1
+        return "Bullish" if predicted > current
+        return "Bearish" if predicted < current
 
         "Neutral"
       end
 
-      def empty_report
-        ForecastReport.new(
-          fund_id: fund.id,
-          isin: fund.isin,
-          fund_name: fund.name,
-          latest_nav: latest_nav&.nav,
-          latest_nav_date: latest_nav&.nav_date,
-          forecast_date: nil,
-          target_date: nil,
-          model_version: nil,
-          predicted_nav: nil,
-          expected_change_pct: nil,
-          confidence: nil,
-          trend: "Unavailable"
-        )
+      def recommendation(return_pct, confidence)
+
+        return "Unavailable" if return_pct.blank?
+
+        return "Strong Buy" if return_pct >= 5 && confidence >= 0.90
+        return "Buy" if return_pct >= 2
+        return "Hold" if return_pct > -2
+        return "Sell" if return_pct > -5
+
+        "Strong Sell"
+
       end
     end
   end

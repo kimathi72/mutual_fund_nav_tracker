@@ -8,7 +8,16 @@ module Api
           MutualFund
             .active
             .with_latest_market_data
-            .map { |fund| FundSerializer.new(fund).as_json }
+            .map do |fund|
+              details =
+                FundDetailsService
+                  .new(fund)
+                  .call
+
+              FundSerializer
+                .new(details)
+                .as_json
+            end
         )
       end
 
@@ -18,8 +27,15 @@ module Api
             .with_latest_market_data
             .find(params[:id])
 
+        details =
+          FundDetailsService
+            .new(fund)
+            .call
+
         render_success(
-          FundSerializer.new(fund).as_json
+          FundSerializer
+            .new(details)
+            .as_json
         )
       end
     end

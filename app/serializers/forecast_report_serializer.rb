@@ -5,27 +5,47 @@ class ForecastReportSerializer
     @report = report
   end
 
-  def as_json
-    return {} unless report
+  def as_json(*)
+    return {} unless report.present?
 
     {
-      fund_id: report.fund_id,
-      fund_name: report.fund_name,
-      isin: report.isin,
+      fund: report[:fund],
 
-      latest_nav: report.latest_nav,
-      latest_nav_date: report.latest_nav_date,
+      latest_nav: report[:latest_nav],
 
-      forecast_date: report.forecast_date,
-      target_date: report.target_date,
+      forecasts:
+        report[:forecasts].map do |forecast|
 
-      predicted_nav: report.predicted_nav,
-      expected_change_pct: report.expected_change_pct,
+          {
+            horizon: forecast[:horizon],
 
-      trend: report.trend,
-      confidence: report.confidence,
+            predicted_at: forecast[:predicted_at],
 
-      model_version: report.model_version
+            target_date: forecast[:target_date],
+
+            predicted_nav: forecast[:predicted_nav],
+
+            lower_bound: forecast[:lower_bound],
+
+            upper_bound: forecast[:upper_bound],
+
+            expected_return_pct:
+              forecast[:expected_return_pct],
+
+            confidence_score:
+              forecast[:confidence_score],
+
+            model_version:
+              forecast[:model_version],
+
+            trend:
+              forecast[:trend],
+
+            recommendation:
+              forecast[:recommendation]
+          }
+
+        end
     }
   end
 

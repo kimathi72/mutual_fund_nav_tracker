@@ -20,14 +20,14 @@ import {
 } from "@/components/charts/types";
 
 type Props = {
-  volatility: number;
+  volatility_30: number;
   drawdown: number;
   ytdReturn: number;
   history: TimeSeriesPoint[];
 };
 
 export default function FundRisk({
-  volatility,
+  volatility_30,
   drawdown,
   ytdReturn,
   history,
@@ -35,7 +35,7 @@ export default function FundRisk({
   const heatMapData: HeatMapCell[] = [
     {
       label: "Volatility",
-      value: volatility,
+      value: volatility_30,
     },
     {
       label: "Drawdown",
@@ -55,10 +55,10 @@ export default function FundRisk({
 
       <AppText
         style={{
-          color: riskColor(volatility),
+          color: riskColor(volatility_30),
         }}
       >
-        Volatility: {formatPercentage(volatility)}
+        Volatility: {formatPercentage(volatility_30)}
       </AppText>
 
       <AppText>

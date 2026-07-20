@@ -1,18 +1,40 @@
 from pathlib import Path
-import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATASET_PATH = Path(
-    os.getenv(
-        "DATASET_PATH",
-        BASE_DIR / "exports" / "training_dataset.csv"
-    )
-)
+DATA_DIR = BASE_DIR / "exports"
 
-MODEL_PATH = Path(
-    os.getenv(
-        "MODEL_PATH",
-        BASE_DIR / "exports" / "xgboost_model.pkl"
-    )
-)
+MODEL_DIR = BASE_DIR / "models"
+
+ARTIFACT_DIR = BASE_DIR / "artifacts"
+
+HORIZONS = {
+    "1d": 1,
+    "30d": 30,
+    "90d": 90,
+    "365d": 365,
+}
+
+QUANTILES = {
+    "lower": 0.10,
+    "median": 0.50,
+    "upper": 0.90,
+}
+
+RANDOM_STATE = 42
+
+TEST_SIZE = 0.20
+
+FEATURE_COLUMNS = [
+    "nav",
+    "return_1d",
+    "return_7d",
+    "return_30d",
+    "ma_7",
+    "ma_30",
+    "ma_90",
+    "volatility_30",
+    "momentum",
+]
+
+TARGET_COLUMN = "future_nav"

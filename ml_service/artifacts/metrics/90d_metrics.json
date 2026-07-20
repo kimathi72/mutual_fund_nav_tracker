@@ -1,0 +1,13 @@
+{
+    "horizon": "90d",
+    "model_version": "xgboost-q-v2",
+    "trained_at": "2026-07-20T11:48:12.568466",
+    "sample_count": 86,
+    "rmse": 9.926611392309615,
+    "mae": 9.017398843014739,
+    "mape": 37.31560016405047,
+    "r2": -5.914159234580081,
+    "prediction_interval_coverage": 0.2651162790697674,
+    "average_interval_width": 5.7856477975845335,
+    "confidence_score": 0.7387209177017212
+}

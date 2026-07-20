@@ -10,7 +10,7 @@ module Ml
     DEFAULT_PATH =
       Rails.root
            .join("exports")
-           .join("training_dataset.csv")
+           .join("mutual_funds_dataset.csv")
 
     def initialize(path: DEFAULT_PATH)
       @path = Pathname.new(path)
@@ -24,13 +24,13 @@ module Ml
       CSV.open(path, "wb") do |csv|
         csv << headers
 
-        dataset.find_each(batch_size: 1_000) do |row|
+        dataset.find_each(batch_size: 1000) do |row|
           csv << serialize(row)
         end
       end
 
       Rails.logger.info(
-        "[DatasetExportService] Exported #{total_rows} training rows to #{path}"
+        "[DatasetExportService] Exported #{total_rows} NAV records to #{path}"
       )
 
       path
@@ -41,42 +41,28 @@ module Ml
     attr_reader :path
 
     def dataset
-      MlTrainingRow
-        .where.not(next_day_nav: nil)
-        .order(:mutual_fund_id, :feature_date)
+      DailyNav
+        .joins(:mutual_fund)
+        .includes(:mutual_fund)
+        .order(
+          "mutual_funds.isin",
+          :nav_date
+        )
     end
 
     def headers
       %w[
-        mutual_fund_id
-        feature_date
+        isin
+        nav_date
         nav
-        daily_return
-        weekly_return
-        monthly_return
-        ytd_return
-        moving_average_7
-        moving_average_30
-        volatility_30
-        drawdown
-        next_day_nav
       ]
     end
 
     def serialize(row)
       [
-        row.mutual_fund_id,
-        row.feature_date,
-        row.nav,
-        row.daily_return,
-        row.weekly_return,
-        row.monthly_return,
-        row.ytd_return,
-        row.moving_average_7,
-        row.moving_average_30,
-        row.volatility_30,
-        row.drawdown,
-        row.next_day_nav
+        row.mutual_fund.isin,
+        row.nav_date,
+        row.nav
       ]
     end
   end

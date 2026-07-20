@@ -11,12 +11,18 @@ module Ml
         "http://ml:8000"
       )
 
+    #
+    # Train all horizons.
+    #
     def train
       post("/train")
     end
 
-    def predict(payload)
-      post("/predict", payload)
+    #
+    # Generate forecasts for every active fund.
+    #
+    def generate_forecasts
+      post("/forecast")
     end
 
     private
@@ -30,13 +36,17 @@ module Ml
           uri.port
         )
 
-      request = Net::HTTP::Post.new(uri)
+      request =
+        Net::HTTP::Post.new(uri)
 
-      request["Content-Type"] = "application/json"
+      request["Content-Type"] =
+        "application/json"
 
-      request.body = body.to_json
+      request.body =
+        body.to_json
 
-      response = http.request(request)
+      response =
+        http.request(request)
 
       unless response.is_a?(Net::HTTPSuccess)
         raise response.body

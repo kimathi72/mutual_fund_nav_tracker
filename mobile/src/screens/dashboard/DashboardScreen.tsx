@@ -25,7 +25,7 @@ export default function DashboardScreen() {
   102.9,
   104.1,
 ];
-
+  console.log(data)
   if (isLoading || !data) {
     return <AppScreen />;
   }
@@ -52,15 +52,7 @@ export default function DashboardScreen() {
       <KPITrendCard
           title="Portfolio Return"
           value="+5.52%"
-          trend={[
-              2.1,
-              2.4,
-              2.7,
-              3.4,
-              3.6,
-              4.4,
-              5.5,
-          ]}
+          trend={sparkline}
       />
   
 

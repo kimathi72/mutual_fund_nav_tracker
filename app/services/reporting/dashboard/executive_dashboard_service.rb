@@ -62,15 +62,7 @@ module Reporting
         end
       end
 
-      def latest_nav_for(fund, report_date)
-        fund.daily_navs.find do |nav|
-          nav.nav_date == report_date
-        end
-      end
 
-      def latest_forecast_for(fund)
-        fund.forecasts.max_by(&:forecast_date)
-      end
 
       def build_funds(dashboard_data)
         dashboard_data.funds.map do |fund|
@@ -81,14 +73,7 @@ module Reporting
               dashboard_data.report_date
             )
 
-          latest_nav =
-            latest_nav_for(
-              fund,
-              dashboard_data.report_date
-            )
-
-          forecast =
-            latest_forecast_for(fund)
+          
 
           performance =
             Reporting::Performance::PerformanceReportService.call(
@@ -104,9 +89,7 @@ module Reporting
 
           forecast_report =
             Reporting::Forecast::ForecastReportService.call(
-              fund: fund,
-              forecast: forecast,
-              latest_nav: latest_nav
+              fund: fund
             )
           
           executive_insight =

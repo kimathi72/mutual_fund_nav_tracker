@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_13_190214) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_20_094036) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -77,17 +77,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_13_190214) do
 
   create_table "forecasts", force: :cascade do |t|
     t.bigint "mutual_fund_id", null: false
-    t.date "forecast_date", null: false
     t.date "target_date", null: false
     t.decimal "predicted_nav", precision: 18, scale: 8
     t.decimal "lower_bound", precision: 18, scale: 8
     t.decimal "upper_bound", precision: 18, scale: 8
-    t.decimal "confidence", precision: 8, scale: 4
     t.string "model_version"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.decimal "confidence_score", precision: 8, scale: 6
-    t.index ["mutual_fund_id", "target_date", "model_version"], name: "idx_forecasts_unique", unique: true
+    t.datetime "predicted_at"
+    t.string "horizon"
+    t.decimal "expected_return_pct"
+    t.index ["mutual_fund_id", "horizon", "target_date"], name: "idx_forecasts_unique", unique: true
     t.index ["mutual_fund_id"], name: "index_forecasts_on_mutual_fund_id"
   end
 

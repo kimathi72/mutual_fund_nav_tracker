@@ -1,16 +1,10 @@
 import React from "react";
-
-import {
-  ScrollView,
-} from "react-native";
-
-import {
-  useLocalSearchParams,
-} from "expo-router";
+import { ScrollView } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 
 import AppScreen from "@/components/common/AppScreen";
+import LoadingView from "@/components/common/LoadingView";
 import AppText from "@/components/common/AppText";
-
 import SectionHeader from "@/components/common/SectionHeader";
 
 import NavHistoryChart from "@/components/charts/NavHistoryChart";
@@ -21,38 +15,31 @@ import FundRisk from "@/components/fund/FundRisk";
 import FundForecast from "@/components/fund/FundForecast";
 import FundInsight from "@/components/fund/FundInsight";
 
-import { useDashboard } from "@/hooks/useDashboard";
+import useFundDetails from "@/hooks/useFundDetails";
 
 export default function FundDetailsScreen() {
   const { id } = useLocalSearchParams();
 
-  const { data, isLoading } =
-    useDashboard();
+  const {
+    data: fund,
+    isLoading,
+  } = useFundDetails(Number(id));
 
-  if (isLoading || !data) {
-    return <AppScreen />;
+  if (isLoading) {
+    return <LoadingView />;
   }
-
-  const fund = data.funds.find(
-    (f) =>
-      f.performance.fund_id === Number(id)
-  );
 
   if (!fund) {
     return (
       <AppScreen>
-        <AppText>
-          Fund not found.
-        </AppText>
+        <AppText>Fund not found.</AppText>
       </AppScreen>
     );
   }
-console.log(JSON.stringify(fund, null, 2));
+
   return (
     <AppScreen>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView showsVerticalScrollIndicator={false}>
         <SectionHeader
           title={fund.performance.fund_name}
           subtitle={fund.performance.isin}
@@ -77,7 +64,7 @@ console.log(JSON.stringify(fund, null, 2));
         />
 
         <FundRisk
-          volatility={fund.risk.volatility}
+          volatility_30={fund.risk.volatility_30}
           drawdown={fund.risk.drawdown}
           ytdReturn={fund.performance.ytd_return}
           history={fund.volatility_history}
@@ -87,20 +74,14 @@ console.log(JSON.stringify(fund, null, 2));
           history={fund.nav_history}
           forecast={fund.forecast_series}
           trend={fund.forecast.trend}
-          predictedNav={
-            fund.forecast.predicted_nav
-          }
-          confidence={
-            fund.executive_insight.confidence
-          }
-          currency={
-            fund.performance.currency
-          }
+          predictedNav={fund.forecast.predicted_nav}
+          confidence={fund.forecast.confidence ?? 0}
+          currency={fund.performance.currency}
         />
 
         <FundInsight
           summary={
-            fund.executive_insight.summary
+            fund.executive_insight.executive_summary
           }
         />
       </ScrollView>
