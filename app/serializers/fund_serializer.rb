@@ -28,16 +28,10 @@ class FundSerializer
       risk: {
         volatility_30: metrics&.volatility_30,
         drawdown: metrics&.drawdown,
-        risk_level: metrics&.risk_level
+        risk_level: executive_risk_level
       },
 
-      forecast: forecast && {
-        predicted_nav: forecast.predicted_nav,
-        expected_change_pct: forecast.expected_change_pct,
-        trend: forecast.trend,
-        confidence: forecast.confidence_score,
-        target_date: forecast.target_date
-      },
+      forecast: forecast_payload,
 
       executive_insight: {
         executive_summary: executive_summary,
@@ -52,21 +46,21 @@ class FundSerializer
       nav_history: nav_history.map do |item|
         {
           date: item.nav_date,
-          value: item.nav
+          value: item.nav.to_f
         }
       end,
 
       volatility_history: volatility_history.map do |item|
         {
           date: item.daily_nav.nav_date,
-          value: item.volatility_30
+          value: item.volatility_30.to_f
         }
       end,
 
       forecast_series: forecast_series.map do |item|
         {
           date: item.target_date,
-          value: item.predicted_nav,
+          value: item.predicted_nav.to_f,
           confidence: item.confidence_score
         }
       end
@@ -89,6 +83,7 @@ class FundSerializer
     details[:metrics]
   end
 
+  # Latest forecast (used for executive summary)
   def forecast
     details[:forecast]
   end
@@ -101,31 +96,161 @@ class FundSerializer
     details[:volatility_history]
   end
 
+  # Collection of 1d / 30d / 90d forecasts
   def forecast_series
-    details[:forecast_series]
+    details[:forecast_series] || []
   end
+
+  ##################################################
+  ## Forecast helpers
+  ##################################################
+
+  def forecast_payload
+    {
+      latest: latest_forecast_payload,
+      forecasts: forecast_horizons
+    }
+  end
+
+  def latest_forecast_payload
+    return nil unless forecast
+
+    {
+      predicted_nav: forecast.predicted_nav,
+      expected_return_pct: forecast.expected_return_pct,
+      confidence_score: forecast.confidence_score,
+      target_date: forecast.target_date,
+      predicted_at: forecast.predicted_at,
+      horizon: forecast.horizon,
+      model_version: forecast.model_version,
+      lower_bound: forecast.lower_bound,
+      upper_bound: forecast.upper_bound,
+      trend: forecast_trend,
+      recommendation: recommendation
+    }
+  end
+
+  def forecast_horizons
+    forecast_series
+      .sort_by(&:target_date)
+      .map
+      .with_index do |item, index|
+
+      horizon =
+        case index
+        when 0 then "1d"
+        when 1 then "30d"
+        when 2 then "90d"
+        else
+          item.respond_to?(:horizon) ? item.horizon : "#{index}d"
+        end
+
+      {
+        horizon: horizon,
+        target_date: item.target_date,
+        predicted_nav: item.predicted_nav.to_f,
+        expected_return_pct: expected_return(item.predicted_nav),
+        confidence_score: item.confidence_score,
+        trend: trend_for(item.predicted_nav),
+        recommendation: recommendation_for(item.predicted_nav)
+      }
+    end
+  end
+
+  def expected_return(predicted_nav)
+    return nil unless nav&.nav.present?
+
+    (((predicted_nav.to_f - nav.nav.to_f) / nav.nav.to_f) * 100).round(2)
+  end
+
+  def trend_for(predicted_nav)
+    pct = expected_return(predicted_nav)
+    return "Neutral" if pct.nil?
+
+    if pct > 0
+      "Bullish"
+    elsif pct < 0
+      "Bearish"
+    else
+      "Neutral"
+    end
+  end
+
+  def recommendation_for(predicted_nav)
+    pct = expected_return(predicted_nav)
+    return "Hold" if pct.nil?
+
+    case pct
+    when 10..Float::INFINITY
+      "Strong Buy"
+    when 3...10
+      "Buy"
+    when -3...3
+      "Hold"
+    when -10...-3
+      "Reduce Exposure"
+    else
+      "Sell"
+    end
+  end
+
+  def forecast_trend
+    return "Neutral" unless forecast
+
+    value = forecast.expected_return_pct.to_f
+
+    if value > 0
+      "Bullish"
+    elsif value < 0
+      "Bearish"
+    else
+      "Neutral"
+    end
+  end
+
+  ##################################################
+  ## Executive insight
+  ##################################################
 
   def executive_summary
     return nil unless forecast
 
-    "#{fund.name} is forecast to #{forecast.trend.downcase} by #{forecast.expected_change_pct}%."
+    pct = forecast.expected_return_pct.to_f.round(2)
+
+    "#{fund.name} is forecast to #{forecast_trend.downcase} by #{pct}% over the forecast horizon."
   end
 
   def recommendation
     return "Hold" unless forecast
 
-    forecast.trend == "Bullish" ? "Increase exposure" : "Reduce exposure"
+    pct = forecast.expected_return_pct.to_f
+
+    if pct >= 10
+      "Strong Buy"
+    elsif pct >= 3
+      "Buy"
+    elsif pct > -3
+      "Hold"
+    elsif pct > -10
+      "Reduce Exposure"
+    else
+      "Sell"
+    end
   end
 
   def opportunity_score
     return 0 unless forecast
 
-    forecast.expected_change_pct.to_f.round
+    forecast.expected_return_pct.to_f.round
   end
 
   def market_outlook
-    forecast&.trend
+    forecast_trend
   end
+
+  ##################################################
+  ## Risk
+  ##################################################
 
   def executive_risk_level
     return "Unknown" unless metrics

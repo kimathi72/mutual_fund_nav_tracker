@@ -4,6 +4,7 @@ import { useLocalSearchParams } from "expo-router";
 
 import AppScreen from "@/components/common/AppScreen";
 import LoadingView from "@/components/common/LoadingView";
+import {ErrorView} from "@/components/common/ErrorView";
 import AppText from "@/components/common/AppText";
 import SectionHeader from "@/components/common/SectionHeader";
 
@@ -15,7 +16,7 @@ import FundRisk from "@/components/fund/FundRisk";
 import FundForecast from "@/components/fund/FundForecast";
 import FundInsight from "@/components/fund/FundInsight";
 
-import useFundDetails from "@/hooks/useFundDetails";
+import {useFundDetails} from "@/hooks/useFundDetails";
 
 export default function FundDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -23,12 +24,23 @@ export default function FundDetailsScreen() {
   const {
     data: fund,
     isLoading,
+    isError,
+    refetch,
   } = useFundDetails(Number(id));
 
   if (isLoading) {
     return <LoadingView />;
   }
 
+  if (isError) {
+    return (
+      <ErrorView
+        message="Unable to load fund."
+        onRetry={() => refetch()}
+      />
+    );
+  }
+  console.log(fund)
   if (!fund) {
     return (
       <AppScreen>
@@ -39,7 +51,9 @@ export default function FundDetailsScreen() {
 
   return (
     <AppScreen>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+      >
         <SectionHeader
           title={fund.performance.fund_name}
           subtitle={fund.performance.isin}
@@ -50,6 +64,7 @@ export default function FundDetailsScreen() {
           isin={fund.performance.isin}
           nav={fund.performance.latest_nav}
           currency={fund.performance.currency}
+          navDate={fund.performance.nav_date}
         />
 
         <NavHistoryChart
@@ -57,31 +72,23 @@ export default function FundDetailsScreen() {
         />
 
         <FundPerformance
-          daily={fund.performance.daily_return}
-          weekly={fund.performance.weekly_return}
-          monthly={fund.performance.monthly_return}
-          ytd={fund.performance.ytd_return}
+          performance={fund.performance}
         />
 
         <FundRisk
-          volatility_30={fund.risk.volatility_30}
-          drawdown={fund.risk.drawdown}
-          ytdReturn={fund.performance.ytd_return}
+          risk={fund.risk}
           history={fund.volatility_history}
         />
 
         <FundForecast
+          report={fund.forecast}
           history={fund.nav_history}
-          forecast={fund.forecast_series}
-          trend={fund.forecast.trend}
-          predictedNav={fund.forecast.predicted_nav}
-          confidence={fund.forecast.confidence ?? 0}
-          currency={fund.performance.currency}
+          forecastSeries={fund.forecast_series}
         />
 
         <FundInsight
-          summary={
-            fund.executive_insight.executive_summary
+          insight={
+            fund.executive_insight
           }
         />
       </ScrollView>

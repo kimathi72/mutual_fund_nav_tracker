@@ -49,9 +49,9 @@ module Reporting
           .last(30)
           .map do |forecast|
         {
-          date: forecast.forecast_date,
+          date: forecast.target_date,
           value: forecast.predicted_nav.to_f,
-          confidence: forecast.confidence || forecast.confidence_score
+          confidence: forecast.confidence_score.to_f
         }
       end
     end

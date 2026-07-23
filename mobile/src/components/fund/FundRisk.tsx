@@ -11,42 +11,24 @@ import {
 
 import spacing from "@/constants/spacing";
 
-import formatPercentage from "@/utils/formatPercentage";
 import riskColor from "@/utils/riskColor";
+import formatPercentage from "@/utils/formatPercentage";
 
-import {
-  HeatMapCell,
-  TimeSeriesPoint,
-} from "@/components/charts/types";
+import { RiskReport } from "@/models/RiskReport";
 
-type Props = {
-  volatility_30: number;
-  drawdown: number;
-  ytdReturn: number;
-  history: TimeSeriesPoint[];
-};
+interface Props {
+  risk: RiskReport;
+
+  history: {
+    date: string;
+    value: number;
+  }[];
+}
 
 export default function FundRisk({
-  volatility_30,
-  drawdown,
-  ytdReturn,
+  risk,
   history,
 }: Props) {
-  const heatMapData: HeatMapCell[] = [
-    {
-      label: "Volatility",
-      value: volatility_30,
-    },
-    {
-      label: "Drawdown",
-      value: Math.abs(drawdown),
-    },
-    {
-      label: "YTD",
-      value: Math.abs(ytdReturn),
-    },
-  ];
-
   return (
     <AppCard style={styles.card}>
       <AppText variant="heading">
@@ -55,19 +37,38 @@ export default function FundRisk({
 
       <AppText
         style={{
-          color: riskColor(volatility_30),
+          color: riskColor(risk.risk_level),
         }}
       >
-        Volatility: {formatPercentage(volatility_30)}
+        Risk Level: {risk.risk_level}
       </AppText>
 
       <AppText>
-        Drawdown: {formatPercentage(drawdown)}
+        Volatility:{" "}
+        {formatPercentage(risk.volatility_30)}
       </AppText>
 
-      <VolatilityChart history={history} />
+      <AppText>
+        Drawdown:{" "}
+        {formatPercentage(risk.drawdown)}
+      </AppText>
 
-      <RiskHeatMap data={heatMapData} />
+      <VolatilityChart
+        history={history}
+      />
+
+      <RiskHeatMap
+        data={[
+          {
+            label: "Volatility",
+            value: Number(risk.volatility_30),
+          },
+          {
+            label: "Drawdown",
+            value: Math.abs(Number(risk.drawdown)),
+          }
+        ]}
+      />
     </AppCard>
   );
 }

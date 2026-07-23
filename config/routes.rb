@@ -26,6 +26,8 @@ Rails.application.routes.draw do
 
         post "forecasts/bulk", to: "forecasts#bulk"
 
+        get "reports/briefing", to: "reports#briefing"
+
         resources :forecasts,
                     only: [:index]
     end

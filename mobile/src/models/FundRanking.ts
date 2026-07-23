@@ -11,19 +11,19 @@ export interface FundRanking {
 
   currency: string;
 
-  daily_return: string;
+  daily_return: number;
 
-  weekly_return: string;
+  weekly_return: number;
 
-  monthly_return: string;
+  monthly_return: number;
 
-  ytd_return: string;
+  ytd_return: number;
 
-  moving_average_7: string;
+  moving_average_7: number;
 
-  moving_average_30: string;
+  moving_average_30: number;
 
-  volatility_30: string;
+  volatility_30: number;
 
-  drawdown: string;
+  drawdown: number;
 }

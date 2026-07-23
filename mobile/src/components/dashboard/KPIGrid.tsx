@@ -1,18 +1,17 @@
-// src/components/dashboard/KPIGrid.tsx
-
-import { View, StyleSheet } from "react-native";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
 import KPICard from "./KPICard";
 
-import { PortfolioSummary } from "@/models/PortfolioSummary";
+import type { PortfolioSummary } from "@/models/PortfolioSummary";
 
-import  formatPercentage  from "@/utils/formatPercentage";
+import formatPercentage from "@/utils/formatPercentage";
 
-import  spacing  from "@/constants/spacing";
+import spacing from "@/constants/spacing";
 
-type Props = {
+interface Props {
   summary: PortfolioSummary;
-};
+}
 
 export default function KPIGrid({
   summary,
@@ -23,24 +22,46 @@ export default function KPIGrid({
         <KPICard
           title="Funds"
           value={summary.total_funds}
-          subtitle="Active"
+          subtitle="Active Funds"
         />
 
         <KPICard
-          title="YTD Return"
-          value={formatPercentage(summary.average_ytd_return)}
+          title="Daily"
+          value={formatPercentage(
+            summary.average_daily_return
+          )}
         />
       </View>
 
       <View style={styles.row}>
         <KPICard
-          title="Daily Return"
-          value={formatPercentage(summary.average_daily_return)}
+          title="Weekly"
+          value={formatPercentage(
+            summary.average_weekly_return
+          )}
+        />
+
+        <KPICard
+          title="Monthly"
+          value={formatPercentage(
+            summary.average_monthly_return
+          )}
+        />
+      </View>
+
+      <View style={styles.row}>
+        <KPICard
+          title="YTD"
+          value={formatPercentage(
+            summary.average_ytd_return
+          )}
         />
 
         <KPICard
           title="Volatility"
-          value={formatPercentage(summary.average_volatility)}
+          value={formatPercentage(
+            summary.average_volatility
+          )}
         />
       </View>
     </View>
@@ -50,6 +71,8 @@ export default function KPIGrid({
 const styles = StyleSheet.create({
   container: {
     gap: spacing.md,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
   },
 
   row: {

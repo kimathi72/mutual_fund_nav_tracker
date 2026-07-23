@@ -12,7 +12,7 @@ class MutualFund < ApplicationRecord
            dependent: :destroy
 
   has_many :forecasts,
-         -> { order(forecast_date: :asc) },
+         -> { order(target_date: :asc) },
            dependent: :destroy
 
   validates :name,

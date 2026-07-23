@@ -7,19 +7,19 @@ export interface PerformanceReport {
 
   nav_date: string;
 
-  latest_nav: string;
+  latest_nav: number;
 
   currency: string;
 
-  daily_return: string;
+  daily_return: number;
 
-  weekly_return: string;
+  weekly_return: number;
 
-  monthly_return: string;
+  monthly_return: number;
 
-  ytd_return: string;
+  ytd_return: number;
 
-  moving_average_7: string;
+  moving_average_7: number;
 
-  moving_average_30: string;
+  moving_average_30: number;
 }

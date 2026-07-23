@@ -9,28 +9,26 @@ import ForecastChart from "@/components/charts/ForecastChart";
 import spacing from "@/constants/spacing";
 
 import formatCurrency from "@/utils/formatCurrency";
+import formatPercentage from "@/utils/formatPercentage";
 
 import {
-  ForecastPoint,
-  TimeSeriesPoint,
-} from "@/components/charts/types";
+  ForecastReport,
+  Forecast,
+} from "@/models/Forecast";
+import { ForecastPoint, TimeSeriesPoint } from "../charts/types";
 
-type Props = {
+interface Props {
+  report: ForecastReport;
+
   history: TimeSeriesPoint[];
-  forecast: ForecastPoint[];
-  trend: string;
-  predictedNav: number;
-  confidence: number;
-  currency: string;
-};
+
+  forecastSeries: ForecastPoint[];
+}
 
 export default function FundForecast({
+  report,
   history,
-  forecast,
-  trend,
-  predictedNav,
-  confidence,
-  currency,
+  forecastSeries,
 }: Props) {
   return (
     <AppCard style={styles.card}>
@@ -38,28 +36,69 @@ export default function FundForecast({
         AI Forecast
       </AppText>
 
+      {report.forecasts.map((forecast: Forecast) => (
+        <ForecastRow
+          key={`${forecast.horizon}-${forecast.target_date}`}
+          forecast={forecast}
+          currency="USD"
+        />
+      ))}
+
+      <ForecastChart
+        history={history}
+        forecast={forecastSeries}
+      />
+    </AppCard>
+  );
+}
+
+function ForecastRow({
+  forecast,
+  currency,
+}: {
+  forecast: Forecast;
+  currency: string;
+}) {
+  return (
+    <>
       <AppText>
-        Trend: {trend}
+        {forecast.horizon.toUpperCase()}
       </AppText>
 
       <AppText>
-        Predicted NAV:{" "}
+        NAV{" "}
         {formatCurrency(
-          predictedNav,
+          forecast.predicted_nav ?? 0,
           currency
         )}
       </AppText>
 
       <AppText>
-        Confidence:{" "}
-        {Math.round(confidence * 100)}%
+        Return{" "}
+        {formatPercentage(
+          forecast.expected_return_pct ?? 0
+        )}
       </AppText>
 
-      <ForecastChart
-        history={history}
-        forecast={forecast}
-      />
-    </AppCard>
+      <AppText>
+        Confidence{" "}
+        {Math.round(
+          (forecast.confidence_score ?? 0) *
+            100
+        )}
+        %
+      </AppText>
+
+      <AppText>
+        {forecast.recommendation}
+      </AppText>
+
+      <AppText>
+        {forecast.trend}
+      </AppText>
+
+      <AppText>{"----------------"}</AppText>
+    </>
   );
 }
 

@@ -1,19 +1,19 @@
 import colors from "@/constants/colors";
 
 export default function riskColor(
-  volatility?: number | null
+  riskLevel?: string | null
 ): string {
-  if (volatility == null) {
-    return colors.text;
-  }
+  switch (riskLevel) {
+    case "Low":
+      return colors.success;
 
-  if (volatility < 0.05) {
-    return colors.success;
-  }
+    case "Medium":
+      return colors.warning;
 
-  if (volatility < 0.15) {
-    return colors.warning;
-  }
+    case "High":
+      return colors.danger;
 
-  return colors.danger;
+    default:
+      return colors.text;
+  }
 }

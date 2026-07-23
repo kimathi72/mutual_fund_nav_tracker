@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
@@ -8,18 +8,14 @@ import spacing from "@/constants/spacing";
 
 import formatPercentage from "@/utils/formatPercentage";
 
-type Props = {
-  daily: number;
-  weekly: number;
-  monthly: number;
-  ytd: number;
-};
+import { PerformanceReport } from "@/models/PerformanceReport";
+
+interface Props {
+  performance: PerformanceReport;
+}
 
 export default function FundPerformance({
-  daily,
-  weekly,
-  monthly,
-  ytd,
+  performance,
 }: Props) {
   return (
     <AppCard style={styles.card}>
@@ -27,27 +23,65 @@ export default function FundPerformance({
         Performance
       </AppText>
 
-      <AppText>
-        Daily: {formatPercentage(daily)}
-      </AppText>
+      <Metric
+        label="Daily"
+        value={Number(performance.daily_return)}
+      />
 
-      <AppText>
-        Weekly: {formatPercentage(weekly)}
-      </AppText>
+      <Metric
+        label="Weekly"
+        value={Number(performance.weekly_return)}
+      />
 
-      <AppText>
-        Monthly: {formatPercentage(monthly)}
-      </AppText>
+      <Metric
+        label="Monthly"
+        value={Number(performance.monthly_return)}
+      />
 
-      <AppText>
-        YTD: {formatPercentage(ytd)}
-      </AppText>
+      <Metric
+        label="YTD"
+        value={Number(performance.ytd_return)}
+      />
+
+      <Metric
+        label="MA (7)"
+        value={Number(performance.moving_average_7)}
+      />
+
+      <Metric
+        label="MA (30)"
+        value={Number(performance.moving_average_30)}
+      />
     </AppCard>
+  );
+}
+
+function Metric({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <View style={styles.metric}>
+      <AppText>{label}</AppText>
+
+      <AppText>
+        {formatPercentage(value)}
+      </AppText>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     marginBottom: spacing.lg,
+  },
+
+  metric: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: spacing.md,
   },
 });

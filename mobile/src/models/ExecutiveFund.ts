@@ -1,9 +1,14 @@
-import { ExecutiveInsight } from "./ExecutiveInsight";
-import { ForecastReport } from "./ForecastReport";
 import { PerformanceReport } from "./PerformanceReport";
 import { RiskReport } from "./RiskReport";
+import { ForecastReport } from "./Forecast";
+import { ExecutiveInsight } from "./ExecutiveInsight";
+import { TimeSeriesPoint } from "@/components/charts/types";
 
-interface ExecutiveFund {
+export interface ForecastPoint extends TimeSeriesPoint {
+  confidence?: number;
+}
+
+export interface ExecutiveFund {
   performance: PerformanceReport;
 
   risk: RiskReport;
@@ -12,6 +17,9 @@ interface ExecutiveFund {
 
   executive_insight: ExecutiveInsight;
 
-  nav_history: [];
+  nav_history: TimeSeriesPoint[];
+
+  volatility_history: TimeSeriesPoint[];
+
+  forecast_series: ForecastPoint[];
 }
-export default ExecutiveFund;

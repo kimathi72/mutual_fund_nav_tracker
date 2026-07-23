@@ -1,32 +1,28 @@
+import React from "react";
 import { StyleSheet, View } from "react-native";
 
-import { PortfolioInsight } from "@/models/PortfolioInsight";
+import AppCard from "@/components/common/AppCard";
+import AppText from "@/components/common/AppText";
 
-import  AppCard  from "@/components/common/AppCard";
-import  AppText  from "@/components/common/AppText";
+import colors from "@/constants/colors";
+import spacing from "@/constants/spacing";
 
-import  colors  from "@/constants/colors";
-import  spacing  from "@/constants/spacing";
+import type { PortfolioInsight } from "@/models/PortfolioInsight";
 
-type Props = {
+interface Props {
   insight: PortfolioInsight;
-};
+}
 
 export default function PortfolioHealthCard({
   insight,
 }: Props) {
   return (
-    <AppCard>
-
-      <AppText
-        size={20}
-        weight="bold"
-      >
+    <AppCard style={styles.card}>
+      <AppText variant="heading">
         Portfolio Health
       </AppText>
 
       <View style={styles.badges}>
-
         <StatusBadge
           label="Health"
           value={insight.portfolio_health}
@@ -41,30 +37,31 @@ export default function PortfolioHealthCard({
           label="Risk"
           value={insight.portfolio_risk}
         />
-
       </View>
 
       <View style={styles.divider} />
 
       <AppText
         variant="caption"
-        style={styles.caption}
+        color={colors.subtitle}
       >
         Executive Recommendation
       </AppText>
 
-      <AppText style={styles.recommendation}>
+      <AppText
+        variant="body"
+        style={styles.recommendation}
+      >
         {insight.executive_recommendation}
       </AppText>
-
     </AppCard>
   );
 }
 
-type BadgeProps = {
+interface BadgeProps {
   label: string;
   value: string;
-};
+}
 
 function StatusBadge({
   label,
@@ -72,7 +69,10 @@ function StatusBadge({
 }: BadgeProps) {
   return (
     <View style={styles.badge}>
-      <AppText variant="caption">
+      <AppText
+        variant="caption"
+        color={colors.subtitle}
+      >
         {label}
       </AppText>
 
@@ -85,7 +85,8 @@ function StatusBadge({
         ]}
       >
         <AppText
-          style={styles.pillText}
+          variant="caption"
+          color="#FFF"
         >
           {value}
         </AppText>
@@ -95,19 +96,28 @@ function StatusBadge({
 }
 
 function badgeColor(value: string) {
-  switch (value.toLowerCase()) {
-    case "strong":
+  const normalized =
+    value.trim().toLowerCase();
+
+  switch (normalized) {
+    case "excellent":
+    case "healthy":
     case "bullish":
+    case "positive":
     case "low":
+    case "strong":
       return colors.success;
 
+    case "stable":
     case "moderate":
     case "neutral":
     case "medium":
       return colors.warning;
 
+    case "poor":
     case "weak":
     case "bearish":
+    case "negative":
     case "high":
       return colors.danger;
 
@@ -117,6 +127,10 @@ function badgeColor(value: string) {
 }
 
 const styles = StyleSheet.create({
+  card: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
 
   badges: {
     flexDirection: "row",
@@ -125,37 +139,27 @@ const styles = StyleSheet.create({
   },
 
   badge: {
-    alignItems: "center",
     flex: 1,
+    alignItems: "center",
   },
 
   pill: {
     marginTop: spacing.sm,
-    borderRadius: 20,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    minWidth: 70,
+    borderRadius: 20,
+    minWidth: 85,
     alignItems: "center",
-  },
-
-  pillText: {
-    color: "#FFF",
-    fontWeight: "700",
   },
 
   divider: {
     height: 1,
     backgroundColor: colors.border,
-    marginVertical: spacing.xl,
-  },
-
-  caption: {
-    color: colors.subtitle,
-    marginBottom: spacing.sm,
+    marginVertical: spacing.lg,
   },
 
   recommendation: {
-    lineHeight: 24,
+    marginTop: spacing.sm,
+    lineHeight: 22,
   },
-
 });

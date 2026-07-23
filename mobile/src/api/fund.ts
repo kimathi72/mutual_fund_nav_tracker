@@ -1,7 +1,19 @@
-import client from "./client";
+import api from "./client";
+import type FundDetails from "@/models/FundDetails";
 
-export async function fetchFundDetails(id: number) {
-  const response = await client.get(`/funds/${id}`);
+interface ApiResponse<T> {
+  success: boolean;
+  generated_at: string;
+  api_version: string;
+  data: T;
+}
 
-  return response.data.data;
+export async function fetchFund(
+  id: number
+): Promise<FundDetails> {
+  const { data } = await api.get<ApiResponse<FundDetails>>(
+    `/funds/${id}`
+  );
+
+  return data.data;
 }

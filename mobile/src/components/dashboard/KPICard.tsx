@@ -1,16 +1,17 @@
-// src/components/dashboard/KPICard.tsx
+import React from "react";
+import { StyleSheet } from "react-native";
 
-import { View, StyleSheet } from "react-native";
 import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
-import  colors  from "@/constants/colors";
-import  spacing  from "@/constants/spacing";
 
-type Props = {
+import colors from "@/constants/colors";
+import spacing from "@/constants/spacing";
+
+interface Props {
   title: string;
   value: string | number;
   subtitle?: string;
-};
+}
 
 export default function KPICard({
   title,
@@ -19,19 +20,28 @@ export default function KPICard({
 }: Props) {
   return (
     <AppCard style={styles.card}>
-      <AppText style={styles.value}>
+      <AppText
+        variant="heading"
+        style={styles.value}
+      >
         {value}
       </AppText>
 
-      <AppText style={styles.title}>
+      <AppText
+        variant="body"
+        style={styles.title}
+      >
         {title}
       </AppText>
 
-      {subtitle && (
-        <AppText style={styles.subtitle}>
+      {subtitle ? (
+        <AppText
+          variant="caption"
+          color={colors.subtitle}
+        >
           {subtitle}
         </AppText>
-      )}
+      ) : null}
     </AppCard>
   );
 }
@@ -45,20 +55,11 @@ const styles = StyleSheet.create({
   },
 
   value: {
-    fontSize: 28,
-    fontWeight: "700",
     color: colors.primary,
+    marginBottom: spacing.xs,
   },
 
   title: {
-    marginTop: spacing.sm,
-    fontSize: 14,
-    color: colors.text,
-  },
-
-  subtitle: {
-    marginTop: 4,
-    fontSize: 12,
-    color: colors.muted,
+    fontWeight: "600",
   },
 });

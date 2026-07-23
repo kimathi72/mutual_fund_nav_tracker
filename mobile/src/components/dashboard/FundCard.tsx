@@ -9,15 +9,15 @@ import AppText from "@/components/common/AppText";
 import colors from "@/constants/colors";
 import spacing from "@/constants/spacing";
 
-import ExecutiveFund from "@/models/ExecutiveFund";
+import type { ExecutiveFund } from "@/models/ExecutiveFund";
 
 import formatCurrency from "@/utils/formatCurrency";
 import formatPercentage from "@/utils/formatPercentage";
 import riskColor from "@/utils/riskColor";
 
-type Props = {
+interface Props {
   fund: ExecutiveFund;
-};
+}
 
 export default function FundCard({
   fund,
@@ -26,7 +26,11 @@ export default function FundCard({
 
   const performance = fund.performance;
   const risk = fund.risk;
-  const forecast = fund.forecast;
+
+  const nextDayForecast =
+    fund.forecast.forecasts.find(
+      (f) => f.horizon === "1d"
+    );
 
   return (
     <Pressable
@@ -37,7 +41,7 @@ export default function FundCard({
       <AppCard style={styles.card}>
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <AppText variant="subheading">
+            <AppText variant="heading">
               {performance.fund_name}
             </AppText>
 
@@ -53,10 +57,9 @@ export default function FundCard({
             style={[
               styles.badge,
               {
-                backgroundColor:
-                  riskColor(
-                    fund.executive_insight.risk_level
-                  ),
+                backgroundColor: riskColor(
+                  risk.risk_level
+                ),
               },
             ]}
           >
@@ -64,7 +67,7 @@ export default function FundCard({
               variant="caption"
               color="#fff"
             >
-              {fund.executive_insight.risk_level}
+              {risk.risk_level}
             </AppText>
           </View>
         </View>
@@ -86,11 +89,15 @@ export default function FundCard({
           />
 
           <Metric
-            label="Forecast"
-            value={formatCurrency(
-              forecast.predicted_nav,
-              performance.currency
-            )}
+            label="1D Forecast"
+            value={
+              nextDayForecast?.predicted_nav != null
+                ? formatCurrency(
+                    nextDayForecast.predicted_nav,
+                    performance.currency
+                  )
+                : "--"
+            }
           />
         </View>
 
@@ -99,7 +106,8 @@ export default function FundCard({
             variant="caption"
             color={colors.subtitle}
           >
-            {fund.executive_insight.recommendation}
+            {nextDayForecast?.recommendation ??
+              "Unavailable"}
           </AppText>
         </View>
       </AppCard>
@@ -107,10 +115,10 @@ export default function FundCard({
   );
 }
 
-type MetricProps = {
+interface MetricProps {
   label: string;
   value: string;
-};
+}
 
 function Metric({
   label,
