@@ -30,7 +30,7 @@ export default function TopMoversSection({
 
   const funds =
     rankings.top_ytd.slice(0, 3);
-
+  
   return (
     <View style={styles.container}>
       <SectionHeader
@@ -40,11 +40,11 @@ export default function TopMoversSection({
 
       {funds.map((fund, index) => (
         <FundRow
-          key={fund.fund_id}
+          key={fund.id}
           fund={fund}
           rank={index + 1}
           onPress={() =>
-            router.push(`/fund/${fund.fund_id}`)
+            router.push(`/fund/${fund.id}`)
           }
         />
       ))}
@@ -79,7 +79,7 @@ function FundRow({
 
             <View style={styles.info}>
               <AppText variant="body">
-                {fund.fund_name}
+                {fund.name}
               </AppText>
 
               <AppText

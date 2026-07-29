@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchFund } from "@/api/fund";
-import type FundDetails from "@/models/FundDetails";
+import { fetchFund } from "@/api/funds";
+
+import type { ExecutiveFund } from "@/models/ExecutiveFund";
 
 export function useFundDetails(id: number) {
-  return useQuery<FundDetails>({
+  return useQuery<ExecutiveFund>({
     queryKey: ["fund", id],
 
     queryFn: () => fetchFund(id),

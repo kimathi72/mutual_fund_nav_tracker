@@ -27,14 +27,10 @@ class ExecutiveFundSerializer < ApplicationSerializer
           .new(fund.executive_insight)
           .as_json,
 
-      nav_history:
-        fund.nav_history,
-
-      volatility_history:
-        fund.volatility_history,
-
-      forecast_series:
-        fund.forecast_series
+      history:
+        ExecutiveFundHistorySerializer
+          .new(fund.history)
+          .as_json
     }
   end
 

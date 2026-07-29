@@ -29,7 +29,7 @@ class DashboardSerializer < ApplicationSerializer
 
       funds:
         dashboard.funds.map do |fund|
-          ExecutiveFundSerializer
+          FundSummarySerializer
             .new(fund)
             .as_json
         end

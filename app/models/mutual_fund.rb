@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class MutualFund < ApplicationRecord
-  has_many :daily_navs,  -> {order(nav_date: :asc)},
+  has_many :daily_navs, 
            dependent: :destroy
   has_many :daily_nav_metrics, -> { joins(:daily_nav).order("daily_navs.nav_date ASC") },
            dependent: :destroy
@@ -50,7 +50,7 @@ class MutualFund < ApplicationRecord
       if association(:daily_navs).loaded?
         daily_navs.max_by(&:nav_date)
       else
-        daily_navs.latest_first.first
+        daily_navs.reorder(nav_date: :desc).first
       end
     end
   end

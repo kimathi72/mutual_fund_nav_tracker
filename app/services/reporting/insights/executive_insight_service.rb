@@ -15,7 +15,7 @@ module Reporting
       end
 
       def call
-        return unavailable if forecasts.empty?
+        return unavailable if predictions.empty?
 
         ExecutiveInsight.new(
           executive_summary: executive_summary,
@@ -33,65 +33,75 @@ module Reporting
       attr_reader :fund,
                   :forecast_report
 
-      def forecasts
-        @forecasts ||=
-          Array(
-            forecast_report[:forecasts]
-          )
+      ########################################################
+      # Predictions
+      ########################################################
+
+      def predictions
+        @predictions ||= forecast_report.predictions
       end
 
-      def forecast(horizon)
-        forecasts.find do |forecast|
-          forecast[:horizon] == horizon
+      def prediction(horizon)
+        predictions.find do |prediction|
+          prediction.horizon == horizon
         end
       end
 
       def one_day
-        forecast("1d")
+        prediction("1d")
       end
 
       def thirty_day
-        forecast("30d")
+        prediction("30d")
       end
 
       def ninety_day
-        forecast("90d")
+        prediction("90d")
       end
+
+      ########################################################
+      # Executive Summary
+      ########################################################
 
       def executive_summary
         parts = []
 
-        [one_day, thirty_day, ninety_day].compact.each do |forecast|
-
-          next if forecast[:predicted_nav].blank?
+        [one_day, thirty_day, ninety_day].compact.each do |prediction|
+          next if prediction.predicted_nav.blank?
 
           direction =
-            forecast[:expected_return_pct].to_f >= 0 ?
-            "increase" :
-            "decrease"
+            prediction.expected_return_pct.to_f >= 0 ?
+              "increase" :
+              "decrease"
 
-          parts << "#{forecast[:horizon]}: #{direction} #{forecast[:expected_return_pct].abs.round(2)}%"
+          parts << "#{prediction.horizon}: #{direction} #{prediction.expected_return_pct.abs.round(2)}%"
         end
 
         "#{fund.name} outlook — #{parts.join(', ')}."
       end
 
-      def recommendation
+      ########################################################
+      # Recommendation
+      ########################################################
 
-        long_term = ninety_day || thirty_day || one_day
+      def recommendation
+        long_term =
+          ninety_day ||
+          thirty_day ||
+          one_day
 
         return "Unavailable" unless long_term
 
-        long_term[:recommendation]
-
+        long_term.recommendation
       end
 
-      def opportunity_score
+      ########################################################
+      # Opportunity
+      ########################################################
 
+      def opportunity_score
         returns =
-          forecasts.filter_map do |forecast|
-            forecast[:expected_return_pct]
-          end
+          predictions.filter_map(&:expected_return_pct)
 
         return nil if returns.empty?
 
@@ -100,71 +110,71 @@ module Reporting
           returns.size *
           10
         ).round.clamp(0, 100)
-
       end
 
-      def market_outlook
+      ########################################################
+      # Outlook
+      ########################################################
 
+      def market_outlook
         bullish =
-          forecasts.count do |forecast|
-            forecast[:trend] == "Bullish"
+          predictions.count do |prediction|
+            prediction.trend == "Bullish"
           end
 
         bearish =
-          forecasts.count do |forecast|
-            forecast[:trend] == "Bearish"
+          predictions.count do |prediction|
+            prediction.trend == "Bearish"
           end
 
         return "Bullish" if bullish > bearish
         return "Bearish" if bearish > bullish
 
         "Neutral"
-
       end
 
-      def risk_level
+      ########################################################
+      # Risk
+      ########################################################
 
-        score =
-          average_confidence
+      def risk_level
+        score = average_confidence
 
         return "Unknown" if score.nil?
-
         return "Low" if score >= HIGH_CONFIDENCE
         return "Medium" if score >= MEDIUM_CONFIDENCE
 
         "High"
-
       end
 
-      def confidence_label
+      ########################################################
+      # Confidence
+      ########################################################
 
-        score =
-          average_confidence
+      def confidence_label
+        score = average_confidence
 
         return "Unknown" if score.nil?
-
         return "High" if score >= HIGH_CONFIDENCE
         return "Medium" if score >= MEDIUM_CONFIDENCE
 
         "Low"
-
       end
 
       def average_confidence
-
         values =
-          forecasts.filter_map do |forecast|
-            forecast[:confidence_score]
-          end
+          predictions.filter_map(&:confidence_score)
 
         return nil if values.empty?
 
-        values.sum / values.size
-
+        values.sum.to_f / values.size
       end
 
-      def unavailable
+      ########################################################
+      # Fallback
+      ########################################################
 
+      def unavailable
         ExecutiveInsight.new(
           executive_summary: "Forecast unavailable.",
           recommendation: "Unavailable",
@@ -174,7 +184,6 @@ module Reporting
           confidence: "Unknown",
           generated_at: Time.current
         )
-
       end
     end
   end

@@ -282,6 +282,7 @@ DEPENDENCIES
   factory_bot_rails
   faker
   httparty
+  nokogiri
   pg (~> 1.1)
   puma (>= 5.0)
   rack-cors

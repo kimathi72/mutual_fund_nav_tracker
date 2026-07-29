@@ -14,7 +14,7 @@ module Ml
       )
 
       result = client.generate_forecasts
-
+      ForecastImportService.new(result.fetch("forecasts")).call
       Rails.logger.info(
         "[GenerateForecastsService] Forecast generation completed."
       )

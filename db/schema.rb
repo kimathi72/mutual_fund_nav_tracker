@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_20_094036) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_29_093057) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -88,7 +88,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_20_094036) do
     t.datetime "predicted_at"
     t.string "horizon"
     t.decimal "expected_return_pct"
-    t.index ["mutual_fund_id", "horizon", "target_date"], name: "idx_forecasts_unique", unique: true
+    t.index ["mutual_fund_id", "horizon", "target_date", "predicted_at"], name: "idx_forecasts_unique", unique: true
     t.index ["mutual_fund_id"], name: "index_forecasts_on_mutual_fund_id"
   end
 

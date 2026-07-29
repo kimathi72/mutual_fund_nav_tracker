@@ -1,33 +1,35 @@
 # frozen_string_literal: true
 
-class ForecastSerializer
-  def initialize(forecast)
-    @forecast = forecast
+class ForecastSerializer < ApplicationSerializer
+  def initialize(prediction)
+    @prediction = prediction
   end
 
   def as_json(*)
     {
-      id: forecast.id,
+      horizon: prediction.horizon,
 
+      predicted_at: prediction.predicted_at,
+      target_date: prediction.target_date,
 
-      predicted_at: forecast.predicted_at,
-      target_date: forecast.target_date,
-      horizon: forecast.horizon,
-      predicted_nav: forecast.predicted_nav&.to_f,
-      expected_return_pct: forecast.expected_return_pct&.to_f,
-      lower_bound: forecast.lower_bound&.to_f,
-      upper_bound: forecast.upper_bound&.to_f,
+      predicted_nav: prediction.predicted_nav,
 
-      confidence_score: forecast.confidence_score&.to_f,
+      lower_bound: prediction.lower_bound,
+      upper_bound: prediction.upper_bound,
 
-      model_version: forecast.model_version,
+      confidence_score: prediction.confidence_score,
 
-      created_at: forecast.created_at,
-      updated_at: forecast.updated_at
+      expected_return_pct: prediction.expected_return_pct,
+
+      model_version: prediction.model_version,
+
+      trend: prediction.trend,
+
+      recommendation: prediction.recommendation
     }
   end
 
   private
 
-  attr_reader :forecast
+  attr_reader :prediction
 end

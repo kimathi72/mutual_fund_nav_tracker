@@ -7,11 +7,12 @@ class FundRankingSerializer < ApplicationSerializer
 
   def as_json(*)
     {
-      fund_id: ranking.fund_id,
-      fund_name: ranking.fund_name,
+      rank: ranking.rank,
+
+      id: ranking.fund_id,
+      name: ranking.fund_name,
       isin: ranking.isin,
 
-      nav_date: ranking.nav_date,
       nav: ranking.nav,
       currency: ranking.currency,
 
@@ -20,10 +21,7 @@ class FundRankingSerializer < ApplicationSerializer
       monthly_return: ranking.monthly_return,
       ytd_return: ranking.ytd_return,
 
-      moving_average_7: ranking.moving_average_7,
-      moving_average_30: ranking.moving_average_30,
-
-      volatility_30: ranking.volatility_30,
+      volatility: ranking.volatility,
       drawdown: ranking.drawdown
     }
   end

@@ -5,38 +5,48 @@ module Reporting
     class PortfolioSummaryService < ApplicationService
       def initialize(
         report_date:,
-        metrics:
+        funds:
       )
         @report_date = report_date
-        @metrics = metrics
+        @funds = funds
       end
 
       def call
-        return empty_summary if metrics.empty?
+        return empty_summary if funds.empty?
 
         PortfolioSummary.new(
           report_date: report_date,
-          total_funds: metrics.size,
+          total_funds: funds.size,
+
           average_daily_return: average(:daily_return),
           average_weekly_return: average(:weekly_return),
           average_monthly_return: average(:monthly_return),
           average_ytd_return: average(:ytd_return),
-          average_volatility: average(:volatility_30),
-          best_performer: serialize(metrics.max_by(&:ytd_return)),
-          worst_performer: serialize(metrics.min_by(&:ytd_return)),
-          highest_risk: serialize(metrics.max_by(&:volatility_30)),
-          lowest_risk: serialize(metrics.min_by(&:volatility_30))
+          average_volatility: average(:volatility),
+
+          best_performer: portfolio_summary(funds.max_by(&:ytd_return)),
+          worst_performer: portfolio_summary(funds.min_by(&:ytd_return)),
+          highest_risk: portfolio_summary(funds.max_by(&:volatility)),
+          lowest_risk: portfolio_summary(funds.min_by(&:volatility)),
+          buy_count: funds.count { |f| f.recommendation == "Buy" },
+          hold_count: funds.count { |f| f.recommendation == "Hold" },
+          sell_count: funds.count { |f| f.recommendation == "Sell" },
+
+          bullish_count: funds.count { |f| f.market_outlook == "Bullish" },
+          bearish_count: funds.count { |f| f.market_outlook == "Bearish" },
+
+          average_opportunity_score:
+            average_from(funds, :opportunity_score)
         )
       end
 
       private
 
-      attr_reader :report_date,
-                  :metrics
+      attr_reader :report_date, :funds
 
       def average(attribute)
         values =
-          metrics
+          funds
             .map(&attribute)
             .compact
 
@@ -44,18 +54,24 @@ module Reporting
 
         values.sum.to_d / values.size
       end
+      def average_from(records, attribute)
+        values = records.map(&attribute).compact
+        return nil if values.empty?
 
-      def serialize(metric)
-        return nil unless metric
+        values.sum.to_d / values.size
+      end
 
-        FundSummary.new(
-          fund_id: metric.mutual_fund.id,
-          fund_name: metric.mutual_fund.name,
-          isin: metric.mutual_fund.isin,
-          nav: metric.daily_nav.nav,
-          ytd_return: metric.ytd_return,
-          volatility: metric.volatility_30,
-          drawdown: metric.drawdown
+      def portfolio_summary(fund)
+        return nil unless fund
+
+        PortfolioFundSummary.new(
+          fund_id: fund.fund_id,
+          fund_name: fund.fund_name,
+          isin: fund.isin,
+          nav: fund.nav,
+          ytd_return: fund.ytd_return,
+          volatility: fund.volatility,
+          drawdown: fund.drawdown
         )
       end
 
@@ -71,7 +87,15 @@ module Reporting
           best_performer: nil,
           worst_performer: nil,
           highest_risk: nil,
-          lowest_risk: nil
+          lowest_risk: nil,
+          buy_count: 0,
+          hold_count: 0,
+          sell_count: 0,
+
+          bullish_count: 0,
+          bearish_count: 0,
+
+          average_opportunity_score: 0
         )
       end
     end

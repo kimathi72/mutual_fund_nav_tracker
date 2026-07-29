@@ -4,41 +4,31 @@ module Reporting
   module Dashboard
     class DashboardDataLoaderService < ApplicationService
       def call
-        report_date =
-          Reporting::ReportingDateService.call
+        DashboardData.new(
+          report_date: report_date,
+          funds: funds
+        )
+      end
 
-        funds =
+      private
+
+      def report_date
+        @report_date ||=
+          Reporting::ReportingDateService.call
+      end
+
+      def funds
+        @funds ||=
           MutualFund
             .active
-            .where.not(:last_nav_date => nil)
-            .preload(
+            .where.not(last_nav_date: nil)
+            .includes(
               :daily_navs,
               :forecasts,
               daily_nav_metrics: :daily_nav
             )
             .order(:name)
-            
-            
-        funds.each do |fund|
-          series = Reporting::FundTimeSeriesService.call(fund: fund)
-
-          fund.define_singleton_method(:nav_history) do
-            series[:nav_history]
-          end
-
-          fund.define_singleton_method(:volatility_history) do
-            series[:volatility_history]
-          end
-
-          fund.define_singleton_method(:forecast_series) do
-            series[:forecast_series]
-          end
-        end
-
-        DashboardData.new(
-          report_date: report_date,
-          funds: funds
-        )
+            .to_a
       end
     end
   end

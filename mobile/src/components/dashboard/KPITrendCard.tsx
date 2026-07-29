@@ -4,7 +4,6 @@ import { StyleSheet, View } from "react-native";
 import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
 
-import { SparkLine } from "@/components/charts";
 
 import colors from "@/constants/colors";
 import spacing from "@/constants/spacing";
@@ -14,7 +13,6 @@ type Props = {
 
   value: string;
 
-  trend: number[];
 
   subtitle?: string;
 
@@ -24,7 +22,6 @@ type Props = {
 export default function KPITrendCard({
   title,
   value,
-  trend,
   subtitle,
   positive = true,
 }: Props) {
@@ -70,14 +67,6 @@ export default function KPITrendCard({
           ) : null}
         </View>
 
-        <View style={styles.sparkContainer}>
-          <SparkLine
-            data={trend.map((v, index) => ({
-              date: String(index),
-              value: v,
-            }))}
-          />
-        </View>
       </View>
     </AppCard>
   );
@@ -109,9 +98,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  sparkContainer: {
-    width: 130,
-    alignItems: "center",
-    justifyContent: "center",
-  },
 });

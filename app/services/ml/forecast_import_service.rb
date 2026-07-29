@@ -24,11 +24,11 @@ module Ml
 
             horizon: prediction["horizon"],
 
-            predicted_at:
-              fund_forecast["generated_at"],
+            predicted_at: Time.zone.parse(
+              fund_forecast["generated_at"]),
 
-            target_date:
-              prediction["target_date"],
+            target_date: Date.parse(
+              prediction["target_date"]),
 
             predicted_nav:
               prediction["predicted_nav"],

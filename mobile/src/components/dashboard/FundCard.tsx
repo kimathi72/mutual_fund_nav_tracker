@@ -9,14 +9,13 @@ import AppText from "@/components/common/AppText";
 import colors from "@/constants/colors";
 import spacing from "@/constants/spacing";
 
-import type { ExecutiveFund } from "@/models/ExecutiveFund";
+import type { FundSummary } from "@/models/FundSummary";
 
 import formatCurrency from "@/utils/formatCurrency";
 import formatPercentage from "@/utils/formatPercentage";
-import riskColor from "@/utils/riskColor";
 
 interface Props {
-  fund: ExecutiveFund;
+  fund: FundSummary;
 }
 
 export default function FundCard({
@@ -24,32 +23,41 @@ export default function FundCard({
 }: Props) {
   const router = useRouter();
 
-  const performance = fund.performance;
-  const risk = fund.risk;
+  const volatility =
+    Number(fund.volatility) * 100;
 
-  const nextDayForecast =
-    fund.forecast.forecasts.find(
-      (f) => f.horizon === "1d"
-    );
+  const riskLevel =
+    volatility >= 35
+      ? "High"
+      : volatility >= 15
+      ? "Medium"
+      : "Low";
+
+  const badgeColor =
+    riskLevel === "High"
+      ? colors.danger
+      : riskLevel === "Medium"
+      ? colors.warning
+      : colors.success;
 
   return (
     <Pressable
       onPress={() =>
-        router.push(`/fund/${performance.fund_id}`)
+        router.push(`/fund/${fund.id}`)
       }
     >
       <AppCard style={styles.card}>
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <AppText variant="heading">
-              {performance.fund_name}
+              {fund.name}
             </AppText>
 
             <AppText
               variant="caption"
               color={colors.subtitle}
             >
-              {performance.isin}
+              {fund.isin}
             </AppText>
           </View>
 
@@ -57,9 +65,7 @@ export default function FundCard({
             style={[
               styles.badge,
               {
-                backgroundColor: riskColor(
-                  risk.risk_level
-                ),
+                backgroundColor: badgeColor,
               },
             ]}
           >
@@ -67,7 +73,7 @@ export default function FundCard({
               variant="caption"
               color="#fff"
             >
-              {risk.risk_level}
+              {riskLevel}
             </AppText>
           </View>
         </View>
@@ -76,28 +82,21 @@ export default function FundCard({
           <Metric
             label="NAV"
             value={formatCurrency(
-              performance.latest_nav,
-              performance.currency
+              Number(fund.nav),
+              fund.currency
             )}
           />
 
           <Metric
             label="YTD"
             value={formatPercentage(
-              performance.ytd_return
+              Number(fund.ytd_return)
             )}
           />
 
           <Metric
-            label="1D Forecast"
-            value={
-              nextDayForecast?.predicted_nav != null
-                ? formatCurrency(
-                    nextDayForecast.predicted_nav,
-                    performance.currency
-                  )
-                : "--"
-            }
+            label="Volatility"
+            value={`${volatility.toFixed(1)}%`}
           />
         </View>
 
@@ -106,8 +105,14 @@ export default function FundCard({
             variant="caption"
             color={colors.subtitle}
           >
-            {nextDayForecast?.recommendation ??
-              "Unavailable"}
+            {fund.recommendation}
+          </AppText>
+
+          <AppText
+            variant="caption"
+            color={colors.primary}
+          >
+            {fund.market_outlook}
           </AppText>
         </View>
       </AppCard>
@@ -170,5 +175,8 @@ const styles = StyleSheet.create({
 
   footer: {
     marginTop: spacing.lg,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

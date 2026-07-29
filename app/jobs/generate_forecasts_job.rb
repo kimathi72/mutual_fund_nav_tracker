@@ -7,17 +7,8 @@ class GenerateForecastsJob < ApplicationJob
            wait: :polynomially_longer,
            attempts: 5
 
-  def perform(fund_ids = nil)
-    scope =
-      if fund_ids.present?
-        MutualFund.where(id: fund_ids)
-      else
-        MutualFund.active
-      end
-
-    Ml::GenerateForecastsService.new(
-      scope: scope
-    ).call
+  def perform(_fund_ids = nil)
+    Ml::GenerateForecastsService.call
 
     GenerateExecutiveBriefingJob.perform_later
   end

@@ -4,8 +4,11 @@ import { Dimensions, View } from "react-native";
 import ChartCard from "./ChartCard";
 import ChartSurface from "./ChartSurface";
 import ChartTooltip from "./ChartTooltip";
-import { CrosshairRenderer } from "./renderers";
-import { LineRenderer } from "./renderers";
+
+import {
+  CrosshairRenderer,
+  LineRenderer,
+} from "./renderers";
 
 import useTooltip from "./hooks/useTooltip";
 
@@ -47,8 +50,7 @@ export default function NavHistoryChart({
       subtitle={`${history.length} trading days`}
     >
       <View>
-
-       <ChartSurface
+        <ChartSurface
           width={WIDTH}
           height={HEIGHT}
           onMove={show}
@@ -79,7 +81,6 @@ export default function NavHistoryChart({
             tooltip.point?.value.toFixed(2) ?? ""
           }
         />
-
       </View>
     </ChartCard>
   );

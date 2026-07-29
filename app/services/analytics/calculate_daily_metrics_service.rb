@@ -7,14 +7,6 @@ module Analytics
 
     def initialize(scope: MutualFund.where(active: true))
       @scope = scope
-
-      @daily_calculator = Analytics::Calculators::DailyReturnCalculator.new
-      @weekly_calculator = Analytics::Calculators::WeeklyReturnCalculator.new
-      @monthly_calculator = Analytics::Calculators::MonthlyReturnCalculator.new
-      @ytd_calculator = Analytics::Calculators::YtdReturnCalculator.new
-      @moving_average_calculator = Analytics::Calculators::MovingAverageCalculator.new
-      @volatility_calculator = Analytics::Calculators::VolatilityCalculator.new
-      @drawdown_calculator = Analytics::Calculators::DrawdownCalculator.new
     end
 
     def call
@@ -39,14 +31,8 @@ module Analytics
 
     private
 
-    attr_reader :scope,
-                :daily_calculator,
-                :weekly_calculator,
-                :monthly_calculator,
-                :ytd_calculator,
-                :moving_average_calculator,
-                :volatility_calculator,
-                :drawdown_calculator
+    attr_reader :scope
+
     def each_fund(&block)
       if scope.respond_to?(:find_each)
         scope.find_each(&block)
@@ -54,12 +40,12 @@ module Analytics
         Array(scope).each(&block)
       end
     end
-    
+
+    #######################################################
+
     def calculate_for_fund(fund)
       latest_nav_date =
-        DailyNav
-          .where(mutual_fund: fund)
-          .maximum(:nav_date)
+        fund.daily_navs.maximum(:nav_date)
 
       return false unless latest_nav_date
 
@@ -69,97 +55,84 @@ module Analytics
           .where(daily_navs: { mutual_fund_id: fund.id })
           .maximum("daily_navs.nav_date")
 
-      if last_metric_date.present? &&
-         last_metric_date >= latest_nav_date
+   
 
-        Rails.logger.info(
-          "[CalculateDailyMetricsService] #{fund.isin}: already up-to-date"
-        )
-
-        return false
-      end
-
-      start_date =
-        if last_metric_date.present?
-          rolling_start = last_metric_date - LOOKBACK_DAYS.days
-          year_start = Date.new(latest_nav_date.year, 1, 1)
-
-          [rolling_start, year_start].min
-        else
-          INITIAL_IMPORT_DATE
-        end
+      start_date = INITIAL_IMPORT_DATE
 
       navs =
-        DailyNav
-          .where(mutual_fund: fund)
+        fund
+          .daily_navs
           .where("nav_date >= ?", start_date)
           .order(:nav_date)
           .to_a
 
       return false if navs.empty?
-
+        puts "Processing #{fund.isin}"
       build_metrics(fund, navs)
 
       true
     end
 
+    #######################################################
+
     def build_metrics(fund, navs)
       timestamp = Time.current
 
-      rows =
-        navs.each_with_index.map do |nav, index|
-          {
-            daily_nav_id: nav.id,
-            mutual_fund_id: fund.id,
+      rows = []
 
-            daily_return:
-              daily_calculator.call(navs, index),
+      navs.each_index do |index|
+        window = navs.first(index + 1)
 
-            weekly_return:
-              weekly_calculator.call(navs, index),
+        returns =
+          Analytics::ReturnsCalculator
+            .new(window)
+            .calculate
 
-            monthly_return:
-              monthly_calculator.call(navs, index),
+        averages =
+          Analytics::MovingAverageCalculator
+            .new(window)
+            .calculate
 
-            ytd_return:
-              ytd_calculator.call(navs, index),
+        volatility =
+          Analytics::VolatilityCalculator
+            .new(window)
+            .calculate
 
-            moving_average_7:
-              moving_average_calculator.call(
-                navs,
-                index,
-                window: 7
-              ),
-
-            moving_average_30:
-              moving_average_calculator.call(
-                navs,
-                index,
-                window: 30
-              ),
-
-            volatility_30:
-              volatility_calculator.call(
-                navs,
-                index
-              ),
-
-            drawdown:
-              drawdown_calculator.call(
-                navs,
-                index
-              ),
-
-            created_at: timestamp,
-            updated_at: timestamp
-          }
+        drawdown =
+          Analytics::DrawdownCalculator
+            .new(window)
+            .calculate
+        if index == 40
+          pp returns
+          pp averages
+          pp volatility
+          pp drawdown
         end
+        rows << {
+          daily_nav_id: navs[index].id,
+          mutual_fund_id: fund.id,
 
+          daily_return: returns[:daily],
+          weekly_return: returns[:weekly],
+          monthly_return: returns[:monthly],
+          ytd_return: returns[:ytd],
+
+          moving_average_7: averages[:ma7],
+          moving_average_30: averages[:ma30],
+
+          volatility_30: volatility,
+          drawdown: drawdown,
+
+          created_at: timestamp,
+          updated_at: timestamp
+        }
+      end
+      DailyNavMetric.where(mutual_fund: fund).delete_all
       DailyNavMetric.upsert_all(
         rows,
         unique_by: :daily_nav_id
       )
-
+      puts "Processing #{scope.size} funds..."
       Rails.logger.info(
         "[CalculateDailyMetricsService] #{fund.isin}: #{rows.size} metrics calculated"
       )

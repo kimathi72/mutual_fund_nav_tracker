@@ -6,18 +6,20 @@ module Reporting
       def call
         dashboard_data =
           DashboardDataLoaderService.call
-        metrics =
-          metrics(dashboard_data)
+
+        funds =
+          build_funds(dashboard_data)
+
         summary =
           Reporting::Portfolio::PortfolioSummaryService.call(
             report_date: dashboard_data.report_date,
-            metrics: metrics
+            funds: funds
           )
 
         rankings =
           Reporting::Ranking::RankingReportService.call(
             report_date: dashboard_data.report_date,
-            metrics: metrics
+            funds: funds
           )
 
         portfolio_insight =
@@ -25,14 +27,11 @@ module Reporting
             summary: summary
           )
 
-        funds =
-          build_funds(dashboard_data)
-
         briefing =
           Llm::ExecutiveBriefingService.call(
             summary: summary,
             portfolio_insights: portfolio_insight,
-            fund_insights: funds.map(&:executive_insight)
+            funds: funds
           )
 
         ExecutiveDashboard.new(
@@ -45,8 +44,8 @@ module Reporting
         )
       end
 
-
       private
+
       def metrics(dashboard_data)
         dashboard_data.funds.filter_map do |fund|
           metric_for(
@@ -62,50 +61,33 @@ module Reporting
         end
       end
 
-
+      ####################################################
+      # Dashboard Cards
+      ####################################################
 
       def build_funds(dashboard_data)
         dashboard_data.funds.map do |fund|
+          Reporting::Dashboard::Builders::ExecutiveFundBuilder.call(
+            fund: fund
+          )
+        end
+      end
 
-          metric =
-            metric_for(
-              fund,
-              dashboard_data.report_date
-            )
+      ####################################################
+      # LLM Input Only
+      ####################################################
 
-          
+      def build_fund_insights(dashboard_data)
+        dashboard_data.funds.map do |fund|
 
-          performance =
-            Reporting::Performance::PerformanceReportService.call(
-              fund: fund,
-              metric: metric
-            )
-
-          risk =
-            Reporting::Risk::RiskReportService.call(
-              fund: fund,
-              metric: metric
-            )
-
-          forecast_report =
+          forecast =
             Reporting::Forecast::ForecastReportService.call(
               fund: fund
             )
-          
-          executive_insight =
-            Reporting::Insights::ExecutiveInsightService.call(
-              fund: fund,
-              forecast_report: forecast_report
-            )
 
-          ExecutiveFund.new(
-            performance: performance,
-            risk: risk,
-            forecast: forecast_report,
-            executive_insight: executive_insight,
-            nav_history: fund.nav_history,
-            volatility_history: fund.volatility_history,
-            forecast_series: fund.forecast_series
+          Reporting::Insights::ExecutiveInsightService.call(
+            fund: fund,
+            forecast_report: forecast
           )
         end
       end

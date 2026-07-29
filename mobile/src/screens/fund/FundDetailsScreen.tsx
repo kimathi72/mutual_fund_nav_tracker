@@ -4,10 +4,10 @@ import { useLocalSearchParams } from "expo-router";
 
 import AppScreen from "@/components/common/AppScreen";
 import LoadingView from "@/components/common/LoadingView";
-import {ErrorView} from "@/components/common/ErrorView";
+import { ErrorView } from "@/components/common/ErrorView";
 import AppText from "@/components/common/AppText";
 import SectionHeader from "@/components/common/SectionHeader";
-
+import { NavPoint } from "@/models/NavPoint";
 import NavHistoryChart from "@/components/charts/NavHistoryChart";
 
 import FundHeader from "@/components/fund/FundHeader";
@@ -16,7 +16,7 @@ import FundRisk from "@/components/fund/FundRisk";
 import FundForecast from "@/components/fund/FundForecast";
 import FundInsight from "@/components/fund/FundInsight";
 
-import {useFundDetails} from "@/hooks/useFundDetails";
+import { useFundDetails } from "@/hooks/useFundDetails";
 
 export default function FundDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -36,11 +36,11 @@ export default function FundDetailsScreen() {
     return (
       <ErrorView
         message="Unable to load fund."
-        onRetry={() => refetch()}
+        onRetry={refetch}
       />
     );
   }
-  console.log(fund)
+
   if (!fund) {
     return (
       <AppScreen>
@@ -48,6 +48,11 @@ export default function FundDetailsScreen() {
       </AppScreen>
     );
   }
+
+  const navHistory = fund.history.nav.map((point: NavPoint) => ({
+    date: point.date,
+    value: point.nav,
+  }));
 
   return (
     <AppScreen>
@@ -68,7 +73,7 @@ export default function FundDetailsScreen() {
         />
 
         <NavHistoryChart
-          history={fund.nav_history}
+          history={navHistory}
         />
 
         <FundPerformance
@@ -77,19 +82,17 @@ export default function FundDetailsScreen() {
 
         <FundRisk
           risk={fund.risk}
-          history={fund.volatility_history}
+          history={fund.history.volatility}
         />
 
         <FundForecast
           report={fund.forecast}
-          history={fund.nav_history}
-          forecastSeries={fund.forecast_series}
+          history={fund.history.nav}
+          forecastSeries={fund.history.prediction_history}
         />
 
         <FundInsight
-          insight={
-            fund.executive_insight
-          }
+          insight={fund.executive_insight}
         />
       </ScrollView>
     </AppScreen>

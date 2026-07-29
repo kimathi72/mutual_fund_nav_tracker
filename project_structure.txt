@@ -1,7 +1,13 @@
 .
+├── .dockerignore
+├── .env
+├── .env.example
+├── .gitattributes
+├── .gitignore
+├── .rspec
+├── .ruby-version
 ├── Dockerfile
 ├── Gemfile
-├── Gemfile.lock
 ├── LICENSE
 ├── README.md
 ├── Rakefile
@@ -13,7 +19,6 @@
 │   ├── controllers
 │   │   ├── api
 │   │   │   └── v1
-│   │   │       ├── analytics_controller.rb
 │   │   │       ├── base_controller.rb
 │   │   │       ├── dashboard_controller.rb
 │   │   │       ├── forecasts_controller.rb
@@ -23,6 +28,7 @@
 │   │   │       └── reports_controller.rb
 │   │   ├── application_controller.rb
 │   │   └── concerns
+│   │       ├── .keep
 │   │       └── api_error_handler.rb
 │   ├── jobs
 │   │   ├── application_job.rb
@@ -38,6 +44,7 @@
 │   ├── models
 │   │   ├── application_record.rb
 │   │   ├── concerns
+│   │   │   └── .keep
 │   │   ├── daily_nav.rb
 │   │   ├── daily_nav_metric.rb
 │   │   ├── executive_briefing.rb
@@ -46,7 +53,6 @@
 │   │   ├── ml_training_row.rb
 │   │   └── mutual_fund.rb
 │   ├── serializers
-│   │   ├── analytics_dashboard_serializer.rb
 │   │   ├── application_serializer.rb
 │   │   ├── dashboard_serializer.rb
 │   │   ├── executive_briefing_serializer.rb
@@ -74,7 +80,14 @@
 │   │   │   │   ├── volatility_calculator.rb
 │   │   │   │   ├── weekly_return_calculator.rb
 │   │   │   │   └── ytd_return_calculator.rb
-│   │   │   └── dashboard_service.rb
+│   │   │   ├── confidence_calculator.rb
+│   │   │   ├── drawdown_calculator.rb
+│   │   │   ├── forecast_calculator.rb
+│   │   │   ├── moving_average_calculator.rb
+│   │   │   ├── nav_series.rb
+│   │   │   ├── returns_calculator.rb
+│   │   │   ├── statistics.rb
+│   │   │   └── volatility_calculator.rb
 │   │   ├── application_service.rb
 │   │   ├── eodhd
 │   │   │   ├── candidate_ranker.rb
@@ -83,6 +96,7 @@
 │   │   │   └── symbol_lookup.rb
 │   │   ├── external_api
 │   │   │   └── base_client.rb
+│   │   ├── fund_details_service.rb
 │   │   ├── llm
 │   │   │   ├── client.rb
 │   │   │   ├── executive_briefing.rb
@@ -102,8 +116,8 @@
 │   │   │   ├── client.rb
 │   │   │   ├── dataset_export_service.rb
 │   │   │   ├── feature_row_builder.rb
+│   │   │   ├── forecast_import_service.rb
 │   │   │   ├── generate_forecasts_service.rb
-│   │   │   ├── prediction_client.rb
 │   │   │   ├── target_calculator.rb
 │   │   │   └── train_model_service.rb
 │   │   ├── openfigi
@@ -114,6 +128,7 @@
 │   │   │   │   └── executive_dashboard_service.rb
 │   │   │   ├── forecast
 │   │   │   │   └── forecast_report_service.rb
+│   │   │   ├── fund_time_series_service.rb
 │   │   │   ├── insights
 │   │   │   │   ├── executive_insight_service.rb
 │   │   │   │   ├── portfolio_executive_insight.rb
@@ -186,6 +201,7 @@
 │   ├── schedule.yml
 │   └── sidekiq.yml
 ├── config.ru
+├── daily_nav_history.csv
 ├── db
 │   ├── migrate
 │   │   ├── 20260707104442_create_mutual_funds.rb
@@ -202,7 +218,10 @@
 │   │   ├── 20260710073723_add_unique_index_to_forecasts.rb
 │   │   ├── 20260710074417_add_confidence_score_to_forecasts.rb
 │   │   ├── 20260713164344_create_executive_briefings.rb
-│   │   └── 20260713190214_create_ml_models.rb
+│   │   ├── 20260713190214_create_ml_models.rb
+│   │   ├── 20260720093545_add_columns_to_forecasts.rb
+│   │   ├── 20260720093705_remove_columns_from_forecasts.rb
+│   │   └── 20260720094036_update_forecast_schema.rb
 │   ├── schema.rb
 │   ├── seeds
 │   │   └── mutual_funds.yml
@@ -210,10 +229,12 @@
 ├── docker-compose.yml
 ├── entrypoint.sh
 ├── exports
-│   └── training_dataset.csv
+│   └── mutual_funds_dataset.csv
 ├── lib
 │   └── tasks
+│       └── .keep
 ├── ml_service
+│   ├── .dockerignore
 │   ├── Dockerfile
 │   ├── app
 │   │   ├── __init__.py
@@ -225,18 +246,120 @@
 │   │   │   ├── predictor.cpython-312.pyc
 │   │   │   ├── schemas.cpython-312.pyc
 │   │   │   └── trainer.cpython-312.pyc
+│   │   ├── api
+│   │   │   ├── __pycache__
+│   │   │   │   ├── routes.cpython-312.pyc
+│   │   │   │   └── schemas.cpython-312.pyc
+│   │   │   ├── routes.py
+│   │   │   └── schemas.py
 │   │   ├── config.py
+│   │   ├── data
+│   │   │   ├── __pycache__
+│   │   │   │   ├── feature_builder.cpython-312.pyc
+│   │   │   │   ├── loader.cpython-312.pyc
+│   │   │   │   ├── target_builder.cpython-312.pyc
+│   │   │   │   └── validation.cpython-312.pyc
+│   │   │   ├── feature_builder.py
+│   │   │   ├── loader.py
+│   │   │   ├── preprocessing.py
+│   │   │   ├── target_builder.py
+│   │   │   └── validation.py
 │   │   ├── dataset.py
+│   │   ├── exports
+│   │   ├── horizons
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── base.cpython-312.pyc
+│   │   │   │   ├── daily.cpython-312.pyc
+│   │   │   │   ├── monthly.cpython-312.pyc
+│   │   │   │   ├── quarterly.cpython-312.pyc
+│   │   │   │   └── yearly.cpython-312.pyc
+│   │   │   ├── base.py
+│   │   │   ├── daily.py
+│   │   │   ├── monthly.py
+│   │   │   ├── quarterly.py
+│   │   │   └── yearly.py
+│   │   ├── jobs
+│   │   │   ├── __pycache__
+│   │   │   │   └── train_all.cpython-312.pyc
+│   │   │   ├── retrain.py
+│   │   │   └── train_all.py
 │   │   ├── main.py
-│   │   ├── predictor.py
-│   │   ├── schemas.py
-│   │   └── trainer.py
+│   │   ├── models
+│   │   │   ├── __pycache__
+│   │   │   │   ├── evaluator.cpython-312.pyc
+│   │   │   │   ├── predictor.cpython-312.pyc
+│   │   │   │   └── trainer.cpython-312.pyc
+│   │   │   ├── evaluator.py
+│   │   │   ├── predictor.py
+│   │   │   ├── registry.py
+│   │   │   └── trainer.py
+│   │   ├── services
+│   │   │   ├── __pycache__
+│   │   │   │   ├── forecast_service.cpython-312.pyc
+│   │   │   │   ├── prediction_service.cpython-312.pyc
+│   │   │   │   └── training_service.cpython-312.pyc
+│   │   │   ├── forecast_service.py
+│   │   │   ├── prediction_service.py
+│   │   │   └── training_service.py
+│   │   ├── train.py
+│   │   └── utils
+│   │       ├── __pycache__
+│   │       │   └── persistence.cpython-312.pyc
+│   │       ├── dates.py
+│   │       ├── metric.py
+│   │       └── persistence.py
 │   ├── artifacts
+│   │   ├── logs
+│   │   └── metrics
+│   │       ├── 1d_metrics.json
+│   │       ├── 30d_metrics.json
+│   │       ├── 90d_metrics.json
+│   │       └── reports
+│   │           ├── latest_training.json
+│   │           └── training_summary.json
 │   ├── exports
 │   ├── models
+│   │   ├── 1d
+│   │   │   ├── lower.pkl
+│   │   │   ├── median.pkl
+│   │   │   └── upper.pkl
+│   │   ├── 30d
+│   │   │   ├── lower.pkl
+│   │   │   ├── median.pkl
+│   │   │   └── upper.pkl
+│   │   ├── 365d
+│   │   ├── 90d
+│   │   │   ├── lower.pkl
+│   │   │   ├── median.pkl
+│   │   │   └── upper.pkl
 │   │   └── model.pkl
-│   └── requirements.txt
+│   ├── notebooks
+│   ├── requirements.txt
+│   └── test_predictions.py
 ├── mobile
+│   ├── .claude
+│   │   └── settings.json
+│   ├── .expo
+│   │   ├── README.md
+│   │   ├── dev
+│   │   │   └── logs
+│   │   ├── devices.json
+│   │   ├── static-tmp
+│   │   │   └── _error.js
+│   │   ├── types
+│   │   │   └── router.d.ts
+│   │   └── web
+│   │       └── cache
+│   │           └── production
+│   │               └── images
+│   │                   └── favicon
+│   │                       └── favicon-a4e030697a7571b3e95d31860e4da55d2f98e5e861e2b55e414f45a8556828ba-contain-transparent
+│   ├── .gitignore
+│   ├── .vscode
+│   │   ├── extensions.json
+│   │   └── settings.json
 │   ├── AGENTS.md
 │   ├── CLAUDE.md
 │   ├── LICENSE
@@ -245,31 +368,10 @@
 │   ├── assets
 │   │   ├── expo.icon
 │   │   │   ├── Assets
-│   │   │   │   ├── expo-symbol 2.svg
-│   │   │   │   └── grid.png
+│   │   │   │   └── expo-symbol 2.svg
 │   │   │   └── icon.json
 │   │   └── images
-│   │       ├── android-icon-background.png
-│   │       ├── android-icon-foreground.png
-│   │       ├── android-icon-monochrome.png
-│   │       ├── expo-badge-white.png
-│   │       ├── expo-badge.png
-│   │       ├── expo-logo.png
-│   │       ├── favicon.png
-│   │       ├── icon.png
-│   │       ├── logo-glow.png
-│   │       ├── react-logo.png
-│   │       ├── react-logo@2x.png
-│   │       ├── react-logo@3x.png
-│   │       ├── splash-icon.png
-│   │       ├── tabIcons
-│   │       │   ├── explore.png
-│   │       │   ├── explore@2x.png
-│   │       │   ├── explore@3x.png
-│   │       │   ├── home.png
-│   │       │   ├── home@2x.png
-│   │       │   └── home@3x.png
-│   │       └── tutorial-web.png
+│   │       └── tabIcons
 │   ├── example
 │   │   ├── scripts
 │   │   │   └── reset-project.js
@@ -304,19 +406,130 @@
 │   ├── src
 │   │   ├── App.js
 │   │   ├── api
-│   │   │   └── client.js
+│   │   │   ├── briefing.ts
+│   │   │   ├── client.ts
+│   │   │   ├── dashboard.ts
+│   │   │   ├── forecast.ts
+│   │   │   ├── fund.ts
+│   │   │   ├── index.ts
+│   │   │   ├── portfolio.ts
+│   │   │   └── rankings.ts
 │   │   ├── app
 │   │   │   ├── _layout.tsx
+│   │   │   ├── briefing.tsx
 │   │   │   ├── fund
 │   │   │   │   └── [id].tsx
-│   │   │   └── index.tsx
+│   │   │   ├── index.tsx
+│   │   │   └── rankings.tsx
 │   │   ├── components
-│   │   │   └── FundCard.js
+│   │   │   ├── charts
+│   │   │   │   ├── AreaPerformanceChart.tsx
+│   │   │   │   ├── ChartCard.tsx
+│   │   │   │   ├── ChartSection.tsx
+│   │   │   │   ├── ChartSurface.tsx
+│   │   │   │   ├── ChartTooltip.tsx
+│   │   │   │   ├── ExecutiveChartTheme.ts
+│   │   │   │   ├── ForecastChart.tsx
+│   │   │   │   ├── NavHistoryChart.tsx
+│   │   │   │   ├── RiskHeatMap.tsx
+│   │   │   │   ├── SparkLine.tsx
+│   │   │   │   ├── VolatilityChart.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── useChartAnimation.ts
+│   │   │   │   │   ├── useChartScale.ts
+│   │   │   │   │   └── useTooltip.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── renderers
+│   │   │   │   │   ├── AreaRenderer.native.tsx
+│   │   │   │   │   ├── AreaRenderer.web.tsx
+│   │   │   │   │   ├── CrossHairRenderer.native.tsx
+│   │   │   │   │   ├── CrossHairRenderer.web.tsx
+│   │   │   │   │   ├── HeatMapRenderer.native.tsx
+│   │   │   │   │   ├── HeatMapRenderer.web.tsx
+│   │   │   │   │   ├── LineRenderer.native.tsx
+│   │   │   │   │   ├── LineRenderer.web.tsx
+│   │   │   │   │   ├── SparklineRenderer.tsx
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── utils
+│   │   │   │       ├── chartArea.native.ts
+│   │   │   │       ├── chartArea.ts
+│   │   │   │       ├── chartColors.ts
+│   │   │   │       ├── chartMath.ts
+│   │   │   │       ├── chartPath.ts
+│   │   │   │       └── interpolation.ts
+│   │   │   ├── common
+│   │   │   │   ├── AppCard.tsx
+│   │   │   │   ├── AppScreen.tsx
+│   │   │   │   ├── AppText.tsx
+│   │   │   │   ├── EmptyState.tsx
+│   │   │   │   ├── ErrorView.tsx
+│   │   │   │   ├── LoadingView.tsx
+│   │   │   │   └── SectionHeader.tsx
+│   │   │   ├── dashboard
+│   │   │   │   ├── DashboardHeader.tsx
+│   │   │   │   ├── ExecutiveBriefingCard.tsx
+│   │   │   │   ├── ForecastCard.tsx
+│   │   │   │   ├── FundCard.tsx
+│   │   │   │   ├── FundCarousel.tsx
+│   │   │   │   ├── KPICard.tsx
+│   │   │   │   ├── KPIGrid.tsx
+│   │   │   │   ├── KPITrendCard.tsx
+│   │   │   │   ├── PortfolioHealthCard.tsx
+│   │   │   │   ├── RiskOverviewCard.tsx
+│   │   │   │   ├── TopMoversSection.tsx
+│   │   │   │   ├── TopPerformerCard.tsx
+│   │   │   │   └── index.ts
+│   │   │   └── fund
+│   │   │       ├── FundForecast.tsx
+│   │   │       ├── FundHeader.tsx
+│   │   │       ├── FundInsight.tsx
+│   │   │       ├── FundPerformance.tsx
+│   │   │       └── FundRisk.tsx
+│   │   ├── constants
+│   │   │   ├── colors.ts
+│   │   │   ├── spacing.ts
+│   │   │   ├── theme.ts
+│   │   │   └── typography.ts
+│   │   ├── hooks
+│   │   │   ├── useDashboard.ts
+│   │   │   ├── useForecasts.ts
+│   │   │   ├── useFundDetails.ts
+│   │   │   └── useRankings.ts
+│   │   ├── models
+│   │   │   ├── Dashboard.ts
+│   │   │   ├── ExecutiveBriefing.ts
+│   │   │   ├── ExecutiveFund.ts
+│   │   │   ├── ExecutiveInsight.ts
+│   │   │   ├── Forecast.ts
+│   │   │   ├── FundDetails.ts
+│   │   │   ├── FundRanking.ts
+│   │   │   ├── PerformanceReport.ts
+│   │   │   ├── PortfolioInsight.ts
+│   │   │   ├── PortfolioSummary.ts
+│   │   │   ├── RankingReport.ts
+│   │   │   └── RiskReport.ts
+│   │   ├── providers
+│   │   │   └── QueryProvider.tsx
 │   │   ├── screens
-│   │   │   └── Dashboard.js
-│   │   └── types
-│   │       └── fund.ts
+│   │   │   ├── briefing
+│   │   │   │   └── ExecutiveBriefingScreen.tsx
+│   │   │   ├── dashboard
+│   │   │   │   └── DashboardScreen.tsx
+│   │   │   ├── fund
+│   │   │   │   └── FundDetailsScreen.tsx
+│   │   │   └── rankings
+│   │   │       └── RankingScreen.tsx
+│   │   ├── services
+│   │   └── utils
+│   │       ├── formatCurrency.ts
+│   │       ├── formatDate.ts
+│   │       ├── formatPercentage.ts
+│   │       ├── riskColor.ts
+│   │       ├── statusColor.ts
+│   │       └── trendColor.ts
 │   └── tsconfig.json
+├── mutual_fund_nav_history_2026-01-01_to_2026-07-17.csv
 ├── project_structure.txt
 ├── public
 │   └── robots.txt
@@ -334,6 +547,10 @@
 │   │   └── ml_training_row_spec.rb
 │   ├── rails_helper.rb
 │   └── spec_helper.rb
-└── test.txt
+├── storage
+│   └── .keep
+├── test.txt
+└── vendor
+    └── .keep
 
-82 directories, 255 files
+136 directories, 418 files

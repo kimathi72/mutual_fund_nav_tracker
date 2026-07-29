@@ -49,9 +49,9 @@ export default function FundInsight({
 
       <InfoRow
         label="Confidence"
-        value={`${Number(
+        value={
           insight.confidence
-        ).toFixed(1)}%`}
+        }
       />
 
       <View style={styles.scoreContainer}>

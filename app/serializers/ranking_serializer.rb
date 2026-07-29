@@ -17,7 +17,7 @@ class RankingSerializer < ApplicationSerializer
       lowest_risk: serialize(rankings.lowest_risk),
       highest_risk: serialize(rankings.highest_risk),
 
-      largest_drawdown: serialize(rankings.largest_drawdown)
+      worst_drawdown: serialize(rankings.largest_drawdown)
     }
   end
 

@@ -7,13 +7,23 @@ class FundSummarySerializer < ApplicationSerializer
 
   def as_json(*)
     {
-      fund_id: summary.fund_id,
-      fund_name: summary.fund_name,
+      id: summary.fund_id,
+      name: summary.fund_name,
       isin: summary.isin,
+
       nav: summary.nav,
+
       ytd_return: summary.ytd_return,
+
       volatility: summary.volatility,
-      drawdown: summary.drawdown
+
+      drawdown: summary.drawdown,
+
+      recommendation: summary.recommendation,
+
+      market_outlook: summary.market_outlook,
+
+      opportunity_score: summary.opportunity_score
     }
   end
 

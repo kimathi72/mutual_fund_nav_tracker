@@ -1,6 +1,7 @@
+// src/api/index.ts
+
+export * from "./client";
 export * from "./dashboard";
-export * from "./fund";
-export * from "./portfolio";
-export * from "./rankings";
-export * from "./forecast";
+export * from "./funds";
+export * from "./briefing";
 export * from "./rankings";

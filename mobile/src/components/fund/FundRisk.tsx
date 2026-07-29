@@ -15,20 +15,24 @@ import riskColor from "@/utils/riskColor";
 import formatPercentage from "@/utils/formatPercentage";
 
 import { RiskReport } from "@/models/RiskReport";
+import { VolatilityPoint } from "@/models/VolatilityPoint";
 
 interface Props {
   risk: RiskReport;
-
-  history: {
-    date: string;
-    value: number;
-  }[];
+  history: VolatilityPoint[];
 }
 
 export default function FundRisk({
   risk,
   history,
 }: Props) {
+  const chartHistory = history
+    .filter((point) => point.volatility !== null)
+    .map((point) => ({
+      date: point.date,
+      value: Number(point.volatility),
+    }));
+
   return (
     <AppCard style={styles.card}>
       <AppText variant="heading">
@@ -54,7 +58,7 @@ export default function FundRisk({
       </AppText>
 
       <VolatilityChart
-        history={history}
+        history={chartHistory}
       />
 
       <RiskHeatMap
@@ -66,7 +70,7 @@ export default function FundRisk({
           {
             label: "Drawdown",
             value: Math.abs(Number(risk.drawdown)),
-          }
+          },
         ]}
       />
     </AppCard>

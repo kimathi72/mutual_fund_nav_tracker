@@ -10,127 +10,130 @@ module Reporting
       end
 
       def call
-        latest_nav =
-          fund.daily_navs.max_by(&:nav_date)
-
-        forecasts =
-          fund.forecasts
-              .latest
-              .index_by(&:horizon)
-
-        {
-          fund: {
-            id: fund.id,
-            isin: fund.isin,
-            name: fund.name
-          },
-
-          latest_nav: {
-            value: latest_nav&.nav,
-            date: latest_nav&.nav_date
-          },
-
-          forecasts:
-            HORIZONS.map do |horizon|
-
-              build_forecast(
-                latest_nav,
-                forecasts[horizon],
-                horizon
-              )
-
-            end
-        }
+        ForecastReport.new(
+          predictions: prediction_reports
+        )
       end
 
       private
 
       attr_reader :fund
 
-      def build_forecast(
-        latest_nav,
-        forecast,
-        horizon
-      )
-
-        return empty_forecast(horizon) unless forecast
-
-        {
-          horizon: horizon,
-
-          predicted_at:
-            forecast.predicted_at,
-
-          target_date:
-            forecast.target_date,
-
-          predicted_nav:
-            forecast.predicted_nav,
-
-          lower_bound:
-            forecast.lower_bound,
-
-          upper_bound:
-            forecast.upper_bound,
-
-          confidence_score:
-            forecast.confidence_score,
-
-          expected_return_pct:
-            forecast.expected_return_pct,
-
-          model_version:
-            forecast.model_version,
-
-          trend:
-            trend(
-              latest_nav&.nav,
-              forecast.predicted_nav
-            ),
-
-          recommendation:
-            recommendation(
-              forecast.expected_return_pct,
-              forecast.confidence_score
-            )
-        }
+      def latest_nav
+        @latest_nav ||= fund.latest_daily_nav
       end
 
-      def empty_forecast(horizon)
-        {
+      def latest_forecasts
+        @latest_forecasts ||=
+          fund
+            .forecasts
+            .latest_run
+            .index_by(&:horizon)
+      end
+
+      def prediction_reports
+        HORIZONS.map do |horizon|
+          build_prediction(
+            latest_forecasts[horizon],
+            horizon
+          )
+        end
+      end
+
+      def build_prediction(forecast, horizon)
+        return empty_prediction(horizon) unless forecast
+
+
+        ForecastReport::Prediction.new(
           horizon: horizon,
+
+          predicted_at: forecast.predicted_at,
+          target_date: forecast.target_date,
+
+          predicted_nav: forecast.predicted_nav,
+
+          lower_bound: forecast.lower_bound,
+          upper_bound: forecast.upper_bound,
+
+          confidence_score: forecast.confidence_score,
+
+          expected_return_pct: forecast.expected_return_pct,
+
+          model_version: forecast.model_version,
+
+          trend: trend(
+            latest_nav&.nav,
+            forecast.predicted_nav
+          ),
+
+          recommendation: recommendation(
+            forecast.expected_return_pct,
+            forecast.confidence_score
+          )
+        )
+      end
+
+      def empty_prediction(horizon)
+        ForecastReport::Prediction.new(
+          horizon: horizon,
+
           predicted_at: nil,
           target_date: nil,
+
           predicted_nav: nil,
+
           lower_bound: nil,
           upper_bound: nil,
+
           confidence_score: nil,
+
           expected_return_pct: nil,
+
           model_version: nil,
+
           trend: "Unavailable",
+
           recommendation: "Unavailable"
-        }
+        )
       end
 
-      def trend(current, predicted)
-        return "Unavailable" if current.blank?
-        return "Bullish" if predicted > current
-        return "Bearish" if predicted < current
+      ######################################################
+      ## Forecast interpretation
+      ######################################################
 
-        "Neutral"
+      def trend(current_nav, predicted_nav)
+        return "Unavailable" if current_nav.blank?
+        return "Unavailable" if predicted_nav.blank?
+
+        if predicted_nav > current_nav
+          "Bullish"
+        elsif predicted_nav < current_nav
+          "Bearish"
+        else
+          "Neutral"
+        end
       end
 
-      def recommendation(return_pct, confidence)
+      def recommendation(expected_return, confidence)
+        return "Unavailable" if expected_return.nil?
+        return "Unavailable" if confidence.nil?
 
-        return "Unavailable" if return_pct.blank?
+        case expected_return
+        when 0.10..Float::INFINITY
+          confidence >= 0.90 ? "Strong Buy" : "Buy"
 
-        return "Strong Buy" if return_pct >= 5 && confidence >= 0.90
-        return "Buy" if return_pct >= 2
-        return "Hold" if return_pct > -2
-        return "Sell" if return_pct > -5
+        when 0.03...0.10
+          "Buy"
 
-        "Strong Sell"
+        when -0.03...0.03
+          "Hold"
 
+        when -0.10...-0.03
+          "Sell"
+
+        else
+          "Strong Sell"
+        end
       end
     end
   end

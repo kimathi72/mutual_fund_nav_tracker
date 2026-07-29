@@ -14,7 +14,7 @@ module Api
                   .new(fund)
                   .call
 
-              FundSerializer
+              ExecutiveFundSerializer
                 .new(details)
                 .as_json
             end
@@ -31,9 +31,9 @@ module Api
           FundDetailsService
             .new(fund)
             .call
-
+        puts "Details: #{details}"
         render_success(
-          FundSerializer
+          ExecutiveFundSerializer
             .new(details)
             .as_json
         )

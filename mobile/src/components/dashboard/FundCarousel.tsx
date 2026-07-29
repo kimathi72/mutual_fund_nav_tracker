@@ -1,14 +1,14 @@
 import React from "react";
 import { FlatList, StyleSheet } from "react-native";
 
-import type { ExecutiveFund } from "@/models/ExecutiveFund";
+import type { FundSummary } from "@/models/FundSummary";
 
 import FundCard from "./FundCard";
 
 import spacing from "@/constants/spacing";
 
 interface Props {
-  funds: ExecutiveFund[];
+  funds: FundSummary[];
 }
 
 export default function FundCarousel({
@@ -19,7 +19,7 @@ export default function FundCarousel({
       horizontal
       data={funds}
       keyExtractor={(item) =>
-        item.performance.isin
+        item.isin
       }
       renderItem={({ item }) => (
         <FundCard fund={item} />

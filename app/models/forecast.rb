@@ -1,19 +1,13 @@
-# frozen_string_literal: true
-
 class Forecast < ApplicationRecord
   belongs_to :mutual_fund
 
-  validates :target_date,
-            presence: true
-
-  validates :model_version,
-            presence: true
+  validates :target_date, presence: true
+  validates :predicted_at, presence: true
+  validates :model_version, presence: true
 
   validates :predicted_nav,
             presence: true,
-            numericality: {
-              greater_than: 0
-            }
+            numericality: { greater_than: 0 }
 
   validates :confidence_score,
             numericality: {
@@ -25,16 +19,25 @@ class Forecast < ApplicationRecord
   validates :mutual_fund_id,
             uniqueness: {
               scope: %i[
-                target_date
-                model_version
+                horizon
+                predicted_at
               ]
             }
 
-  scope :latest_first, -> { order(target_date: :desc) }
-  scope :with_fund, -> { includes(:mutual_fund) }
-  scope :latest, lambda {
-    latest_date = maximum(:target_date)
+  scope :latest_first,
+        -> { order(predicted_at: :desc) }
 
-    latest_date ? where(target_date: latest_date) : none
+  scope :with_fund,
+        -> { includes(:mutual_fund) }
+
+  scope :for_horizon,
+        ->(h) { where(horizon: h) }
+
+  scope :latest_run, lambda {
+    latest_timestamp = maximum(:predicted_at)
+
+    latest_timestamp ?
+      where(predicted_at: latest_timestamp) :
+      none
   }
 end

@@ -50,3 +50,4 @@ gem "sidekiq-cron"
 gem "redis"
 gem "httparty"
 gem "dotenv-rails", groups: [:development, :test]
+gem "nokogiri"

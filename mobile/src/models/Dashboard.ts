@@ -1,7 +1,7 @@
 import { PortfolioSummary } from "./PortfolioSummary";
 import { RankingReport } from "./RankingReport";
 import { PortfolioInsight } from "./PortfolioInsight";
-import  {ExecutiveFund}  from "./ExecutiveFund";
+import  {FundSummary}  from "./FundSummary";
 import { ExecutiveBriefing } from "./ExecutiveBriefing";
 
 export interface Dashboard {
@@ -15,5 +15,5 @@ export interface Dashboard {
 
   briefing: ExecutiveBriefing | null;
 
-  funds: ExecutiveFund[];
+  funds: FundSummary[];
 }

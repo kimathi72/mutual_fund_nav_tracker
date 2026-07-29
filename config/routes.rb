@@ -6,30 +6,30 @@ Rails.application.routes.draw do
         get "dashboard", to: "dashboard#index"
 
         resources :funds, only: %i[index show]
-
-        get "reports/portfolio", to: "reports#portfolio"
-
-        get "reports/rankings", to: "reports#rankings"
-
-        get "reports/performance/:fund_id",
-            to: "reports#performance"
-
-        get "reports/risk/:fund_id",
-            to: "reports#risk"
-
         resources :rankings, only: :index
-        get "forecasts/latest",
-            to: "forecasts#latest"
-
-        get "forecasts/:isin",
-            to: "forecasts#show"
-
-        post "forecasts/bulk", to: "forecasts#bulk"
-
         get "reports/briefing", to: "reports#briefing"
 
-        resources :forecasts,
-                    only: [:index]
+        # get "reports/portfolio", to: "reports#portfolio"
+
+        # get "reports/rankings", to: "reports#rankings"
+
+        # get "reports/performance/:fund_id",
+        #     to: "reports#performance"
+
+        # get "reports/risk/:fund_id",
+        #     to: "reports#risk"
+
+        # get "forecasts/latest",
+        #     to: "forecasts#latest"
+
+        # get "forecasts/:isin",
+        #     to: "forecasts#show"
+
+        # post "forecasts/bulk", to: "forecasts#bulk"
+
+
+        # resources :forecasts,
+        #             only: [:index]
     end
   end
 end

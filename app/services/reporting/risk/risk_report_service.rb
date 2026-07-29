@@ -3,39 +3,70 @@
 module Reporting
   module Risk
     class RiskReportService < ApplicationService
-      def initialize(
-        fund:,
-        metric:
-      )
+      def initialize(fund:)
         @fund = fund
-        @metric = metric
       end
 
       def call
-        return empty_report unless metric
+        latest_nav = latest_observation
+
+        return empty_report unless latest_nav
 
         RiskReport.new(
           fund_id: fund.id,
           isin: fund.isin,
           fund_name: fund.name,
-          nav_date: metric.daily_nav.nav_date,
-          volatility_30: metric.volatility_30,
-          drawdown: metric.drawdown,
-          risk_level: risk_level(metric.volatility_30)
+          nav_date: latest_nav.nav_date,
+          volatility_30: volatility,
+          drawdown: drawdown,
+          risk_level: risk_level(volatility)
         )
       end
 
       private
 
-      attr_reader :fund,
-                  :metric
+      attr_reader :fund
+
+      def volatility
+        @volatility ||= Analytics::VolatilityCalculator
+                          .new(nav_records)
+                          .calculate
+      end
+
+      def drawdown
+        @drawdown ||= Analytics::DrawdownCalculator
+                        .new(nav_records)
+                        .calculate
+      end
+
+      def latest_observation
+        @latest_observation ||=
+          fund.daily_navs
+              .order(nav_date: :desc)
+              .first
+      end
+
+      def nav_records
+        @nav_records ||= begin
+          fund
+            .daily_navs
+            .order(nav_date: :asc)
+            .pluck(:nav_date, :nav)
+            .map do |date, nav|
+              {
+                date: date,
+                nav: nav
+              }
+            end
+        end
+      end
 
       def risk_level(volatility)
-        return "Unknown" if volatility.nil?
+        return "Unknown" unless volatility
 
-        value = volatility.to_f.abs * 100
+        volatility_pct = volatility * 100
 
-        case value
+        case volatility_pct
         when 0...5
           "Low"
         when 5...10

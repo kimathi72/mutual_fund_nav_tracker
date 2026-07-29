@@ -1,63 +1,51 @@
-# frozen_string_literal: true
-
 class ForecastReport
-  attr_reader \
-    :fund_id,
-    :isin,
-    :fund_name,
-    :latest_nav,
-    :latest_nav_date,
-    :forecast_date,
-    :target_date,
-    :model_version,
-    :predicted_nav,
-    :expected_change_pct,
-    :confidence,
-    :trend
+  attr_reader :predictions
 
-  def initialize(
-    fund_id:,
-    isin:,
-    fund_name:,
-    latest_nav:,
-    latest_nav_date:,
-    forecast_date:,
-    target_date:,
-    model_version:,
-    predicted_nav:,
-    expected_change_pct:,
-    confidence:,
-    trend:
-  )
-    @fund_id = fund_id
-    @isin = isin
-    @fund_name = fund_name
-    @latest_nav = latest_nav
-    @latest_nav_date = latest_nav_date
-    @forecast_date = forecast_date
-    @target_date = target_date
-    @model_version = model_version
-    @predicted_nav = predicted_nav
-    @expected_change_pct = expected_change_pct
-    @confidence = confidence
-    @trend = trend
-
+  def initialize(predictions:)
+    @predictions = predictions
     freeze
   end
 
-  def available?
-    predicted_nav.present?
-  end
+  class Prediction
+    attr_reader \
+      :horizon,
+      :predicted_at,
+      :target_date,
+      :predicted_nav,
+      :lower_bound,
+      :upper_bound,
+      :confidence_score,
+      :expected_return_pct,
+      :model_version,
+      :trend,
+      :recommendation
 
-  def bullish?
-    trend == "Bullish"
-  end
+    def initialize(
+      horizon:,
+      predicted_at:,
+      target_date:,
+      predicted_nav:,
+      lower_bound:,
+      upper_bound:,
+      confidence_score:,
+      expected_return_pct:,
+      model_version:,
+      trend:,
+      recommendation:
+    )
+      @horizon = horizon
+      @predicted_at = predicted_at
+      @target_date = target_date
+      @predicted_nav = predicted_nav
+      @lower_bound = lower_bound
+      @upper_bound = upper_bound
+      @confidence_score = confidence_score
+      @expected_return_pct = expected_return_pct
+      @model_version = model_version
+      @trend = trend
+      @recommendation = recommendation
 
-  def bearish?
-    trend == "Bearish"
-  end
-
-  def neutral?
-    trend == "Neutral"
+      freeze
+    end
   end
 end

@@ -13,16 +13,23 @@ import formatPercentage from "@/utils/formatPercentage";
 
 import {
   ForecastReport,
-  Forecast,
+  Prediction,
 } from "@/models/Forecast";
-import { ForecastPoint, TimeSeriesPoint } from "../charts/types";
+
+import { NavPoint } from "@/models/NavPoint";
+import { PredictionPoint } from "@/models/PredictionPoint";
+
+import {
+  TimeSeriesPoint,
+  ForecastPoint,
+} from "@/components/charts/types";
 
 interface Props {
   report: ForecastReport;
 
-  history: TimeSeriesPoint[];
+  history: NavPoint[];
 
-  forecastSeries: ForecastPoint[];
+  forecastSeries: PredictionPoint[];
 }
 
 export default function FundForecast({
@@ -30,45 +37,62 @@ export default function FundForecast({
   history,
   forecastSeries,
 }: Props) {
+  const historySeries: TimeSeriesPoint[] = history.map(
+    (point) => ({
+      date: point.date,
+      value: Number(point.nav),
+    })
+  );
+
+  const predictionSeries: ForecastPoint[] =
+    forecastSeries.map((point) => ({
+      date: point.target_date,
+      value: Number(point.predicted_nav),
+      lower: Number(point.lower_bound),
+      upper: Number(point.upper_bound),
+    }));
+
   return (
     <AppCard style={styles.card}>
       <AppText variant="heading">
         AI Forecast
       </AppText>
 
-      {report.forecasts.map((forecast: Forecast) => (
-        <ForecastRow
-          key={`${forecast.horizon}-${forecast.target_date}`}
-          forecast={forecast}
-          currency="USD"
-        />
-      ))}
+      {report.predictions.map(
+        (prediction: Prediction) => (
+          <ForecastRow
+            key={`${prediction.horizon}-${prediction.target_date}`}
+            prediction={prediction}
+            currency="USD"
+          />
+        )
+      )}
 
       <ForecastChart
-        history={history}
-        forecast={forecastSeries}
+        history={historySeries}
+        forecast={predictionSeries}
       />
     </AppCard>
   );
 }
 
 function ForecastRow({
-  forecast,
+  prediction,
   currency,
 }: {
-  forecast: Forecast;
+  prediction: Prediction;
   currency: string;
 }) {
   return (
     <>
       <AppText>
-        {forecast.horizon.toUpperCase()}
+        {prediction.horizon.toUpperCase()}
       </AppText>
 
       <AppText>
         NAV{" "}
         {formatCurrency(
-          forecast.predicted_nav ?? 0,
+          prediction.predicted_nav ?? 0,
           currency
         )}
       </AppText>
@@ -76,28 +100,29 @@ function ForecastRow({
       <AppText>
         Return{" "}
         {formatPercentage(
-          forecast.expected_return_pct ?? 0
+          prediction.expected_return_pct ?? 0
         )}
       </AppText>
 
       <AppText>
         Confidence{" "}
         {Math.round(
-          (forecast.confidence_score ?? 0) *
-            100
+          (prediction.confidence_score ?? 0) * 100
         )}
         %
       </AppText>
 
       <AppText>
-        {forecast.recommendation}
+        {prediction.recommendation}
       </AppText>
 
       <AppText>
-        {forecast.trend}
+        {prediction.trend}
       </AppText>
 
-      <AppText>{"----------------"}</AppText>
+      <AppText>
+        ----------------
+      </AppText>
     </>
   );
 }
