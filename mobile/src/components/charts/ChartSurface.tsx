@@ -10,67 +10,148 @@ import { Canvas } from "@shopify/react-native-skia";
 
 import Svg from "react-native-svg";
 
-type Props = {
-  width: number;
-  height: number;
-  children: React.ReactNode;
+import {
+  getChartDimensions,
+} from "./utils/chartDimensions";
 
-  onMove?: (x: number) => void;
-  onEnd?: () => void;
+type Props = {
+
+  width:number;
+
+  height:number;
+
+  children:React.ReactNode;
+
+  onMove?:(x:number)=>void;
+
+  onEnd?:()=>void;
+
 };
 
 export default function ChartSurface({
+
   width,
+
   height,
+
   children,
+
   onMove,
+
   onEnd,
-}: Props) {
-  const responder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
 
-    onMoveShouldSetPanResponder: () => true,
+}:Props){
 
-    onPanResponderGrant: (e) => {
-      onMove?.(e.nativeEvent.locationX);
-    },
-
-    onPanResponderMove: (e) => {
-      onMove?.(e.nativeEvent.locationX);
-    },
-
-    onPanResponderRelease: () => {
-      onEnd?.();
-    },
-
-    onPanResponderTerminate: () => {
-      onEnd?.();
-    },
-  });
-
-  if (Platform.OS === "web") {
-    return (
-      <View {...responder.panHandlers}>
-        <Svg
-          width={width}
-          height={height}
-        >
-          {children}
-        </Svg>
-      </View>
+  const chart =
+    getChartDimensions(
+      width,
+      height
     );
+
+  const responder =
+    PanResponder.create({
+
+      onStartShouldSetPanResponder:()=>true,
+
+      onMoveShouldSetPanResponder:()=>true,
+
+      onPanResponderGrant:e=>{
+
+        onMove?.(
+          e.nativeEvent.locationX
+        );
+
+      },
+
+      onPanResponderMove:e=>{
+
+        onMove?.(
+          e.nativeEvent.locationX
+        );
+
+      },
+
+      onPanResponderRelease:()=>{
+
+        onEnd?.();
+
+      },
+
+      onPanResponderTerminate:()=>{
+
+        onEnd?.();
+
+      }
+
+    });
+
+  if(
+    Platform.OS==="web"
+  ){
+
+    return(
+
+      <View
+        {...responder.panHandlers}
+      >
+
+        <Svg
+          width={chart.width}
+          height={chart.height}
+        >
+
+          <g
+
+            transform={
+
+              `translate(
+
+              ${chart.paddingLeft},
+
+              ${chart.paddingTop}
+
+              )`
+
+            }
+
+          >
+
+            {children}
+
+          </g>
+
+        </Svg>
+
+      </View>
+
+    );
+
   }
 
-  return (
-    <View {...responder.panHandlers}>
+  return(
+
+    <View
+      {...responder.panHandlers}
+    >
+
       <Canvas
+
         style={{
-          width,
-          height,
+
+          width:chart.width,
+
+          height:chart.height
+
         }}
+
       >
+
         {children}
+
       </Canvas>
+
     </View>
+
   );
+
 }

@@ -22,10 +22,15 @@ export async function fetchFunds(): Promise<FundSummary[]> {
 export async function fetchFund(
   id: number
 ): Promise<ExecutiveFund> {
-  const { data } =
-    await api.get<ApiResponse<ExecutiveFund>>(
-      `/funds/${id}`
-    );
+  console.log("Loading fund", id);
 
-  return data.data;
+  const response = await api.get(`/funds/${id}`);
+
+  console.log("HTTP STATUS");
+  console.log(response.status);
+
+  console.log("RAW RESPONSE");
+  console.log(JSON.stringify(response.data, null, 2));
+
+  return response.data.data;
 }

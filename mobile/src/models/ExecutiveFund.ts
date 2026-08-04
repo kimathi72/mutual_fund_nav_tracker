@@ -7,7 +7,8 @@ import {ExecutiveFundHistory} from "./ExecutiveFundHistory";
 
 export  interface ExecutiveFund {
   performance: PerformanceReport;
-
+  
+  nav?: number;
   risk: RiskReport;
 
   forecast: ForecastReport;

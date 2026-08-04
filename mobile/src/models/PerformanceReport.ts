@@ -10,6 +10,9 @@ export interface PerformanceReport {
   latest_nav: number;
 
   currency: string;
+  volatility?: number;
+
+  drawdown?: number;
 
   daily_return: number;
 

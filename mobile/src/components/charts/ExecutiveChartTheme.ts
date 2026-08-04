@@ -1,31 +1,55 @@
-// ExecutiveChartTheme.ts
+// components/charts/ExecutiveChartTheme.ts
 
 const ExecutiveChartTheme = {
-  background: "#FFFFFF",
 
-  line: "#1E3A8A",
+    colors:{
 
-  area: "rgba(30,58,138,0.15)",
+        background:"#FFFFFF",
 
-  grid: "#E5E7EB",
+        surface:"#F9FAFB",
 
-  text: "#6B7280",
+        historical:"#1E3A8A",
 
-  positive: "#16A34A",
+        forecast:"#16A34A",
 
-  negative: "#DC2626",
+        volatility:"#F59E0B",
 
-  success: "#16A34A",
+        positive:"#16A34A",
 
-  warning: "#F59E0B",
+        negative:"#DC2626",
 
-  danger: "#DC2626",
+        grid:"#E5E7EB",
 
-  forecast: "#16A34A",
+        axis:"#9CA3AF",
 
-  historical: "#1E3A8A",
+        text:"#374151",
 
-  volatility: "#F59E0B",
+        tooltip:"#FFFFFF",
+
+        border:"#D1D5DB",
+
+        crosshair:"#6B7280",
+
+    },
+
+    chart:{
+
+        paddingTop:20,
+
+        paddingBottom:32,
+
+        paddingLeft:56,
+
+        paddingRight:24,
+
+        strokeWidth:3,
+
+        gridLines:5,
+
+        pointRadius:4,
+
+    }
+
 };
 
 export default ExecutiveChartTheme;

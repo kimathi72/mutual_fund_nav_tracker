@@ -1,98 +1,84 @@
 import React from "react";
 import { ScrollView } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 
 import AppScreen from "@/components/common/AppScreen";
 import LoadingView from "@/components/common/LoadingView";
 import { ErrorView } from "@/components/common/ErrorView";
-import AppText from "@/components/common/AppText";
-import SectionHeader from "@/components/common/SectionHeader";
-import { NavPoint } from "@/models/NavPoint";
-import NavHistoryChart from "@/components/charts/NavHistoryChart";
 
 import FundHeader from "@/components/fund/FundHeader";
 import FundPerformance from "@/components/fund/FundPerformance";
 import FundRisk from "@/components/fund/FundRisk";
 import FundForecast from "@/components/fund/FundForecast";
-import FundInsight from "@/components/fund/FundInsight";
 
+import {
+  ExecutiveSummary,
+  ExecutiveKPIs,
+} from "@/components/fund/executive";
 import { useFundDetails } from "@/hooks/useFundDetails";
 
-export default function FundDetailsScreen() {
-  const { id } = useLocalSearchParams();
-
+export default function FundDetailsScreen({
+  id,
+}: {
+  id: number;
+}) {
   const {
     data: fund,
     isLoading,
-    isError,
-    refetch,
-  } = useFundDetails(Number(id));
+    error,
+  } = useFundDetails(id);
 
   if (isLoading) {
     return <LoadingView />;
   }
 
-  if (isError) {
+  console.log("Fund:", fund);
+  console.log("Query error:", error);
+
+  if (error || !fund) {
     return (
       <ErrorView
-        message="Unable to load fund."
-        onRetry={refetch}
+        message={
+          error instanceof Error
+            ? error.message
+            : JSON.stringify(error)
+        }
       />
     );
   }
-
-  if (!fund) {
-    return (
-      <AppScreen>
-        <AppText>Fund not found.</AppText>
-      </AppScreen>
-    );
-  }
-
-  const navHistory = fund.history.nav.map((point: NavPoint) => ({
-    date: point.date,
-    value: point.nav,
-  }));
 
   return (
     <AppScreen>
       <ScrollView
         showsVerticalScrollIndicator={false}
       >
-        <SectionHeader
-          title={fund.performance.fund_name}
-          subtitle={fund.performance.isin}
-        />
-
         <FundHeader
-          name={fund.performance.fund_name}
-          isin={fund.performance.isin}
-          nav={fund.performance.latest_nav}
-          currency={fund.performance.currency}
-          navDate={fund.performance.nav_date}
+          fund={fund}
         />
 
-        <NavHistoryChart
-          history={navHistory}
+        <ExecutiveSummary
+          fund={fund}
+        />
+
+        <ExecutiveKPIs
+          fund={fund}
         />
 
         <FundPerformance
           performance={fund.performance}
+          history={fund.history?.nav ?? []}
         />
 
         <FundRisk
           risk={fund.risk}
-          history={fund.history.volatility}
+          history={fund.history?.volatility ?? []}
         />
 
         <FundForecast
           report={fund.forecast}
-          history={fund.history.nav}
-          forecastSeries={fund.history.prediction_history}
-        />
-
-        <FundInsight
-          insight={fund.executive_insight}
+          history={fund.history?.nav ?? []}
+          forecastSeries={
+            fund.history?.prediction_history ?? []
+          }
         />
       </ScrollView>
     </AppScreen>

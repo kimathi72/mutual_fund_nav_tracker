@@ -1,3 +1,5 @@
+# app/jobs/generate_executive_briefing_job.rb
+
 # frozen_string_literal: true
 
 class GenerateExecutiveBriefingJob < ApplicationJob
@@ -8,6 +10,24 @@ class GenerateExecutiveBriefingJob < ApplicationJob
            attempts: 5
 
   def perform
-    Llm::ExecutiveBriefingService.new.call
+    dashboard =
+      Reporting::Dashboard::DashboardDataLoaderService.call
+
+    summary =
+      Reporting::Portfolio::PortfolioSummaryService.call(
+        report_date: dashboard.report_date,
+        funds: dashboard.funds
+      )
+
+    portfolio_insight =
+      Reporting::Insights::PortfolioExecutiveInsightService.call(
+        summary: summary
+      )
+
+    Llm::ExecutiveBriefingService.call(
+      summary: summary,
+      portfolio_insights: portfolio_insight,
+      funds: dashboard.funds
+    )
   end
 end

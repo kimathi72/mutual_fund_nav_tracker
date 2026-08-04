@@ -9,25 +9,16 @@ import spacing from "@/constants/spacing";
 
 import formatCurrency from "@/utils/formatCurrency";
 import formatDate from "@/utils/formatDate";
+import { ExecutiveFund } from "@/models/ExecutiveFund";
 
 interface Props {
-  name: string;
-  isin: string;
-
-  nav: number;
-
-  currency: string;
-
-  navDate?: string;
+  fund: ExecutiveFund;
 }
 
 export default function FundHeader({
-  name,
-  isin,
-  nav,
-  currency,
-  navDate,
+  fund
 }: Props) {
+  const performance = fund.performance;
   return (
     <AppCard style={styles.card}>
       <View style={styles.topRow}>
@@ -36,14 +27,14 @@ export default function FundHeader({
             variant="title"
             style={styles.title}
           >
-            {name}
+            {performance.fund_name}
           </AppText>
 
           <AppText
             variant="caption"
             color={colors.subtitle}
           >
-            {isin}
+            {performance.isin}
           </AppText>
         </View>
 
@@ -52,7 +43,7 @@ export default function FundHeader({
             variant="caption"
             style={styles.currencyText}
           >
-            {currency}
+            {performance.currency}
           </AppText>
         </View>
       </View>
@@ -69,15 +60,15 @@ export default function FundHeader({
           variant="title"
           style={styles.nav}
         >
-          {formatCurrency(nav, currency)}
+          {formatCurrency(performance.latest_nav, performance.currency)}
         </AppText>
 
-        {navDate && (
+        {performance.nav_date && (
           <AppText
             variant="caption"
             color={colors.subtitle}
           >
-            Updated {formatDate(navDate)}
+            Updated {formatDate(performance.nav_date)}
           </AppText>
         )}
       </View>

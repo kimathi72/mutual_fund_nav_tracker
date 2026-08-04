@@ -1,3 +1,5 @@
+# app/services/reporting/dashboard/dashboard_data_loader_service.rb
+
 # frozen_string_literal: true
 
 module Reporting
@@ -13,8 +15,7 @@ module Reporting
       private
 
       def report_date
-        @report_date ||=
-          Reporting::ReportingDateService.call
+        @report_date ||= Reporting::ReportingDateService.call
       end
 
       def funds
