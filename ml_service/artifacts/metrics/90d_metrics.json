@@ -1,7 +1,7 @@
 {
     "horizon": "90d",
     "model_version": "xgboost-q-v2",
-    "trained_at": "2026-08-04T06:58:07.169051",
+    "trained_at": "2026-08-04T10:48:28.568923",
     "sample_count": 102,
     "rmse": 10.557592758591847,
     "mae": 8.639740646015241,

@@ -9,25 +9,54 @@ module Reporting
         end
 
         def call
+          summary =
+            FundSummary.new(
+              fund_id: fund.id,
+              fund_name: fund.name,
+              isin: fund.isin,
+
+              nav: performance.latest_nav,
+              currency: performance.currency,
+
+              daily_return: performance.daily_return,
+              weekly_return: performance.weekly_return,
+              monthly_return: performance.monthly_return,
+              ytd_return: performance.ytd_return,
+
+              volatility: risk.volatility_30,
+              drawdown: risk.drawdown,
+
+              recommendation: insight.recommendation,
+              market_outlook: insight.market_outlook,
+              opportunity_score: insight.opportunity_score,
+
+              portfolio_score: 0
+            )
+
+          score =
+            PortfolioScore.new(summary).score
+
           FundSummary.new(
-            fund_id: fund.id,
-            fund_name: fund.name,
-            isin: fund.isin,
+            fund_id: summary.fund_id,
+            fund_name: summary.fund_name,
+            isin: summary.isin,
 
-            nav: performance.latest_nav,
-            currency: performance.currency,
+            nav: summary.nav,
+            currency: summary.currency,
 
-            daily_return: performance.daily_return,
-            weekly_return: performance.weekly_return,
-            monthly_return: performance.monthly_return,
-            ytd_return: performance.ytd_return,
+            daily_return: summary.daily_return,
+            weekly_return: summary.weekly_return,
+            monthly_return: summary.monthly_return,
+            ytd_return: summary.ytd_return,
 
-            volatility: risk.volatility_30,
-            drawdown: risk.drawdown,
+            volatility: summary.volatility,
+            drawdown: summary.drawdown,
 
-            recommendation: insight.recommendation,
-            market_outlook: insight.market_outlook,
-            opportunity_score: insight.opportunity_score
+            recommendation: summary.recommendation,
+            market_outlook: summary.market_outlook,
+            opportunity_score: summary.opportunity_score,
+
+            portfolio_score: score
           )
         end
 

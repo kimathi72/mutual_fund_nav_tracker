@@ -13,6 +13,7 @@ module Llm
     end
 
     def call
+
       existing = cached_briefing
       return existing if existing.present?
 
@@ -327,8 +328,9 @@ module Llm
           Market Outlook:
           #{fund.market_outlook}
 
+          
           Opportunity:
-          #{fund.opportunity_score == 1 ? "High" : "Normal"}
+          #{OpportunityScore.new(fund.opportunity_score).label}
         TEXT
       end.join("\n")
     end

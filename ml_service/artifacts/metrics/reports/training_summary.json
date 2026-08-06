@@ -2,7 +2,7 @@
     {
         "horizon": "1d",
         "model_version": "xgboost-q-v2",
-        "trained_at": "2026-08-04T06:57:47.420775",
+        "trained_at": "2026-08-04T10:41:57.006981",
         "sample_count": 206,
         "rmse": 7.696553550298407,
         "mae": 6.272971784519826,
@@ -15,7 +15,7 @@
     {
         "horizon": "30d",
         "model_version": "xgboost-q-v2",
-        "trained_at": "2026-08-04T06:57:58.102077",
+        "trained_at": "2026-08-04T10:45:12.019167",
         "sample_count": 172,
         "rmse": 9.684886847809484,
         "mae": 8.349881800054508,
@@ -28,7 +28,7 @@
     {
         "horizon": "90d",
         "model_version": "xgboost-q-v2",
-        "trained_at": "2026-08-04T06:58:07.169051",
+        "trained_at": "2026-08-04T10:48:28.568923",
         "sample_count": 102,
         "rmse": 10.557592758591847,
         "mae": 8.639740646015241,

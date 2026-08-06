@@ -20,10 +20,14 @@ module Reporting
 
         RankingReport.new(
           report_date: report_date,
+
+          overall: rankings(top_overall),
+
           top_ytd: rankings(top(:ytd_return)),
           top_monthly: rankings(top(:monthly_return)),
           top_weekly: rankings(top(:weekly_return)),
           top_daily: rankings(top(:daily_return)),
+
           lowest_risk: rankings(bottom(:volatility)),
           highest_risk: rankings(top(:volatility)),
           largest_drawdown: rankings(bottom(:drawdown))
@@ -33,6 +37,22 @@ module Reporting
       private
 
       attr_reader :report_date, :funds, :limit
+
+      #####################################################
+      # Overall ranking
+      #####################################################
+
+      def top_overall
+        funds
+          .sort_by do |fund|
+            -PortfolioScore.new(fund).score
+          end
+          .first(limit)
+      end
+
+      #####################################################
+      # Existing rankings
+      #####################################################
 
       def top(attribute)
         funds
@@ -47,6 +67,8 @@ module Reporting
           .sort_by { |f| f.public_send(attribute).to_f }
           .first(limit)
       end
+
+      #####################################################
 
       def rankings(records)
         records.each_with_index.map do |fund, index|
@@ -74,10 +96,14 @@ module Reporting
       def empty_report
         RankingReport.new(
           report_date: report_date,
+
+          overall: [],
+
           top_ytd: [],
           top_monthly: [],
           top_weekly: [],
           top_daily: [],
+
           lowest_risk: [],
           highest_risk: [],
           largest_drawdown: []

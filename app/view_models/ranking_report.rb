@@ -3,6 +3,7 @@
 class RankingReport
   attr_reader \
     :report_date,
+    :overall,
     :top_ytd,
     :top_monthly,
     :top_weekly,
@@ -13,6 +14,7 @@ class RankingReport
 
   def initialize(
     report_date:,
+    overall: [],
     top_ytd:,
     top_monthly:,
     top_weekly:,
@@ -22,10 +24,14 @@ class RankingReport
     largest_drawdown:
   )
     @report_date = report_date
+
+    @overall = overall
+
     @top_ytd = top_ytd
     @top_monthly = top_monthly
     @top_weekly = top_weekly
     @top_daily = top_daily
+
     @lowest_risk = lowest_risk
     @highest_risk = highest_risk
     @largest_drawdown = largest_drawdown

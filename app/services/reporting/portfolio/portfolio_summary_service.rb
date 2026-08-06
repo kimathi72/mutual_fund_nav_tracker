@@ -24,16 +24,46 @@ module Reporting
           average_ytd_return: average(:ytd_return),
           average_volatility: average(:volatility),
 
-          best_performer: portfolio_summary(funds.max_by(&:ytd_return)),
-          worst_performer: portfolio_summary(funds.min_by(&:ytd_return)),
-          highest_risk: portfolio_summary(funds.max_by(&:volatility)),
-          lowest_risk: portfolio_summary(funds.min_by(&:volatility)),
-          buy_count: funds.count { |f| f.recommendation == "Buy" },
-          hold_count: funds.count { |f| f.recommendation == "Hold" },
-          sell_count: funds.count { |f| f.recommendation == "Sell" },
+          best_performer:
+            portfolio_summary(
+              funds.max_by(&:portfolio_score)
+            ),
 
-          bullish_count: funds.count { |f| f.market_outlook == "Bullish" },
-          bearish_count: funds.count { |f| f.market_outlook == "Bearish" },
+          worst_performer:
+            portfolio_summary(
+              funds.min_by(&:portfolio_score)
+            ),
+
+          highest_risk:
+            portfolio_summary(
+              funds.max_by(&:volatility)
+            ),
+
+          lowest_risk:
+            portfolio_summary(
+              funds.min_by(&:volatility)
+            ),
+
+          buy_count:
+            funds.count do |fund|
+              RecommendationScore.new(fund.recommendation).buy?
+            end,
+
+          hold_count:
+            funds.count do |fund|
+              RecommendationScore.new(fund.recommendation).hold?
+            end,
+
+          sell_count:
+            funds.count do |fund|
+              RecommendationScore.new(fund.recommendation).sell?
+            end,
+
+          bullish_count:
+            funds.count { |f| f.market_outlook == "Bullish" },
+
+          bearish_count:
+            funds.count { |f| f.market_outlook == "Bearish" },
 
           average_opportunity_score:
             average_from(funds, :opportunity_score)
@@ -54,8 +84,10 @@ module Reporting
 
         values.sum.to_d / values.size
       end
+
       def average_from(records, attribute)
         values = records.map(&attribute).compact
+
         return nil if values.empty?
 
         values.sum.to_d / values.size
@@ -91,10 +123,8 @@ module Reporting
           buy_count: 0,
           hold_count: 0,
           sell_count: 0,
-
           bullish_count: 0,
           bearish_count: 0,
-
           average_opportunity_score: 0
         )
       end

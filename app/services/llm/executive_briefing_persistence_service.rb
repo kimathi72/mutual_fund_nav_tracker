@@ -13,16 +13,23 @@ module Llm
     end
 
     def call
-      ::ExecutiveBriefing.create!(
+      briefing = ::ExecutiveBriefing.find_or_initialize_by(
         as_of_date: as_of_date,
         provider: provider,
-        model: model,
+        model: model
+      )
+
+      briefing.assign_attributes(
         status: status,
         prompt: prompt,
         briefing: response.briefing,
         error: response.error,
         generated_at: response.generated_at
       )
+
+      briefing.save!
+
+      briefing
     end
 
     private
@@ -32,7 +39,7 @@ module Llm
                 :response
 
     def provider
-      response.generated_by.split("-").first
+      response.generated_by.to_s.partition("-").first
     end
 
     def model

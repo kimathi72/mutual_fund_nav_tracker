@@ -15,7 +15,8 @@ class FundSummary
     :drawdown,
     :recommendation,
     :market_outlook,
-    :opportunity_score
+    :opportunity_score,
+    :portfolio_score
 
   def initialize(
     fund_id:,
@@ -31,7 +32,8 @@ class FundSummary
     drawdown:,
     recommendation:,
     market_outlook:,
-    opportunity_score:
+    opportunity_score:,
+    portfolio_score:
   )
     @fund_id = fund_id
     @fund_name = fund_name
@@ -50,6 +52,8 @@ class FundSummary
     @recommendation = recommendation
     @market_outlook = market_outlook
     @opportunity_score = opportunity_score
+
+    @portfolio_score = portfolio_score
 
     freeze
   end
