@@ -7,6 +7,8 @@ Rails.application.routes.draw do
 
         resources :funds, only: %i[index show]
         resources :rankings, only: :index
+        resources :forecasts, only: %i[index show]
+        get "forecasts/latest", to: "forecasts#latest"
         get "reports/briefing", to: "reports#briefing"
 
         # get "reports/portfolio", to: "reports#portfolio"

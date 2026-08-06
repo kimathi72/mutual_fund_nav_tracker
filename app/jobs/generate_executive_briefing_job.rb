@@ -24,10 +24,24 @@ class GenerateExecutiveBriefingJob < ApplicationJob
         summary: summary
       )
 
-    Llm::ExecutiveBriefingService.call(
-      summary: summary,
-      portfolio_insights: portfolio_insight,
-      funds: dashboard.funds
+    response =
+      Llm::ExecutiveBriefingService.call(
+        summary: summary,
+        portfolio_insights: portfolio_insight,
+        funds: dashboard.funds
+      )
+
+    return unless response.present?
+
+    Llm::ExecutiveBriefingPersistenceService.new(
+      as_of_date: summary.report_date,
+      prompt: nil,
+      response: response
+    ).call
+  rescue StandardError => e
+    Rails.logger.error(
+      "[GenerateExecutiveBriefingJob] Failed: #{e.message}"
     )
+    raise
   end
 end

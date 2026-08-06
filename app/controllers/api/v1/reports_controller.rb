@@ -57,7 +57,7 @@ module Api
         dashboard =
           Reporting::Dashboard::ExecutiveDashboardService.call
 
-        render json: dashboard.briefing
+        render_success(data: dashboard.briefing)
       end
 
       private
