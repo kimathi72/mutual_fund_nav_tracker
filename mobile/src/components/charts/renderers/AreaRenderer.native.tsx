@@ -1,12 +1,6 @@
 import React, { useMemo } from "react";
 
-import {
-
-  Canvas,
-
-  Path,
-
-} from "@shopify/react-native-skia";
+import { Canvas, Path } from "@shopify/react-native-skia";
 
 import { AreaRendererProps } from "../types";
 
@@ -21,7 +15,6 @@ import { getChartDimensions } from "../utils/chartDimensions";
 import ExecutiveChartTheme from "../ExecutiveChartTheme";
 
 export default function AreaRenderer({
-
   data,
 
   width,
@@ -31,105 +24,63 @@ export default function AreaRenderer({
   color = ExecutiveChartTheme.colors.historical,
 
   fillColor = ExecutiveChartTheme.colors.surface,
-
 }: AreaRendererProps) {
-
   const chart = getChartDimensions(width, height);
 
   const points = useMemo(
-
     () =>
-
       toChartPoints(
-
         data,
 
         chart.innerWidth,
 
-        chart.innerHeight
-
-      ).map(point => ({
-
+        chart.innerHeight,
+      ).map((point) => ({
         x: point.x + chart.paddingLeft,
 
         y: point.y + chart.paddingTop,
-
       })),
 
-    [data, chart]
-
+    [data, chart],
   );
 
   if (points.length < 2) {
-
     return null;
-
   }
 
   const line = useMemo(
-
     () => buildLinePath(points),
 
-    [points]
-
+    [points],
   );
 
   const area = useMemo(
-
     () =>
-
       buildAreaPath(
-
         points,
 
-        chart.paddingTop + chart.innerHeight
-
+        chart.paddingTop + chart.innerHeight,
       ),
 
-    [points, chart]
-
+    [points, chart],
   );
 
   return (
-
     <Canvas
-
       style={{
-
         width,
 
         height,
-
       }}
-
     >
+      <Path path={area} color={fillColor} />
 
       <Path
-
-        path={area}
-
-        color={fillColor}
-
-      />
-
-      <Path
-
         path={line}
-
         color={color}
-
         style="stroke"
-
-        strokeWidth={
-
-          ExecutiveChartTheme.chart.strokeWidth
-
-        }
-
+        strokeWidth={ExecutiveChartTheme.chart.strokeWidth}
       />
-
     </Canvas>
-
   );
-
 }

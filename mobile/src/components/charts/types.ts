@@ -54,3 +54,7 @@ export interface TooltipPoint {
 
   label: string;
 }
+export type ChartRange =
+  | "week"
+  | "month"
+  | "year";

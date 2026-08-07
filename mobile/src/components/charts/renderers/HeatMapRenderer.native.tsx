@@ -1,17 +1,10 @@
 import React from "react";
 
-import {
-  Canvas,
-  Rect,
-} from "@shopify/react-native-skia";
+import { Canvas, Rect } from "@shopify/react-native-skia";
 
 import { HeatMapProps } from "../types";
 
-export default function HeatMapRenderer({
-  data,
-  width,
-  height,
-}: HeatMapProps) {
+export default function HeatMapRenderer({ data, width, height }: HeatMapProps) {
   if (!data.length) {
     return null;
   }
@@ -26,10 +19,7 @@ export default function HeatMapRenderer({
       }}
     >
       {data.map((cell, index) => {
-        const intensity = Math.min(
-          Math.abs(cell.value),
-          1
-        );
+        const intensity = Math.min(Math.abs(cell.value), 1);
 
         const color =
           cell.value >= 0
