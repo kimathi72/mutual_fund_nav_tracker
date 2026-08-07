@@ -27,23 +27,31 @@ export default function ExecutiveSummary({ fund }: Props) {
       <View style={styles.row}>
 
         <Metric
-          label="NAV"
+          label="latest NAV"
           value={formatCurrency(performance.latest_nav)}
         />
 
         <Metric
-          label="Daily"
+          label="Daily returns"
           value={formatPercentage(performance.daily_return)}
         />
 
         <Metric
-          label="Monthly"
+          label="Monthly returns"
           value={formatPercentage(performance.monthly_return)}
         />
 
         <Metric
-          label="YTD"
+          label="Year-To-Date returns"
           value={formatPercentage(performance.ytd_return)}
+        />
+        <Metric
+          label="Moving-Avg-7days"
+          value={formatCurrency(performance.moving_average_7)}
+        />
+        <Metric
+          label="Moving-Avg-30days"
+          value={formatCurrency(performance.moving_average_30)}
         />
 
       </View>

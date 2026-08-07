@@ -10,10 +10,6 @@ import FundPerformance from "@/components/fund/FundPerformance";
 import FundRisk from "@/components/fund/FundRisk";
 import FundForecast from "@/components/fund/FundForecast";
 
-import {
-  ExecutiveSummary,
-  ExecutiveKPIs,
-} from "@/components/fund/executive";
 import { useFundDetails } from "@/hooks/useFundDetails";
 
 export default function FundDetailsScreen({
@@ -55,16 +51,10 @@ export default function FundDetailsScreen({
           fund={fund}
         />
 
-        <ExecutiveSummary
-          fund={fund}
-        />
-
-        <ExecutiveKPIs
-          fund={fund}
-        />
+     
 
         <FundPerformance
-          performance={fund.performance}
+          fund={fund}
           history={fund.history?.nav ?? []}
         />
 

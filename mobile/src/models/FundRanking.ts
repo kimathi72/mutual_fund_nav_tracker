@@ -1,7 +1,11 @@
 export interface FundRanking {
-  id: number;
+  id?: number;
 
-  name: string;
+  name?: string;
+
+  fund_id?: number;
+
+  fund_name?: string;
 
   isin: string;
 

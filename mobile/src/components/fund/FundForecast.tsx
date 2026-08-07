@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
@@ -12,8 +12,8 @@ import formatCurrency from "@/utils/formatCurrency";
 import formatPercentage from "@/utils/formatPercentage";
 
 import {
+  Forecast,
   ForecastReport,
-  Prediction,
 } from "@/models/Forecast";
 
 import { NavPoint } from "@/models/NavPoint";
@@ -57,9 +57,10 @@ export default function FundForecast({
       <AppText variant="heading">
         AI Forecast
       </AppText>
+      <View style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", margin: spacing.md }}>
 
       {report.predictions.map(
-        (prediction: Prediction) => (
+        (prediction: Forecast) => (
           <ForecastRow
             key={`${prediction.horizon}-${prediction.target_date}`}
             prediction={prediction}
@@ -67,7 +68,35 @@ export default function FundForecast({
           />
         )
       )}
+      </View>
 
+      <AppText variant="heading">
+        Forecast Chart
+      </AppText>
+
+      <AppText>
+        The chart below shows the historical NAV along with the AI forecasted NAV and confidence intervals.
+      </AppText>
+
+      <AppText>
+        The shaded area represents the confidence interval, indicating the range within which the actual NAV is expected to fall with a certain level of confidence.
+      </AppText>
+
+      <AppText>
+        Please note that these forecasts are based on historical data and AI predictions, and actual performance may vary.
+      </AppText>
+
+      <AppText>
+        Always consider multiple factors and consult with a financial advisor before making investment decisions.
+      </AppText>
+
+      <AppText>
+        The AI forecast is generated using advanced machine learning algorithms that analyze historical trends and patterns in the fund's performance.
+      </AppText>
+
+      <AppText>
+        It is important to remember that while AI can provide valuable insights, it cannot predict future market conditions with absolute certainty. Investors should use this information as one of many tools in their decision-making process.
+      </AppText>
       <ForecastChart
         history={historySeries}
         forecast={predictionSeries}
@@ -80,17 +109,17 @@ function ForecastRow({
   prediction,
   currency,
 }: {
-  prediction: Prediction;
+  prediction: Forecast;
   currency: string;
 }) {
   return (
-    <>
+    <View style= {{display: "flex", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center"}}>
       <AppText>
         {prediction.horizon.toUpperCase()}
       </AppText>
 
       <AppText>
-        NAV{" "}
+        Predicted NAV{" "}
         {formatCurrency(
           prediction.predicted_nav ?? 0,
           currency
@@ -98,32 +127,31 @@ function ForecastRow({
       </AppText>
 
       <AppText>
-        Return{" "}
+        Expected Return{"  "}
         {formatPercentage(
           prediction.expected_return_pct ?? 0
         )}
       </AppText>
 
       <AppText>
-        Confidence{" "}
+        Prediction Confidence{"   "}
         {Math.round(
           (prediction.confidence_score ?? 0) * 100
         )}
         %
       </AppText>
-
       <AppText>
-        {prediction.recommendation}
-      </AppText>
-
-      <AppText>
+        Market Trend{"   "}
         {prediction.trend}
       </AppText>
 
       <AppText>
-        ----------------
+        Recommendation{"   "}
+        {prediction.recommendation}
       </AppText>
-    </>
+
+
+    </View>
   );
 }
 

@@ -9,10 +9,10 @@ module Api
             .new
             .call
 
-        render json:
+        render_success(
           DashboardSerializer
             .new(dashboard)
-            .as_json
+            .as_json)
       end
     end
   end

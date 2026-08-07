@@ -22,20 +22,17 @@ export default function ForecastCard({
   forecast,
   currency = "",
 }: Props) {
-  const oneDay =
-    forecast.forecasts.find(
-      f => f.horizon === "1d"
-    );
+  const oneDay = forecast.predictions.find(
+    f => f.horizon === "1d"
+  );
 
-  const thirtyDay =
-    forecast.forecasts.find(
-      f => f.horizon === "30d"
-    );
+  const thirtyDay = forecast.predictions.find(
+    f => f.horizon === "30d"
+  );
 
-  const ninetyDay =
-    forecast.forecasts.find(
-      f => f.horizon === "90d"
-    );
+  const ninetyDay = forecast.predictions.find(
+    f => f.horizon === "90d"
+  );
 
   const featured =
     thirtyDay ??
@@ -105,7 +102,7 @@ export default function ForecastCard({
 
 interface ForecastRowProps {
   label: string;
-  forecast?: ForecastReport["forecasts"][number];
+  forecast?: ForecastReport["predictions"][number];
 }
 
 function ForecastRow({

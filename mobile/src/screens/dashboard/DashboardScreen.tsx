@@ -11,7 +11,7 @@ import {
 } from "@/components/dashboard";
 
 import LoadingView from "@/components/common/LoadingView";
-import {ErrorView} from "@/components/common/ErrorView";
+import { ErrorView } from "@/components/common/ErrorView";
 
 import { useDashboard } from "@/hooks/useDashboard";
 
@@ -36,54 +36,56 @@ export default function DashboardScreen() {
     );
   }
 
+  const {
+    generated_at,
+    summary,
+    rankings,
+    portfolio_insight: insight,
+    briefing,
+    funds,
+  } = data;
+
   return (
     <AppScreen>
-
       <DashboardHeader
-        reportDate={data.summary.report_date}
-        generatedAt={data.generated_at}
-        totalFunds={data.summary.total_funds}
-        portfolioHealth={data.portfolio_insight.portfolio_health}
+        reportDate={summary.report_date}
+        generatedAt={generated_at}
+        totalFunds={summary.total_funds}
+        portfolioHealth={insight.portfolio_health}
+      />
+      <FundCarousel
+        funds={funds}
       />
 
-      {data.briefing && (
+      {briefing && (
         <ExecutiveBriefingCard
-          briefing={data.briefing}
+          briefing={briefing}
         />
       )}
 
       <PortfolioHealthCard
-        insight={data.portfolio_insight}
+        insight={insight}
       />
 
       <KPIGrid
-        summary={data.summary}
+        summary={summary}
       />
 
       <KPITrendCard
         title="Average YTD Return"
         value={`${Number(
-          data.summary.average_ytd_return
+          summary.average_ytd_return
         ).toFixed(2)}%`}
-        subtitle={data.portfolio_insight.market_sentiment}
+        subtitle={insight.market_sentiment}
         positive={
-          Number(data.summary.average_ytd_return) >= 0
-        }
-        trend={
-          data.funds[0]?.nav_history?.map(
-            point => point.value
-          ) ?? []
+          Number(summary.average_ytd_return) >= 0
         }
       />
 
-      <FundCarousel
-        funds={data.funds}
-      />
 
       <TopMoversSection
-        rankings={data.rankings}
+        rankings={rankings}
       />
-
     </AppScreen>
   );
 }

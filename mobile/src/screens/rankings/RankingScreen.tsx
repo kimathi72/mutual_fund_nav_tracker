@@ -139,17 +139,19 @@ function RankingSection({
     <View style={styles.section}>
       <SectionHeader title={title} />
 
-      {data.map((fund, index) => (
-        <RankingRow
-          key={fund.fund_id}
-          rank={index + 1}
-          fund={fund}
-          metric={metric}
-          onPress={() =>
-            onPress(fund.fund_id)
-          }
-        />
-      ))}
+      {data.map((fund, index) => {
+        const fundId = fund.fund_id ?? fund.id ?? 0;
+
+        return (
+          <RankingRow
+            key={fundId}
+            rank={index + 1}
+            fund={fund}
+            metric={metric}
+            onPress={() => onPress(fundId)}
+          />
+        );
+      })}
     </View>
   );
 }
@@ -180,7 +182,7 @@ function RankingRow({
 
             <View style={styles.info}>
               <AppText variant="heading">
-                {fund.fund_name}
+                {fund.fund_name ?? fund.name}
               </AppText>
 
               <AppText

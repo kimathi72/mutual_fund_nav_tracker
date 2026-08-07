@@ -5,9 +5,7 @@ import {
   fetchLatestForecasts,
 } from "@/api/forecast";
 
-import type {
-  Forecast,
-} from "@/models/Forecast";
+import type { Forecast } from "@/models/Forecast";
 
 export function useLatestForecasts() {
   return useQuery<Forecast[]>({

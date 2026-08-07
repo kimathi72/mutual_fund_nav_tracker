@@ -14,14 +14,16 @@ import { PerformanceReport } from "@/models/PerformanceReport";
 import { NavPoint } from "@/models/NavPoint";
 
 import { TimeSeriesPoint } from "@/components/charts/types";
+import { ExecutiveSummary } from "./executive";
+import { ExecutiveFund } from "@/models/ExecutiveFund";
 
 interface Props {
-  performance: PerformanceReport;
+  fund: ExecutiveFund;
   history: NavPoint[];
 }
 
 export default function FundPerformance({
-  performance,
+  fund,
   history,
 }: Props) {
   const chartHistory: TimeSeriesPoint[] = history.map((point) => ({
@@ -31,41 +33,8 @@ export default function FundPerformance({
 
   return (
     <>
-      <AppCard style={styles.card}>
-        <AppText variant="heading">
-          Performance
-        </AppText>
-
-        <Metric
-          label="Daily"
-          value={performance.daily_return}
-        />
-
-        <Metric
-          label="Weekly"
-          value={performance.weekly_return}
-        />
-
-        <Metric
-          label="Monthly"
-          value={performance.monthly_return}
-        />
-
-        <Metric
-          label="YTD"
-          value={performance.ytd_return}
-        />
-
-        <Metric
-          label="MA (7)"
-          value={performance.moving_average_7}
-        />
-
-        <Metric
-          label="MA (30)"
-          value={performance.moving_average_30}
-        />
-      </AppCard>
+      <ExecutiveSummary fund={fund}/>
+      
 
       <NavHistoryChart
         history={chartHistory}
