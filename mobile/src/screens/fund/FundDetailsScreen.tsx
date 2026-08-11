@@ -66,6 +66,7 @@ console.log("========================================");
         <FundRisk
           risk={fund.risk}
           history={fund.history.volatility}
+          executiveInsight={fund.executive_insight}
         />
 
         <FundForecast

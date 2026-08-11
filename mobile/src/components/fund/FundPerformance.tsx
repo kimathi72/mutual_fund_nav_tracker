@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
-import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
 
 import NavHistoryChart from "@/components/charts/NavHistoryChart";
@@ -10,11 +9,10 @@ import spacing from "@/constants/spacing";
 
 import formatPercentage from "@/utils/formatPercentage";
 
-import { PerformanceReport } from "@/models/PerformanceReport";
 import { NavPoint } from "@/models/NavPoint";
 
 import { TimeSeriesPoint } from "@/components/charts/types";
-import { ExecutiveSummary } from "./executive";
+
 import { ExecutiveFund } from "@/models/ExecutiveFund";
 
 interface Props {
@@ -33,8 +31,6 @@ export default function FundPerformance({
 
   return (
     <>
-      <ExecutiveSummary fund={fund}/>
-      
 
       <NavHistoryChart
         history={chartHistory}

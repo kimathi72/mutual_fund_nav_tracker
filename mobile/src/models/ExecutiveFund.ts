@@ -23,7 +23,7 @@ export interface ExecutiveFund {
   recommendation: string;
   market_outlook: string;
   opportunity_score: number;
-
+  executive_insight?: ExecutiveInsight;
   performance: PerformanceReport;
 
   risk: RiskReport;
