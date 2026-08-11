@@ -1,33 +1,18 @@
 export interface FundRanking {
-  id?: number;
+  rank: number;
 
-  name?: string;
-
-  fund_id?: number;
-
-  fund_name?: string;
-
+  id: number;
+  name: string;
   isin: string;
 
-  nav_date: string;
-
-  nav: string;
-
+  nav: number | string;
   currency: string;
 
-  daily_return: number;
+  daily_return: number | string;
+  weekly_return: number | string;
+  monthly_return: number | string;
+  ytd_return: number ;
 
-  weekly_return: number;
-
-  monthly_return: number;
-
-  ytd_return: number;
-
-  moving_average_7: number;
-
-  moving_average_30: number;
-
-  volatility_30: number;
-
-  drawdown: number;
+  volatility: number | string;
+  drawdown: number | string;
 }

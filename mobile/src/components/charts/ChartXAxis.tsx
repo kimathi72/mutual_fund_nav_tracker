@@ -1,91 +1,83 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-} from "react-native";
+import React, { useMemo } from "react";
+import { View, StyleSheet } from "react-native";
 
-type Tick = {
-  index: number;
-  label: string;
-};
+import AppText from "@/components/common/AppText";
+
+import { TimeSeriesPoint, ChartRange } from "./types";
+import { buildXAxisLabels } from "./utils/chartLabels";
 
 type Props = {
-  ticks: Tick[];
-  chartWidth: number;
-  totalPoints: number;
+  width: number;
+  data: TimeSeriesPoint[];
+  range: ChartRange;
 };
 
 export default function ChartXAxis({
-  ticks,
-  chartWidth,
-  totalPoints,
+  width,
+  data,
+  range,
 }: Props) {
+  const labels = useMemo(
+    () => buildXAxisLabels(data, range),
+    [data, range]
+  );
+
+  if (!labels.length) return null;
+
   return (
     <View
       style={[
         styles.container,
-        {
-          width: chartWidth,
-        },
+        { width },
       ]}
     >
-      {ticks.map((tick) => {
-        const left =
-          totalPoints <= 1
-            ? 0
-            : (tick.index /
-                (totalPoints - 1)) *
-              chartWidth;
+      {labels.map((label) => (
+        <View
+          key={label.index}
+          style={[
+            styles.tick,
+            {
+              left:
+                labels.length === 1
+                  ? 0
+                  : (label.index / (data.length - 1)) *
+                    width,
+            },
+          ]}
+        >
+          <View style={styles.marker} />
 
-        return (
-          <View
-            key={`${tick.index}-${tick.label}`}
-            style={[
-              styles.tickContainer,
-              {
-                left,
-              },
-            ]}
-          >
-            <View style={styles.tick} />
-
-            <Text style={styles.label}>
-              {tick.label}
-            </Text>
-          </View>
-        );
-      })}
+          <AppText style={styles.text}>
+            {label.label}
+          </AppText>
+        </View>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: 40,
+    height: 38,
     marginTop: 6,
     position: "relative",
   },
 
-  tickContainer: {
+  tick: {
     position: "absolute",
     alignItems: "center",
-    transform: [
-      {
-        translateX: -12,
-      },
-    ],
+    transform: [{ translateX: -12 }],
   },
 
-  tick: {
+  marker: {
     width: 1,
     height: 6,
-    backgroundColor: "#A0A0A0",
+    backgroundColor: "#CBD5E1",
   },
 
-  label: {
+  text: {
     marginTop: 4,
     fontSize: 10,
-    color: "#777",
+    color: "#64748B",
   },
 });

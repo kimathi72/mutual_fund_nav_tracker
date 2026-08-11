@@ -8,8 +8,16 @@ class TrainModelJob < ApplicationJob
            attempts: 5
 
   def perform(fund_ids = nil)
+    Rails.logger.info(
+      "[TrainModelJob] Training models..."
+    )
+
     Ml::TrainModelService.new.call
 
     GenerateForecastsJob.perform_later(fund_ids)
+
+    Rails.logger.info(
+      "[TrainModelJob] Finished. Forecast job queued."
+    )
   end
 end

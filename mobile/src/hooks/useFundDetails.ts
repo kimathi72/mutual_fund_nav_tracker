@@ -1,11 +1,12 @@
+
+// hooks/useFundDetails.ts
+
 import { useQuery } from "@tanstack/react-query";
 
 import { fetchFund } from "@/api/funds";
 
-import type { ExecutiveFund } from "@/models/ExecutiveFund";
-
 export function useFundDetails(id: number) {
-  return useQuery<ExecutiveFund>({
+  return useQuery({
     queryKey: ["fund", id],
 
     queryFn: () => fetchFund(id),
@@ -16,6 +17,7 @@ export function useFundDetails(id: number) {
     gcTime: 15 * 60 * 1000,
 
     refetchOnWindowFocus: false,
+
     retry: 2,
   });
 }

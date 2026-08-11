@@ -13,49 +13,69 @@ interface Props {
   fund: ExecutiveFund;
 }
 
-export default function ExecutiveSummary({ fund }: Props) {
-
+export default function ExecutiveSummary({
+  fund,
+}: Props) {
   const performance = fund.performance;
+
+  // Always use the currency belonging to the current fund.
+  const currency = fund.performance.currency ?? "USD";
 
   return (
     <AppCard style={styles.card}>
-
-      <AppText variant="title">
+      <AppText
+        variant="title"
+        style={styles.title}
+      >
         Executive Snapshot
       </AppText>
 
       <View style={styles.row}>
-
         <Metric
-          label="latest NAV"
-          value={formatCurrency(performance.latest_nav)}
+          label="Latest NAV"
+          value={formatCurrency(
+            performance.latest_nav,
+            currency,
+          )}
         />
 
         <Metric
           label="Daily returns"
-          value={formatPercentage(performance.daily_return)}
+          value={formatPercentage(
+            performance.daily_return,
+          )}
         />
 
         <Metric
           label="Monthly returns"
-          value={formatPercentage(performance.monthly_return)}
+          value={formatPercentage(
+            performance.monthly_return,
+          )}
         />
 
         <Metric
           label="Year-To-Date returns"
-          value={formatPercentage(performance.ytd_return)}
-        />
-        <Metric
-          label="Moving-Avg-7days"
-          value={formatCurrency(performance.moving_average_7)}
-        />
-        <Metric
-          label="Moving-Avg-30days"
-          value={formatCurrency(performance.moving_average_30)}
+          value={formatPercentage(
+            performance.ytd_return,
+          )}
         />
 
+        <Metric
+          label="Moving Avg 7 days"
+          value={formatCurrency(
+            performance.moving_average_7,
+            currency,
+          )}
+        />
+
+        <Metric
+          label="Moving Avg 30 days"
+          value={formatCurrency(
+            performance.moving_average_30,
+            currency,
+          )}
+        />
       </View>
-
     </AppCard>
   );
 }
@@ -69,11 +89,18 @@ function Metric({
 }) {
   return (
     <View style={styles.metric}>
-      <AppText variant="caption">
+      <AppText
+        variant="caption"
+        color="#64748B"
+        style={styles.label}
+      >
         {label}
       </AppText>
 
-      <AppText variant="heading">
+      <AppText
+        variant="heading"
+        style={styles.value}
+      >
         {value}
       </AppText>
     </View>
@@ -86,14 +113,31 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 
+  title: {
+    marginBottom: 8,
+  },
+
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
     marginTop: 15,
+    gap: 12,
   },
 
   metric: {
     alignItems: "center",
+    justifyContent: "flex-start",
     flex: 1,
+    minWidth: 0,
+  },
+
+  label: {
+    textAlign: "center",
+    marginBottom: 4,
+  },
+
+  value: {
+    textAlign: "center",
   },
 });

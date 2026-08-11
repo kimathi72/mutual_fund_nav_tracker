@@ -5,7 +5,6 @@ import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
 
 import {
-  RiskHeatMap,
   VolatilityChart,
 } from "@/components/charts";
 
@@ -26,16 +25,9 @@ export default function FundRisk({
   risk,
   history,
 }: Props) {
-  const chartHistory = history
-    .filter((point) => point.volatility !== null)
-    .map((point) => ({
-      date: point.date,
-      value: Number(point.volatility),
-    }));
-
   return (
     <AppCard style={styles.card}>
-      <AppText variant="heading">
+      <AppText variant="body">
         Risk Analysis
       </AppText>
 
@@ -58,20 +50,7 @@ export default function FundRisk({
       </AppText>
 
       <VolatilityChart
-        history={chartHistory}
-      />
-
-      <RiskHeatMap
-        data={[
-          {
-            label: "Volatility",
-            value: Number(risk.volatility_30),
-          },
-          {
-            label: "Drawdown",
-            value: Math.abs(Number(risk.drawdown)),
-          },
-        ]}
+        history={history ?? []}
       />
     </AppCard>
   );

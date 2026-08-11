@@ -2,3 +2,4 @@ export { default as LineRenderer } from "./LineRenderer";
 export { default as AreaRenderer } from "./AreaRenderer";
 export { default as HeatMapRenderer } from "./HeatMapRenderer";
 export { default as CrossHairRenderer } from "./CrossHairRenderer";
+export { default as SparklineRenderer } from "./SparklineRenderer";

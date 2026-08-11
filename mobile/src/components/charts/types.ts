@@ -14,15 +14,10 @@ export interface ForecastPoint extends TimeSeriesPoint {
 
 export interface RendererProps {
   data: TimeSeriesPoint[];
-
   width: number;
-
   height: number;
-
   color?: string;
-
   strokeWidth?: number;
-
   dashed?: boolean;
 }
 
@@ -37,24 +32,29 @@ export interface HeatMapCell {
 
 export interface HeatMapProps {
   data: HeatMapCell[];
-
   width: number;
-
   height: number;
 }
 
 export interface TooltipPoint {
   index: number;
-
   x: number;
-
   y: number;
-
   value: number;
-
   label: string;
 }
+
+/*
+|--------------------------------------------------------------------------
+| SINGLE SOURCE OF TRUTH
+|--------------------------------------------------------------------------
+*/
+
 export type ChartRange =
-  | "week"
-  | "month"
-  | "year";
+  | "1W"
+  | "1M"
+  | "3M"
+  | "YTD"
+  | "1Y"
+  | "3Y"
+  | "MAX";

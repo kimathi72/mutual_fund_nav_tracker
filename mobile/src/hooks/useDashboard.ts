@@ -1,18 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
 
-import { fetchDashboard } from "@/api/dashboard";
-import type { Dashboard } from "@/models/Dashboard";
+import { useQuery } from '@tanstack/react-query';
 
-export function useDashboard() {
-  return useQuery<Dashboard>({
-    queryKey: ["dashboard"],
-    queryFn: fetchDashboard,
+import { getDashboard } from '../api/dashboard';
 
-    staleTime: 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-    retry: 2,
+export const useDashboard = () => {
+  return useQuery({
+    queryKey: ['dashboard'],
+    queryFn: getDashboard,
+    staleTime: 60_000,
   });
-}
+};

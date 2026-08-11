@@ -22,26 +22,24 @@ export default function ForecastCard({
   forecast,
   currency = "",
 }: Props) {
-  const oneDay = forecast.predictions.find(
-    f => f.horizon === "1d"
+  const predictions = forecast?.predictions ?? [];
+
+  const oneDay = predictions.find(
+    (prediction) => prediction.horizon === "1d",
   );
 
-  const thirtyDay = forecast.predictions.find(
-    f => f.horizon === "30d"
+  const thirtyDay = predictions.find(
+    (prediction) => prediction.horizon === "30d",
   );
 
-  const ninetyDay = forecast.predictions.find(
-    f => f.horizon === "90d"
+  const ninetyDay = predictions.find(
+    (prediction) => prediction.horizon === "90d",
   );
 
-  const featured =
-    thirtyDay ??
-    oneDay ??
-    ninetyDay;
+  const featured = thirtyDay ?? oneDay ?? ninetyDay;
 
   return (
-    <AppCard>
-
+    <AppCard style={styles.card}>
       <AppText variant="heading">
         Forecast Outlook
       </AppText>
@@ -63,7 +61,7 @@ export default function ForecastCard({
         />
       </View>
 
-      {featured && (
+      {featured ? (
         <>
           <View style={styles.divider} />
 
@@ -74,13 +72,17 @@ export default function ForecastCard({
             Recommended Action
           </AppText>
 
-          <AppText variant="heading">
-            {featured.recommendation}
+          <AppText
+            variant="heading"
+            style={styles.recommendation}
+          >
+            {featured.recommendation || "--"}
           </AppText>
 
           <AppText
             variant="caption"
             color={colors.subtitle}
+            style={styles.targetLabel}
           >
             Target NAV
           </AppText>
@@ -89,13 +91,20 @@ export default function ForecastCard({
             {featured.predicted_nav != null
               ? formatCurrency(
                   featured.predicted_nav,
-                  currency
+                  currency,
                 )
               : "--"}
           </AppText>
         </>
+      ) : (
+        <AppText
+          variant="caption"
+          color={colors.subtitle}
+          style={styles.empty}
+        >
+          No forecast data available.
+        </AppText>
       )}
-
     </AppCard>
   );
 }
@@ -112,27 +121,38 @@ function ForecastRow({
   if (!forecast) {
     return (
       <View style={styles.row}>
-        <AppText>{label}</AppText>
-        <AppText>--</AppText>
+        <AppText variant="body">
+          {label}
+        </AppText>
+
+        <AppText
+          variant="body"
+          color={colors.subtitle}
+        >
+          --
+        </AppText>
       </View>
     );
   }
 
+  const expectedReturn =
+    forecast.expected_return_pct;
+
   return (
     <View style={styles.row}>
-      <AppText>{label}</AppText>
+      <AppText variant="body">
+        {label}
+      </AppText>
 
       <AppText
+        variant="body"
         style={{
-          color: trendColor(
-            forecast.trend
-          ),
+          color: trendColor(forecast.trend),
+          fontWeight: "600",
         }}
       >
-        {forecast.expected_return_pct != null
-          ? formatPercentage(
-              forecast.expected_return_pct
-            )
+        {expectedReturn != null
+          ? formatPercentage(expectedReturn)
           : "--"}
       </AppText>
     </View>
@@ -140,6 +160,11 @@ function ForecastRow({
 }
 
 const styles = StyleSheet.create({
+  card: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
+
   rows: {
     marginTop: spacing.md,
     gap: spacing.sm,
@@ -149,11 +174,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    paddingVertical: spacing.xs,
   },
 
   divider: {
     marginVertical: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ddd",
+    borderBottomColor: colors.border,
+  },
+
+  recommendation: {
+    marginTop: spacing.xs,
+  },
+
+  targetLabel: {
+    marginTop: spacing.md,
+  },
+
+  empty: {
+    marginTop: spacing.md,
   },
 });

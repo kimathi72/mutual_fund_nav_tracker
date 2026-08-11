@@ -1,9 +1,12 @@
+
+// screens/FundDetailsScreen.tsx
+
 import React from "react";
 import { ScrollView } from "react-native";
 
 import AppScreen from "@/components/common/AppScreen";
 import LoadingView from "@/components/common/LoadingView";
-import { ErrorView } from "@/components/common/ErrorView";
+import ErrorView from "@/components/common/ErrorView";
 
 import FundHeader from "@/components/fund/FundHeader";
 import FundPerformance from "@/components/fund/FundPerformance";
@@ -41,34 +44,35 @@ export default function FundDetailsScreen({
       />
     );
   }
+  console.log("========== FUND CURRENCY DEBUG ==========");
+console.log("Fund ID:", id);
+console.log("Fund name:", fund?.name);
+console.log("Fund currency:", fund?.currency);
+console.log("Fund NAV:", fund?.nav);
+console.log("Performance:", fund?.performance);
+console.log("Latest NAV:", fund?.performance?.latest_nav);
+console.log("========================================");
 
   return (
     <AppScreen>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-      >
-        <FundHeader
-          fund={fund}
-        />
-
-     
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <FundHeader fund={fund} />
 
         <FundPerformance
           fund={fund}
-          history={fund.history?.nav ?? []}
+          history={fund.history.nav}
         />
 
         <FundRisk
           risk={fund.risk}
-          history={fund.history?.volatility ?? []}
+          history={fund.history.volatility}
         />
 
         <FundForecast
           report={fund.forecast}
-          history={fund.history?.nav ?? []}
-          forecastSeries={
-            fund.history?.prediction_history ?? []
-          }
+          history={fund.history.nav}
+          forecastSeries={fund.history.prediction_history}
+          currency={fund.performance.currency}
         />
       </ScrollView>
     </AppScreen>

@@ -1,5 +1,3 @@
-# app/jobs/generate_executive_briefing_job.rb
-
 # frozen_string_literal: true
 
 class GenerateExecutiveBriefingJob < ApplicationJob
@@ -10,6 +8,10 @@ class GenerateExecutiveBriefingJob < ApplicationJob
            attempts: 5
 
   def perform
+    Rails.logger.info(
+      "[GenerateExecutiveBriefingJob] Starting..."
+    )
+
     dashboard =
       Reporting::Dashboard::DashboardDataLoaderService.call
 
@@ -31,17 +33,22 @@ class GenerateExecutiveBriefingJob < ApplicationJob
         funds: dashboard.funds
       )
 
-    return unless response.present?
+    unless response.present?
+      Rails.logger.warn(
+        "[GenerateExecutiveBriefingJob] No briefing response generated."
+      )
+
+      return
+    end
 
     Llm::ExecutiveBriefingPersistenceService.new(
       as_of_date: summary.report_date,
       prompt: nil,
       response: response
     ).call
-  rescue StandardError => e
-    Rails.logger.error(
-      "[GenerateExecutiveBriefingJob] Failed: #{e.message}"
+
+    Rails.logger.info(
+      "[GenerateExecutiveBriefingJob] Finished."
     )
-    raise
   end
 end

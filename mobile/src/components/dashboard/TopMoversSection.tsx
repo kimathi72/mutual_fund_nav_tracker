@@ -1,23 +1,25 @@
-import React from "react";
+// components/dashboard/TopMoversSection.tsx
+
+import React from 'react';
 import {
   Pressable,
   StyleSheet,
   View,
-} from "react-native";
+} from 'react-native';
 
-import { useRouter } from "expo-router";
+import { useRouter } from 'expo-router';
 
-import type { RankingReport } from "@/models/RankingReport";
-import type { FundRanking } from "@/models/FundRanking";
+import type { RankingReport } from '@/models/RankingReport';
+import type { FundRanking } from '@/models/FundRanking';
 
-import AppCard from "@/components/common/AppCard";
-import AppText from "@/components/common/AppText";
-import SectionHeader from "@/components/common/SectionHeader";
+import AppCard from '@/components/common/AppCard';
+import AppText from '@/components/common/AppText';
+import SectionHeader from '@/components/common/SectionHeader';
 
-import formatPercentage from "@/utils/formatPercentage";
+import formatPercentage from '@/utils/formatPercentage';
 
-import colors from "@/constants/colors";
-import spacing from "@/constants/spacing";
+import colors from '@/constants/colors';
+import spacing from '@/constants/spacing';
 
 interface Props {
   rankings: RankingReport;
@@ -28,19 +30,21 @@ export default function TopMoversSection({
 }: Props) {
   const router = useRouter();
 
-  const funds =
-    rankings.top_ytd.slice(0, 3);
-  
+  const funds = rankings.top_ytd.slice(0, 3);
+
+  if (!funds.length) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <SectionHeader
         title="Top Movers"
-        subtitle="Best YTD performers"
       />
 
       {funds.map((fund, index) => (
         <FundRow
-          key={fund.id}
+          key={`${fund.isin}-${fund.id}`}
           fund={fund}
           rank={index + 1}
           onPress={() =>
@@ -63,15 +67,32 @@ function FundRow({
   rank,
   onPress,
 }: RowProps) {
+  const ytdReturn = Number(fund.ytd_return);
+
+  const hasValidReturn =
+    Number.isFinite(ytdReturn);
+
+  const returnColor =
+    !hasValidReturn || ytdReturn === 0
+      ? colors.subtitle
+      : ytdReturn > 0
+        ? colors.success
+        : colors.danger;
+
   return (
-    <Pressable onPress={onPress}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`View ${fund.name}`}
+    >
       <AppCard style={styles.card}>
         <View style={styles.row}>
           <View style={styles.left}>
             <View style={styles.rank}>
               <AppText
                 variant="body"
-                color="#FFF"
+                color="#FFFFFF"
+                style={styles.rankText}
               >
                 {rank}
               </AppText>
@@ -88,6 +109,14 @@ function FundRow({
               >
                 {fund.isin}
               </AppText>
+
+              <AppText
+                variant="caption"
+                color={colors.subtitle}
+                style={styles.nav}
+              >
+                NAV {String(fund.nav)}
+              </AppText>
             </View>
           </View>
 
@@ -97,16 +126,13 @@ function FundRow({
               style={[
                 styles.return,
                 {
-                  color:
-                    fund.ytd_return >= 0
-                      ? colors.success
-                      : colors.danger,
+                  color: returnColor,
                 },
               ]}
             >
-              {formatPercentage(
-                fund.ytd_return
-              )}
+              {hasValidReturn
+                ? formatPercentage(ytdReturn)
+                : 'N/A'}
             </AppText>
 
             <AppText
@@ -133,36 +159,45 @@ const styles = StyleSheet.create({
   },
 
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 
   left: {
-    flexDirection: "row",
+    flexDirection: 'row',
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
+    paddingRight: spacing.md,
   },
 
   rank: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: colors.primary,
     marginRight: spacing.md,
+  },
+
+  rankText: {
+    fontWeight: '700',
   },
 
   info: {
     flex: 1,
   },
 
+  nav: {
+    marginTop: spacing.xs,
+  },
+
   right: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
   },
 
   return: {
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });

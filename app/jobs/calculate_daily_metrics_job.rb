@@ -15,10 +15,18 @@ class CalculateDailyMetricsJob < ApplicationJob
         MutualFund.active
       end
 
+    Rails.logger.info(
+      "[CalculateDailyMetricsJob] Calculating metrics for #{scope.count} funds."
+    )
+
     Analytics::CalculateDailyMetricsService.new(
       scope: scope
     ).call
 
     BuildTrainingDatasetJob.perform_later(fund_ids)
+
+    Rails.logger.info(
+      "[CalculateDailyMetricsJob] Finished."
+    )
   end
 end

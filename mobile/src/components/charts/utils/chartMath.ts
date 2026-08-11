@@ -1,236 +1,107 @@
-// components/charts/utils/chartMath.ts
+import { TimeSeriesPoint } from "../types";
 
-import {
-  ChartPoint,
-  TimeSeriesPoint,
-} from "../types";
+export interface ChartDomain {
+  min: number;
+  max: number;
+  range: number;
+}
 
-export function getMinValue(
-  data: TimeSeriesPoint[]
-): number {
+/*
+|--------------------------------------------------------------------------
+| Shared Y-Domain
+|--------------------------------------------------------------------------
+*/
 
-  if (data.length === 0) {
-    return 0;
+export function getChartDomain(
+  data: TimeSeriesPoint[],
+): ChartDomain {
+  if (!data.length) {
+    return {
+      min: 0,
+      max: 1,
+      range: 1,
+    };
   }
 
-  return Math.min(
-    ...data.map(point => point.value)
-  );
+  const values = data.map(p => p.value);
 
+  const actualMin = Math.min(...values);
+  const actualMax = Math.max(...values);
+
+  const actualRange =
+    actualMax - actualMin;
+
+  /*
+   * Add 10% breathing room beneath
+   * the minimum and 5% above the max.
+   */
+
+  const minPadding =
+    actualRange === 0
+      ? actualMin * 0.05
+      : actualRange * 0.10;
+
+  const maxPadding =
+    actualRange === 0
+      ? actualMax * 0.05
+      : actualRange * 0.05;
+
+  const displayMin =
+    actualMin - minPadding;
+
+  const displayMax =
+    actualMax + maxPadding;
+
+  return {
+    min: displayMin,
+    max: displayMax,
+    range:
+      displayMax - displayMin,
+  };
+}
+
+/*
+|--------------------------------------------------------------------------
+| Shared Coordinate Transform
+|--------------------------------------------------------------------------
+*/
+
+export function toChartPoints(
+  data: TimeSeriesPoint[],
+  width: number,
+  height: number,
+) {
+  const domain =
+    getChartDomain(data);
+
+  return data.map((item, index) => ({
+    x:
+      data.length <= 1
+        ? 0
+        : (index /
+            (data.length - 1)) *
+          width,
+
+    y:
+      height -
+      ((item.value -
+        domain.min) /
+        domain.range) *
+        height,
+
+    value: item.value,
+    date: item.date,
+  }));
+}
+
+export function getMinValue(
+  data: TimeSeriesPoint[],
+) {
+  return getChartDomain(data).min;
 }
 
 export function getMaxValue(
-  data: TimeSeriesPoint[]
-): number {
-
-  if (data.length === 0) {
-    return 0;
-  }
-
-  return Math.max(
-    ...data.map(point => point.value)
-  );
-
-}
-
-export function getValueRange(
-
-  data: TimeSeriesPoint[]
-
+  data: TimeSeriesPoint[],
 ) {
-
-  const min = getMinValue(data);
-
-  const max = getMaxValue(data);
-
-  const range = max - min;
-
-  return {
-
-    min,
-
-    max,
-
-    range: range === 0 ? 1 : range,
-
-  };
-
-}
-
-export function normalize(
-
-  value: number,
-
-  min: number,
-
-  max: number
-
-): number {
-
-  if (max === min) {
-
-    return 0.5;
-
-  }
-
-  return (value - min) / (max - min);
-
-}
-
-export function toChartPoints(
-
-  data: TimeSeriesPoint[],
-
-  width: number,
-
-  height: number
-
-): ChartPoint[] {
-
-  if (data.length === 0) {
-
-    return [];
-
-  }
-
-  const {
-
-    min,
-
-    max,
-
-  } = getValueRange(data);
-
-  const lastIndex = Math.max(
-
-    data.length - 1,
-
-    1
-
-  );
-
-  return data.map((point, index) => ({
-
-    x:
-
-      (index / lastIndex) *
-
-      width,
-
-    y:
-
-      (1 -
-
-        normalize(
-
-          point.value,
-
-          min,
-
-          max
-
-        )) *
-
-      height,
-
-  }));
-
-}
-
-export function nearestPoint(
-
-  data: TimeSeriesPoint[],
-
-  chartWidth: number,
-
-  x: number
-
-): number {
-
-  if (data.length <= 1) {
-
-    return 0;
-
-  }
-
-  const ratio =
-
-    Math.max(
-
-      0,
-
-      Math.min(
-
-        1,
-
-        x / chartWidth
-
-      )
-
-    );
-
-  return Math.round(
-
-    ratio *
-
-    (data.length - 1)
-
-  );
-
-}
-
-export function valueToY(
-
-  value: number,
-
-  min: number,
-
-  max: number,
-
-  height: number
-
-): number {
-
-  return (
-
-    1 -
-
-    normalize(
-
-      value,
-
-      min,
-
-      max
-
-    )
-
-  ) * height;
-
-}
-
-export function indexToX(
-
-  index: number,
-
-  total: number,
-
-  width: number
-
-): number {
-
-  if (total <= 1) {
-
-    return 0;
-
-  }
-
-  return (
-
-    index /
-
-    (total - 1)
-
-  ) * width;
-
+  return getChartDomain(data).max;
 }

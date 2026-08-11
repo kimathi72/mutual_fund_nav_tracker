@@ -1,13 +1,17 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
 
-import KPICard from "./KPICard";
+import React from 'react';
+import {
+  StyleSheet,
+  View,
+} from 'react-native';
 
-import type { PortfolioSummary } from "@/models/PortfolioSummary";
+import KPICard from './KPICard';
 
-import formatPercentage from "@/utils/formatPercentage";
+import type { PortfolioSummary } from '@/models/PortfolioSummary';
 
-import spacing from "@/constants/spacing";
+import formatPercentage from '@/utils/formatPercentage';
+
+import spacing from '@/constants/spacing';
 
 interface Props {
   summary: PortfolioSummary;
@@ -18,50 +22,64 @@ export default function KPIGrid({
 }: Props) {
   return (
     <View style={styles.container}>
+      {/* Portfolio size */}
       <View style={styles.row}>
         <KPICard
           title="Funds"
           value={summary.total_funds}
-          subtitle="Active Funds"
+          subtitle="Portfolio size"
         />
 
+        <KPICard
+          title="Opportunity"
+          value={Number(
+            summary.average_opportunity_score,
+          ).toFixed(2) + "%"}
+          subtitle="Average score"
+        />
+      </View>
+
+      {/* Performance */}
+      <View style={styles.row}>
         <KPICard
           title="Daily"
           value={formatPercentage(
-            summary.average_daily_return
+            summary.average_daily_return,
           )}
         />
-      </View>
 
-      <View style={styles.row}>
         <KPICard
           title="Weekly"
           value={formatPercentage(
-            summary.average_weekly_return
-          )}
-        />
-
-        <KPICard
-          title="Monthly"
-          value={formatPercentage(
-            summary.average_monthly_return
+            summary.average_weekly_return,
           )}
         />
       </View>
 
       <View style={styles.row}>
         <KPICard
-          title="YTD"
+          title="Monthly"
           value={formatPercentage(
-            summary.average_ytd_return
+            summary.average_monthly_return,
           )}
         />
 
         <KPICard
+          title="YTD"
+          value={formatPercentage(
+            summary.average_ytd_return,
+          )}
+        />
+      </View>
+
+      {/* Risk */}
+      <View style={styles.row}>
+        <KPICard
           title="Volatility"
           value={formatPercentage(
-            summary.average_volatility
+            summary.average_volatility,
           )}
+          subtitle="Average portfolio volatility"
         />
       </View>
     </View>
@@ -76,7 +94,7 @@ const styles = StyleSheet.create({
   },
 
   row: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: spacing.md,
   },
 });

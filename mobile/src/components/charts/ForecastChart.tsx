@@ -1,62 +1,111 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 
-import ChartSurface from "./ChartSurface";
+import ChartContainer from "./ChartContainer";
 
 import { LineRenderer } from "./renderers";
 
 import ExecutiveChartTheme from "./ExecutiveChartTheme";
 
-import { TimeSeriesPoint } from "./types";
+import {
+  ChartRange,
+  TimeSeriesPoint,
+} from "./types";
+
+import { filterChartData } from "./utils/chartFilters";
 
 type Props = {
   history: TimeSeriesPoint[];
-
   forecast: TimeSeriesPoint[];
-
-  width?: number;
-
-  height?: number;
 };
 
 export default function ForecastChart({
   history,
   forecast,
-  width = 340,
-  height = 180,
 }: Props) {
-  if (history.length < 2) {
+  const [range, setRange] =
+    useState<ChartRange>("1M");
+
+  /**
+   * Filter historical data
+   */
+  const filteredHistory = useMemo(
+    () => filterChartData(history, range),
+    [history, range]
+  );
+
+  /**
+   * Filter forecast using the same range.
+   * This keeps both charts synchronized.
+   */
+  const filteredForecast = useMemo(
+    () => filterChartData(forecast, range),
+    [forecast, range]
+  );
+
+  /**
+   * Join the last visible history point to the
+   * first visible forecast point so the dashed
+   * prediction begins exactly where history ends.
+   */
+  const forecastSeries = useMemo(() => {
+    if (
+      filteredHistory.length === 0 ||
+      filteredForecast.length === 0
+    ) {
+      return [];
+    }
+
+    return [
+      filteredHistory[
+        filteredHistory.length - 1
+      ],
+      ...filteredForecast,
+    ];
+  }, [
+    filteredHistory,
+    filteredForecast,
+  ]);
+
+  if (filteredHistory.length < 2) {
     return null;
   }
 
-  const forecastData =
-    forecast.length > 0
-      ? [
-          history[history.length - 1],
-          ...forecast,
-        ]
-      : [];
-
   return (
-    <ChartSurface
-      width={width}
-      height={height}
+    <ChartContainer
+      title="Forecast"
+      subtitle="Historical vs Predicted NAV"
+      data={filteredHistory}
+      range={range}
+      onRangeChange={setRange}
     >
-      <LineRenderer
-        data={history}
-        width={width}
-        height={height}
-        color={ExecutiveChartTheme.historical}
-      />
+      {({ width, height }) => (
+        <>
+          {/* Historical */}
+          <LineRenderer
+            data={filteredHistory}
+            width={width}
+            height={height}
+            color={
+              ExecutiveChartTheme.colors
+                .historical
+            }
+          />
 
-      {forecastData.length > 1 && (
-        <LineRenderer
-          data={forecastData}
-          width={width}
-          height={height}
-          color={ExecutiveChartTheme.forecast}
-          dashed
-        />
+          {/* Forecast */}
+          {forecastSeries.length > 1 && (
+            <LineRenderer
+              data={forecastSeries}
+              width={width}
+              height={height}
+              color={
+                ExecutiveChartTheme.colors
+                  .forecast
+              }
+              dashed
+            />
+          )}
+        </>
       )}
-    </ChartSurface>
+    </ChartContainer>
   );
 }

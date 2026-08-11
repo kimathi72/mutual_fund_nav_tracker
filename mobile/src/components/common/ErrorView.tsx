@@ -5,7 +5,7 @@ interface ErrorViewProps {
   onRetry?: () => void;
 }
 
-export function ErrorView({
+export default function ErrorView({
   message = "Something went wrong.",
   onRetry,
 }: ErrorViewProps) {

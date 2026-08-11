@@ -1,44 +1,176 @@
-import React from "react";
+// components/charts/RiskHeatMap.tsx
 
-import ChartCard from "./ChartCard";
-import ChartSurface from "./ChartSurface";
+import React from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 
-import { HeatMapRenderer } from "./renderers";
+import AppText from '../common/AppText';
 
-import { HeatMapCell } from "./types";
+import type { FundSummary } from '../../models/FundSummary';
 
-type Props = {
-  data: HeatMapCell[];
+import colors from '../../constants/colors';
+import spacing from '../../constants/spacing';
 
-  width?: number;
+interface Props {
+  funds: FundSummary[];
+}
 
-  height?: number;
+const toNumber = (
+  value: number | string | undefined,
+): number => {
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue)
+    ? numericValue
+    : 0;
+};
+
+const getRiskColor = (
+  volatility: number,
+): string => {
+  const percentage = volatility * 100;
+
+  if (percentage >= 35) {
+    return colors.danger;
+  }
+
+  if (percentage >= 15) {
+    return colors.warning;
+  }
+
+  return colors.success;
 };
 
 export default function RiskHeatMap({
-  data,
-  width = 340,
-  height = 120,
+  funds,
 }: Props) {
-  if (!data || data.length === 0) {
+  if (!funds?.length) {
     return null;
   }
 
   return (
-    <ChartCard
-      title="Risk Heat Map"
-      subtitle="Current risk exposure"
-    >
-      <ChartSurface
-        width={width}
-        height={height}
+    <View style={styles.container}>
+      <AppText
+        variant="caption"
+        color={colors.subtitle}
+        style={styles.subtitle}
       >
-        <HeatMapRenderer
-          data={data}
-          width={width}
-          height={height}
-        />
-      </ChartSurface>
-    </ChartCard>
+        Current Risk Exposure
+      </AppText>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.list}
+      >
+        {funds.map((fund) => {
+          const volatility = toNumber(
+            fund.volatility,
+          );
+
+          const riskColor =
+            getRiskColor(volatility);
+
+          return (
+            <View
+              key={fund.id ?? fund.isin}
+              style={[
+                styles.fundCard,
+                {
+                  borderTopColor: riskColor,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.indicator,
+                  {
+                    backgroundColor: riskColor,
+                  },
+                ]}
+              />
+
+              <AppText
+                variant="caption"
+                style={styles.fundName}
+                numberOfLines={2}
+              >
+                {fund.name}
+              </AppText>
+
+              <View style={styles.valueRow}>
+                <AppText
+                  variant="caption"
+                  color={colors.subtitle}
+                >
+                  Volatility
+                </AppText>
+
+                <AppText
+                  variant="body"
+                  color={riskColor}
+                  style={styles.value}
+                >
+                  {(volatility * 100).toFixed(2)}%
+                </AppText>
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: spacing.sm,
+  },
+
+  subtitle: {
+    marginBottom: spacing.sm,
+  },
+
+  list: {
+    gap: spacing.sm,
+    paddingRight: spacing.md,
+  },
+
+  fundCard: {
+    width: 190,
+    minHeight: 86,
+    padding: spacing.sm,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderTopWidth: 3,
+  },
+
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginBottom: spacing.xs,
+  },
+
+  fundName: {
+    fontWeight: '600',
+    lineHeight: 15,
+    minHeight: 30,
+  },
+
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.sm,
+  },
+
+  value: {
+    fontWeight: '700',
+  },
+});

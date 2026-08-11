@@ -16,12 +16,12 @@ class ImportHistoricalNavsJob < ApplicationJob
       MarketData::ImportHistoricalNavsService.new.call
 
     if imported_funds.any?
-      CalculateDailyMetricsJob.perform_later(
-        imported_funds.map(&:id)
-      )
+      fund_ids = imported_funds.map(&:id)
+
+      CalculateDailyMetricsJob.perform_later(fund_ids)
 
       Rails.logger.info(
-        "[ImportHistoricalNavsJob] Queued #{imported_funds.size} updated funds."
+        "[ImportHistoricalNavsJob] Queued #{fund_ids.size} updated funds."
       )
     else
       Rails.logger.info(

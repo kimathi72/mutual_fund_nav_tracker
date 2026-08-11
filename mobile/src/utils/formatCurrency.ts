@@ -1,6 +1,9 @@
+
+// utils/formatCurrency.ts
+
 export default function formatCurrency(
-  value?: number | string | null | undefined,
-  currency = "USD"
+  value?: number | string | null,
+  currency = "USD",
 ): string {
   if (value === null || value === undefined || value === "") {
     return "--";
@@ -11,14 +14,23 @@ export default function formatCurrency(
       ? Number(value)
       : value;
 
-  if (Number.isNaN(numeric)) {
+  if (!Number.isFinite(numeric)) {
     return "--";
   }
 
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numeric);
+  const normalizedCurrency =
+    String(currency || "USD")
+      .trim()
+      .toUpperCase();
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: normalizedCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(numeric);
+  } catch {
+    return "--";
+  }
 }

@@ -15,7 +15,7 @@ export interface FundSummary {
 
   monthly_return: string;
 
-  ytd_return: string;
+  ytd_return: string | number;
 
   volatility: number;
 

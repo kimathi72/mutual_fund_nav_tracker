@@ -1,15 +1,20 @@
+
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 
 import AppCard from "@/components/common/AppCard";
 import AppText from "@/components/common/AppText";
 
 import ForecastChart from "@/components/charts/ForecastChart";
 
+import colors from "@/constants/colors";
 import spacing from "@/constants/spacing";
 
 import formatCurrency from "@/utils/formatCurrency";
-import formatPercentage from "@/utils/formatPercentage";
 
 import {
   Forecast,
@@ -26,22 +31,22 @@ import {
 
 interface Props {
   report: ForecastReport;
-
   history: NavPoint[];
-
   forecastSeries: PredictionPoint[];
+  currency: string;
 }
 
 export default function FundForecast({
   report,
   history,
   forecastSeries,
+  currency,
 }: Props) {
   const historySeries: TimeSeriesPoint[] = history.map(
     (point) => ({
       date: point.date,
       value: Number(point.nav),
-    })
+    }),
   );
 
   const predictionSeries: ForecastPoint[] =
@@ -54,49 +59,36 @@ export default function FundForecast({
 
   return (
     <AppCard style={styles.card}>
-      <AppText variant="heading">
+      <AppText
+        variant="heading"
+        style={styles.sectionTitle}
+      >
         AI Forecast
       </AppText>
-      <View style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", margin: spacing.md }}>
 
-      {report.predictions.map(
-        (prediction: Forecast) => (
-          <ForecastRow
-            key={`${prediction.horizon}-${prediction.target_date}`}
-            prediction={prediction}
-            currency="USD"
-          />
-        )
-      )}
-      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.forecastScroll}
+      >
+        {report.predictions.map(
+          (prediction: Forecast) => (
+            <ForecastCard
+              key={`${prediction.horizon}-${prediction.target_date}`}
+              prediction={prediction}
+              currency={currency}
+            />
+          ),
+        )}
+      </ScrollView>
 
-      <AppText variant="heading">
+      <AppText
+        variant="heading"
+        style={styles.chartTitle}
+      >
         Forecast Chart
       </AppText>
 
-      <AppText>
-        The chart below shows the historical NAV along with the AI forecasted NAV and confidence intervals.
-      </AppText>
-
-      <AppText>
-        The shaded area represents the confidence interval, indicating the range within which the actual NAV is expected to fall with a certain level of confidence.
-      </AppText>
-
-      <AppText>
-        Please note that these forecasts are based on historical data and AI predictions, and actual performance may vary.
-      </AppText>
-
-      <AppText>
-        Always consider multiple factors and consult with a financial advisor before making investment decisions.
-      </AppText>
-
-      <AppText>
-        The AI forecast is generated using advanced machine learning algorithms that analyze historical trends and patterns in the fund's performance.
-      </AppText>
-
-      <AppText>
-        It is important to remember that while AI can provide valuable insights, it cannot predict future market conditions with absolute certainty. Investors should use this information as one of many tools in their decision-making process.
-      </AppText>
       <ForecastChart
         history={historySeries}
         forecast={predictionSeries}
@@ -105,58 +97,219 @@ export default function FundForecast({
   );
 }
 
-function ForecastRow({
+function ForecastCard({
   prediction,
   currency,
 }: {
   prediction: Forecast;
   currency: string;
 }) {
+  const horizonLabel = getHorizonLabel(
+    prediction.horizon,
+  );
+
+  const expectedReturn = Number(
+    prediction.expected_return_pct ?? 0,
+  );
+
+  const confidence =
+    Number(prediction.confidence_score ?? 0) * 100;
+
+  const trend = String(
+    prediction.trend ?? "",
+  );
+
+  const recommendation = String(
+    prediction.recommendation ?? "",
+  );
+
+  const returnColor =
+    expectedReturn >= 0
+      ? colors.success
+      : colors.danger;
+
+  const trendColor =
+    trend.toLowerCase() === "bullish"
+      ? colors.success
+      : trend.toLowerCase() === "bearish"
+        ? colors.danger
+        : colors.warning;
+
+  const recommendationColor =
+    recommendation.toLowerCase().includes("buy")
+      ? colors.success
+      : recommendation.toLowerCase().includes("sell")
+        ? colors.danger
+        : colors.warning;
+
   return (
-    <View style= {{display: "flex", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center"}}>
-      <AppText>
-        {prediction.horizon.toUpperCase()}
-      </AppText>
+    <View style={styles.forecastCard}>
+      <View style={styles.horizonContainer}>
+        <AppText
+          variant="body"
+          style={styles.horizon}
+        >
+          {horizonLabel}
+        </AppText>
+      </View>
 
-      <AppText>
-        Predicted NAV{" "}
-        {formatCurrency(
-          prediction.predicted_nav ?? 0,
-          currency
-        )}
-      </AppText>
+      <View style={styles.metricBlock}>
+        <AppText
+          variant="caption"
+          color={colors.subtitle}
+        >
+          Predicted NAV
+        </AppText>
 
-      <AppText>
-        Expected Return{"  "}
-        {formatPercentage(
-          prediction.expected_return_pct ?? 0
-        )}
-      </AppText>
+        <AppText
+          variant="body"
+          style={styles.metricValue}
+        >
+          {formatCurrency(
+            prediction.predicted_nav ?? 0,
+            currency,
+          )}
+        </AppText>
+      </View>
 
-      <AppText>
-        Prediction Confidence{"   "}
-        {Math.round(
-          (prediction.confidence_score ?? 0) * 100
-        )}
-        %
-      </AppText>
-      <AppText>
-        Market Trend{"   "}
-        {prediction.trend}
-      </AppText>
+      <View style={styles.metricBlock}>
+        <AppText
+          variant="caption"
+          color={colors.subtitle}
+        >
+          Expected Return
+        </AppText>
 
-      <AppText>
-        Recommendation{"   "}
-        {prediction.recommendation}
-      </AppText>
+        <AppText
+          variant="body"
+          color={returnColor}
+          style={styles.metricValue}
+        >
+          {Number.isFinite(expectedReturn)
+            ? `${expectedReturn >= 0 ? "+" : ""}${expectedReturn.toFixed(2)}%`
+            : "—"}
+        </AppText>
+      </View>
 
+      <View style={styles.metricBlock}>
+        <AppText
+          variant="caption"
+          color={colors.subtitle}
+        >
+          Prediction Confidence
+        </AppText>
 
+        <AppText
+          variant="body"
+          style={styles.metricValue}
+        >
+          {Number.isFinite(confidence)
+            ? `${confidence.toFixed(0)}%`
+            : "—"}
+        </AppText>
+      </View>
+
+      <View style={styles.metricBlock}>
+        <AppText
+          variant="caption"
+          color={colors.subtitle}
+        >
+          Market Trend
+        </AppText>
+
+        <AppText
+          variant="body"
+          color={trendColor}
+          style={styles.metricValue}
+        >
+          {trend || "—"}
+        </AppText>
+      </View>
+
+      <View style={styles.metricBlock}>
+        <AppText
+          variant="caption"
+          color={colors.subtitle}
+        >
+          Recommendation
+        </AppText>
+
+        <AppText
+          variant="body"
+          color={recommendationColor}
+          style={styles.metricValue}
+        >
+          {recommendation || "—"}
+        </AppText>
+      </View>
     </View>
   );
+}
+
+function getHorizonLabel(
+  horizon: string | undefined,
+): string {
+  switch (String(horizon).toLowerCase()) {
+    case "1d":
+      return "1 Day";
+
+    case "30d":
+      return "30 Days";
+
+    case "90d":
+      return "90 Days";
+
+    default:
+      return horizon ?? "Forecast";
+  }
 }
 
 const styles = StyleSheet.create({
   card: {
     marginBottom: spacing.lg,
+  },
+
+  sectionTitle: {
+    marginBottom: spacing.md,
+  },
+
+  forecastScroll: {
+    gap: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+
+  forecastCard: {
+    width: 230,
+    padding: spacing.md,
+    borderRadius: 14,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  horizonContainer: {
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+
+  horizon: {
+    fontWeight: "700",
+    fontSize: 16,
+  },
+
+  metricBlock: {
+    marginBottom: spacing.sm,
+  },
+
+  metricValue: {
+    marginTop: 2,
+    fontWeight: "600",
+  },
+
+  chartTitle: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
   },
 });

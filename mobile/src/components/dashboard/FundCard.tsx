@@ -92,6 +92,7 @@ export default function FundCard({
             value={formatPercentage(
               Number(fund.ytd_return)
             )}
+            valueColor={Number(fund.ytd_return) >= 0 ? colors.success : colors.danger}
           />
 
           <Metric
@@ -123,11 +124,13 @@ export default function FundCard({
 interface MetricProps {
   label: string;
   value: string;
+  valueColor?: string;
 }
 
 function Metric({
   label,
   value,
+  valueColor,
 }: MetricProps) {
   return (
     <View style={styles.metric}>
@@ -138,7 +141,9 @@ function Metric({
         {label}
       </AppText>
 
-      <AppText variant="body">
+      <AppText variant="body"
+        style={[valueColor ? { color: valueColor } : undefined]}
+      >
         {value}
       </AppText>
     </View>

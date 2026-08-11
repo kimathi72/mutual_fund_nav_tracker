@@ -1,48 +1,104 @@
-import React from "react";
 
-import ChartCard from "./ChartCard";
-import ChartSurface from "./ChartSurface";
+import React, { useMemo } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import { AreaRenderer } from "./renderers";
+import colors from "@/constants/colors";
 
-import ExecutiveChartTheme from "./ExecutiveChartTheme";
+import type { ExecutiveFund } from "../../models/ExecutiveFund";
 
-import { TimeSeriesPoint } from "./types";
+interface Props {
+  funds: ExecutiveFund[];
+}
 
-type Props = {
-  data: TimeSeriesPoint[];
+interface PerformancePoint {
+  name: string;
+  value: number;
+}
 
-  width?: number;
+export default function AreaPerformanceChart({ funds }: Props) {
+  const data = useMemo<PerformancePoint[]>(() => {
+    return funds.map((fund) => ({
+      name: fund.name,
+      value: Number(fund.ytd_return) * 100,
+    }));
+  }, [funds]);
 
-  height?: number;
-};
-
-export default function AreaPerformanceChart({
-  data,
-  width = 340,
-  height = 180,
-}: Props) {
-  if (data.length < 2) {
+  if (!funds.length) {
     return null;
   }
 
   return (
-    <ChartCard
-      title="Performance"
-      subtitle="Historical trend"
-    >
-      <ChartSurface
-        width={width}
-        height={height}
-      >
-        <AreaRenderer
-          data={data}
-          width={width}
-          height={height}
-          color={ExecutiveChartTheme.line}
-          fillColor={ExecutiveChartTheme.area}
-        />
-      </ChartSurface>
-    </ChartCard>
+    <View style={styles.container}>
+      <Text style={styles.title}>
+        YTD Performance
+      </Text>
+
+      {data.map((item) => (
+        <View
+          key={item.name}
+          style={styles.row}
+        >
+          <Text
+            style={styles.name}
+            numberOfLines={1}
+          >
+            {item.name}
+          </Text>
+
+          <Text
+            style={[
+              styles.value,
+              {
+                color:
+                  item.value >= 0
+                    ? colors.success
+                    : colors.danger,
+              },
+            ]}
+          >
+            {item.value.toFixed(2)}%
+          </Text>
+        </View>
+      ))}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+  },
+
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
+
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+
+  name: {
+    flex: 1,
+    marginRight: 12,
+    fontSize: 13,
+    color: "#444444",
+  },
+
+  value: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+});

@@ -1,11 +1,14 @@
-import React from "react";
-import { StyleSheet } from "react-native";
 
-import AppCard from "@/components/common/AppCard";
-import AppText from "@/components/common/AppText";
+// components/dashboard/KPICard.tsx
 
-import colors from "@/constants/colors";
-import spacing from "@/constants/spacing";
+import React from 'react';
+import { StyleSheet } from 'react-native';
+
+import AppCard from '@/components/common/AppCard';
+import AppText from '@/components/common/AppText';
+
+import colors from '@/constants/colors';
+import spacing from '@/constants/spacing';
 
 interface Props {
   title: string;
@@ -50,7 +53,7 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     minHeight: 110,
-    justifyContent: "center",
+    justifyContent: 'center',
     padding: spacing.lg,
   },
 
@@ -60,6 +63,6 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });

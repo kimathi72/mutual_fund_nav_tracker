@@ -1,48 +1,103 @@
-import React from "react";
 
-import ChartCard from "./ChartCard";
-import ChartSurface from "./ChartSurface";
+import React, { useMemo, useState } from "react";
 
+import ChartContainer from "./ChartContainer";
 import { AreaRenderer } from "./renderers";
 
 import ExecutiveChartTheme from "./ExecutiveChartTheme";
 
-import { TimeSeriesPoint } from "./types";
+import {
+  ChartRange,
+  TimeSeriesPoint,
+} from "./types";
+
+import { filterChartData } from "./utils/chartFilters";
+
+import type { VolatilityPoint } from "@/models/VolatilityPoint";
 
 type Props = {
-  history: TimeSeriesPoint[];
-
-  width?: number;
-
-  height?: number;
+  history: VolatilityPoint[];
 };
 
 export default function VolatilityChart({
   history,
-  width = 340,
-  height = 180,
 }: Props) {
-  if (history.length < 2) {
+  const [range, setRange] =
+    useState<ChartRange>("1M");
+
+  /**
+   * Convert the API volatility history into
+   * the generic time-series format used by
+   * the charting system.
+   *
+   * VolatilityPoint:
+   * {
+   *   date: string;
+   *   volatility: number;
+   * }
+   *
+   * TimeSeriesPoint:
+   * {
+   *   date: string;
+   *   value: number;
+   * }
+   */
+  const chartHistory = useMemo<TimeSeriesPoint[]>(
+    () =>
+      (history ?? [])
+        .filter((point) => {
+          const value = Number(point.volatility);
+
+          return (
+            Boolean(point.date) &&
+            Number.isFinite(value)
+          );
+        })
+        .map((point) => ({
+          date: point.date,
+          value: Number(point.volatility),
+        })),
+    [history],
+  );
+
+  const filtered = useMemo(
+    () =>
+      filterChartData(
+        chartHistory,
+        range,
+      ),
+    [chartHistory, range],
+  );
+
+  /**
+   * A time-series chart needs at least
+   * two observations to draw a meaningful
+   * line/area.
+   */
+  if (filtered.length < 2) {
     return null;
   }
 
   return (
-    <ChartCard
+    <ChartContainer
       title="Volatility"
-      subtitle="30-day rolling volatility"
+      subtitle={`${filtered.length} observations`}
+      data={filtered}
+      range={range}
+      onRangeChange={setRange}
     >
-      <ChartSurface
-        width={width}
-        height={height}
-      >
+      {({ width, height }) => (
         <AreaRenderer
-          data={history}
+          data={filtered}
           width={width}
           height={height}
-          color={ExecutiveChartTheme.volatility}
+          color={
+            ExecutiveChartTheme.colors
+              .volatility
+          }
           fillColor="rgba(245,158,11,0.18)"
         />
-      </ChartSurface>
-    </ChartCard>
+      )}
+    </ChartContainer>
   );
 }

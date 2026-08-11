@@ -1,35 +1,26 @@
 import React from "react";
 
-import {
-  Platform,
-  View,
-  PanResponder,
-} from "react-native";
+import { Platform, View, PanResponder } from "react-native";
 
 import { Canvas } from "@shopify/react-native-skia";
 
 import Svg from "react-native-svg";
 
-import {
-  getChartDimensions,
-} from "./utils/chartDimensions";
+import { getChartDimensions } from "./utils/chartDimensions";
 
 type Props = {
+  width: number;
 
-  width:number;
+  height: number;
 
-  height:number;
+  children: React.ReactNode;
 
-  children:React.ReactNode;
+  onMove?: (x: number) => void;
 
-  onMove?:(x:number)=>void;
-
-  onEnd?:()=>void;
-
+  onEnd?: () => void;
 };
 
 export default function ChartSurface({
-
   width,
 
   height,
@@ -39,119 +30,62 @@ export default function ChartSurface({
   onMove,
 
   onEnd,
+}: Props) {
+  const chart = getChartDimensions(width, height);
 
-}:Props){
+  const responder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
 
-  const chart =
-    getChartDimensions(
-      width,
-      height
-    );
+    onMoveShouldSetPanResponder: () => true,
 
-  const responder =
-    PanResponder.create({
+    onPanResponderGrant: (e) => {
+      onMove?.(e.nativeEvent.locationX);
+    },
 
-      onStartShouldSetPanResponder:()=>true,
+    onPanResponderMove: (e) => {
+      onMove?.(e.nativeEvent.locationX);
+    },
 
-      onMoveShouldSetPanResponder:()=>true,
+    onPanResponderRelease: () => {
+      onEnd?.();
+    },
 
-      onPanResponderGrant:e=>{
+    onPanResponderTerminate: () => {
+      onEnd?.();
+    },
+  });
 
-        onMove?.(
-          e.nativeEvent.locationX
-        );
-
-      },
-
-      onPanResponderMove:e=>{
-
-        onMove?.(
-          e.nativeEvent.locationX
-        );
-
-      },
-
-      onPanResponderRelease:()=>{
-
-        onEnd?.();
-
-      },
-
-      onPanResponderTerminate:()=>{
-
-        onEnd?.();
-
-      }
-
-    });
-
-  if(
-    Platform.OS==="web"
-  ){
-
-    return(
-
-      <View
-        {...responder.panHandlers}
-      >
-
-        <Svg
-          width={chart.width}
-          height={chart.height}
-        >
-
+  if (Platform.OS === "web") {
+    return (
+      <View {...responder.panHandlers}>
+        <Svg width={chart.width} height={chart.height}>
           <g
-
-            transform={
-
-              `translate(
+            transform={`translate(
 
               ${chart.paddingLeft},
 
               ${chart.paddingTop}
 
-              )`
-
-            }
-
+              )`}
           >
-
             {children}
-
           </g>
-
         </Svg>
-
       </View>
-
     );
-
   }
 
-  return(
-
-    <View
-      {...responder.panHandlers}
-    >
-
+  return (
+    <View {...responder.panHandlers}>
       <Canvas
-
         style={{
+          width: chart.width,
 
-          width:chart.width,
-
-          height:chart.height
-
+          height: chart.height,
         }}
-
       >
-
         {children}
-
       </Canvas>
-
     </View>
-
   );
-
 }

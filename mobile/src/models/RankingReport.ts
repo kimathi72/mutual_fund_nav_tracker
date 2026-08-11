@@ -1,4 +1,4 @@
-import { FundRanking } from "./FundRanking";
+import type { FundRanking } from './FundRanking';
 
 export interface RankingReport {
   report_date: string;
@@ -15,5 +15,5 @@ export interface RankingReport {
 
   highest_risk: FundRanking[];
 
-  largest_drawdown: FundRanking[];
+  worst_drawdown: FundRanking[];
 }

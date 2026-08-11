@@ -1,71 +1,54 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 
-import { Dimensions, View } from "react-native";
-
-import ChartCard from "./ChartCard";
-import ChartSurface from "./ChartSurface";
-import ChartTooltip from "./ChartTooltip";
-import ChartGrid from "./ChartGrid";
-import ChartAxis from "./ChartAxis";
+import ChartContainer from "./ChartContainer";
 
 import LineRenderer from "./renderers/LineRenderer";
 import CrossHairRenderer from "./renderers/CrossHairRenderer";
+
+import ChartTooltip from "./ChartTooltip";
 
 import useTooltip from "./hooks/useTooltip";
 
 import ExecutiveChartTheme from "./ExecutiveChartTheme";
 
-import { TimeSeriesPoint } from "./types";
+import { TimeSeriesPoint, ChartRange } from "./types";
 
-import { getMinValue, getMaxValue } from "./utils/chartMath";
+import { filterChartData } from "./utils/chartFilters";
 
 type Props = {
   history: TimeSeriesPoint[];
 };
 
-const WIDTH = Dimensions.get("window").width - 48;
-
-const HEIGHT = 240;
-
 export default function NavHistoryChart({ history }: Props) {
-  const {
-    tooltip,
+  const [range, setRange] = useState<ChartRange>("1M");
 
-    show,
-
-    hide,
-  } = useTooltip(
-    history,
-
-    WIDTH,
-
-    HEIGHT,
+  const filteredHistory = useMemo(
+    () => filterChartData(history, range),
+    [history, range],
   );
 
-  if (history.length < 2) {
+  const { tooltip, show, hide } = useTooltip(filteredHistory, 1, 1);
+
+  if (filteredHistory.length < 2) {
     return null;
   }
 
-  const min = getMinValue(history);
-
-  const max = getMaxValue(history);
-
   return (
-    <ChartCard
+    <ChartContainer
       title="NAV History"
-      subtitle={`${history.length} trading days`}
-      rightLabel={`High ${max.toFixed(2)}`}
+      subtitle={`${filteredHistory.length} observations`}
+      range={range}
+      onRangeChange={setRange}
+      data={filteredHistory}
+      onMove={show}
+      onEnd={hide}
     >
-      <View>
-        <ChartGrid width={WIDTH} height={HEIGHT} />
-
-        <ChartAxis width={WIDTH} height={HEIGHT} min={min} max={max} />
-
-        <ChartSurface width={WIDTH} height={HEIGHT} onMove={show} onEnd={hide}>
+      {({ width, height }) => (
+        <>
           <LineRenderer
-            data={history}
-            width={WIDTH}
-            height={HEIGHT}
+            data={filteredHistory}
+            width={width}
+            height={height}
             color={ExecutiveChartTheme.colors.historical}
           />
 
@@ -73,20 +56,20 @@ export default function NavHistoryChart({ history }: Props) {
             <CrossHairRenderer
               x={tooltip.x}
               y={tooltip.y}
-              width={WIDTH}
-              height={HEIGHT}
+              width={width}
+              height={height}
             />
           )}
-        </ChartSurface>
 
-        <ChartTooltip
-          visible={tooltip.visible}
-          x={tooltip.x}
-          y={tooltip.y}
-          label={tooltip.point?.date ?? ""}
-          value={tooltip.point?.value.toFixed(2) ?? ""}
-        />
-      </View>
-    </ChartCard>
+          <ChartTooltip
+            visible={tooltip.visible}
+            x={tooltip.x}
+            y={tooltip.y}
+            label={tooltip.point?.date ?? ""}
+            value={tooltip.point ? tooltip.point.value.toFixed(2) : ""}
+          />
+        </>
+      )}
+    </ChartContainer>
   );
 }

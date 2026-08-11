@@ -1,91 +1,117 @@
-import AppScreen from "@/components/common/AppScreen";
+// screens/dashboard/DashboardScreen.tsx
+
+import React from 'react';
+import {
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
+import RankingTabs from '@/components/dashboard/RankingTabs';
+import { useDashboard } from '../../hooks/useDashboard';
+
+import {
+  AppScreen,
+  LoadingView,
+  ErrorView,
+} from '../../components/common';
 
 import {
   DashboardHeader,
   KPIGrid,
   PortfolioHealthCard,
+  RiskOverviewCard,
+  TopPerformerCard,
+  TopMoversSection,
   ExecutiveBriefingCard,
   FundCarousel,
-  TopMoversSection,
-  KPITrendCard,
-} from "@/components/dashboard";
+} from '../../components/dashboard';
 
-import LoadingView from "@/components/common/LoadingView";
-import { ErrorView } from "@/components/common/ErrorView";
-
-import { useDashboard } from "@/hooks/useDashboard";
+import {
+  AreaPerformanceChart,
+  VolatilityChart,
+  RiskHeatMap,
+} from '../../components/charts';
+import RiskAnalysisSection from '@/components/dashboard/RiskAnalysisSection';
 
 export default function DashboardScreen() {
   const {
     data,
-    isLoading,
+    isPending,
     isError,
+    error,
     refetch,
+    isFetching,
   } = useDashboard();
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingView />;
   }
 
   if (isError || !data) {
     return (
       <ErrorView
-        message="Unable to load dashboard."
+        message={error?.message ?? 'Unable to load dashboard'}
         onRetry={refetch}
       />
     );
   }
 
-  const {
-    generated_at,
-    summary,
-    rankings,
-    portfolio_insight: insight,
-    briefing,
-    funds,
-  } = data;
-
   return (
     <AppScreen>
-      <DashboardHeader
-        reportDate={summary.report_date}
-        generatedAt={generated_at}
-        totalFunds={summary.total_funds}
-        portfolioHealth={insight.portfolio_health}
-      />
-      <FundCarousel
-        funds={funds}
-      />
-
-      {briefing && (
-        <ExecutiveBriefingCard
-          briefing={briefing}
-        />
-      )}
-
-      <PortfolioHealthCard
-        insight={insight}
-      />
-
-      <KPIGrid
-        summary={summary}
-      />
-
-      <KPITrendCard
-        title="Average YTD Return"
-        value={`${Number(
-          summary.average_ytd_return
-        ).toFixed(2)}%`}
-        subtitle={insight.market_sentiment}
-        positive={
-          Number(summary.average_ytd_return) >= 0
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={refetch}
+          />
         }
-      />
+      >
+        <DashboardHeader
+          reportDate={data.summary.report_date}
+        />
+
+        <FundCarousel
+          funds={data.funds}
+        />
+
+        <PortfolioHealthCard
+          insight={data.portfolio_insight}
+        />
+        <RiskAnalysisSection summary={data.summary} funds={data.funds} />
+
+        <KPIGrid
+          summary={data.summary}
+        />
+
+        {/* <RiskOverviewCard
+          summary={data.summary}
+        /> */}
+        <RankingTabs
+          rankings={data.rankings}
+        />
+
+{/* 
+        <AreaPerformanceChart
+          funds={data.funds}
+        />
+
+        <VolatilityChart
+          funds={data.funds}
+        /> */}
 
 
-      <TopMoversSection
-        rankings={rankings}
-      />
+        {/* <TopPerformerCard
+          fund={data.summary.best_performer}
+        />
+
+        <TopMoversSection
+          rankings={data.rankings}
+        /> */}
+
+        <ExecutiveBriefingCard
+          briefing={data.briefing}
+        />
+      </ScrollView>
     </AppScreen>
   );
 }
+

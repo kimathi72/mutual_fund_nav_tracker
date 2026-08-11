@@ -4,12 +4,7 @@
   - critical
   - market_data
   - analytics
+  - machine_learning
+  - reporting
   - default
   - mailers
-
-:scheduler:
-  :schedule:
-    import_historical_navs:
-      cron: "15 20 * * 1-5"
-      class: ImportHistoricalNavsJob
-      queue: market_data

@@ -8,8 +8,16 @@ class DatasetExportJob < ApplicationJob
            attempts: 5
 
   def perform(fund_ids = nil)
+    Rails.logger.info(
+      "[DatasetExportJob] Exporting training dataset..."
+    )
+
     Ml::DatasetExportService.new.call
 
     TrainModelJob.perform_later(fund_ids)
+
+    Rails.logger.info(
+      "[DatasetExportJob] Finished. Training job queued."
+    )
   end
 end

@@ -3,13 +3,10 @@ import {
   View,
   Pressable,
   StyleSheet,
+  Text,
 } from "react-native";
-import { Text } from "react-native";
 
-export type ChartRange =
-  | "week"
-  | "month"
-  | "year";
+import { ChartRange } from "./types";
 
 type Props = {
   value: ChartRange;
@@ -22,15 +19,31 @@ const OPTIONS: {
 }[] = [
   {
     label: "1W",
-    value: "week",
+    value: "1W",
   },
   {
     label: "1M",
-    value: "month",
+    value: "1M",
+  },
+  {
+    label: "3M",
+    value: "3M",
+  },
+  {
+    label: "YTD",
+    value: "YTD",
   },
   {
     label: "1Y",
-    value: "year",
+    value: "1Y",
+  },
+  {
+    label: "3Y",
+    value: "3Y",
+  },
+  {
+    label: "MAX",
+    value: "MAX",
   },
 ];
 
@@ -76,12 +89,13 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginBottom: 12,
+    flexWrap: "wrap",
     gap: 8,
+    marginBottom: 12,
   },
 
   button: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: "#ECECEC",
@@ -92,11 +106,11 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontWeight: "600",
     color: "#555",
+    fontWeight: "600",
   },
 
   activeLabel: {
-    color: "#FFFFFF",
+    color: "#FFF",
   },
 });

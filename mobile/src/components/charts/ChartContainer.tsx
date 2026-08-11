@@ -1,115 +1,111 @@
 import React from "react";
-import {
-  View,
-  StyleSheet,
-} from "react-native";
+import { View, StyleSheet } from "react-native";
 
-import ChartGrid from "./ChartGrid";
-import ChartSurface from "./ChartSurface";
+import ChartCard from "./ChartCard";
+import ChartToolbar from "./ChartToolbar";
 import ChartXAxis from "./ChartXAxis";
 import ChartYAxis from "./ChartYAxis";
+import ChartGrid from "./ChartGrid";
+import ChartSurface from "./ChartSurface";
 
 import useChartDimensions from "./hooks/useChartDimensions";
 
 import {
-  buildXAxisLabels,
-} from "./utils/chartLabels";
-
-import {
-  filterChartData,
   ChartRange,
-} from "./utils/chartFilters";
-
-import {
-  getMinValue,
-  getMaxValue,
-} from "./utils/chartMath";
-
-import {
   TimeSeriesPoint,
 } from "./types";
 
 type Props = {
+  title: string;
+  subtitle?: string;
+  rightLabel?: string;
+
   data: TimeSeriesPoint[];
 
   range: ChartRange;
+  onRangeChange: (range: ChartRange) => void;
 
-  children: React.ReactNode;
+  onMove?: (x: number) => void;
+  onEnd?: () => void;
 
-  onMove?: any;
-
-  onEnd?: any;
+  children: (dimensions: {
+    width: number;
+    height: number;
+  }) => React.ReactNode;
 };
 
 export default function ChartContainer({
+  title,
+  subtitle,
+  rightLabel,
   data,
   range,
-  children,
+  onRangeChange,
   onMove,
   onEnd,
+  children,
 }: Props) {
-  const chart =
-    useChartDimensions();
-
-  const filtered =
-    filterChartData(
-      data,
-      range
-    );
-
-  const ticks =
-    buildXAxisLabels(
-      filtered,
-      range
-    );
-
-  const min =
-    getMinValue(filtered);
-
-  const max =
-    getMaxValue(filtered);
+  const { width, height } = useChartDimensions();
 
   return (
-    <View
-      style={styles.wrapper}
+    <ChartCard
+      title={title}
+      subtitle={subtitle}
+      rightLabel={rightLabel}
     >
-      <ChartYAxis
-        min={min}
-        max={max}
-        height={chart.height}
+      <ChartToolbar
+        value={range}
+        onChange={onRangeChange}
       />
 
-      <View>
-        <ChartGrid
-          width={chart.width}
-          height={chart.height}
+      <View style={styles.chartRow}>
+        <ChartYAxis
+          data={data}
+          width={54}
+          height={height}
         />
 
-        <ChartSurface
-          width={chart.width}
-          height={chart.height}
-          onMove={onMove}
-          onEnd={onEnd}
-        >
-          {children}
-        </ChartSurface>
+        <View style={styles.surfaceContainer}>
+          <ChartGrid
+            width={width}
+            height={height}
+          />
 
-        <ChartXAxis
-          ticks={ticks}
-          chartWidth={chart.width}
-          totalPoints={
-            filtered.length
-          }
-        />
+          <ChartSurface
+            width={width}
+            height={height}
+            onMove={onMove}
+            onEnd={onEnd}
+          >
+            {children({
+              width,
+              height,
+            })}
+          </ChartSurface>
+
+          <ChartXAxis
+            width={width}
+            data={data}
+            range={range}
+          />
+        </View>
       </View>
-    </View>
+    </ChartCard>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    wrapper: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-    },
-  });
+const styles = StyleSheet.create({
+  chartRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    minWidth: 0,
+  },
+
+  surfaceContainer: {
+    flex: 1,
+    minWidth: 0,
+    width: 0,
+    overflow: "hidden",
+  },
+});

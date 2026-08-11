@@ -1,51 +1,78 @@
-import React, { useMemo } from "react";
+import React, {
+  useMemo,
+} from "react";
 
-import { Path } from "@shopify/react-native-skia";
+import {
+  Path,
+} from "@shopify/react-native-skia";
 
-import { RendererProps } from "../types";
+import {
+  RendererProps,
+} from "../types";
 
-import { toChartPoints } from "../utils/chartMath";
+import {
+  toChartPoints,
+} from "../utils/chartMath";
 
-import { buildLinePath } from "../utils/chartPath";
+import {
+  buildLinePath,
+} from "../utils/chartPath";
 
-import { getChartDimensions } from "../utils/chartDimensions";
+import {
+  getChartDimensions,
+} from "../utils/chartDimensions";
 
-import ExecutiveChartTheme from "../ExecutiveChartTheme";
+import ExecutiveChartTheme
+  from "../ExecutiveChartTheme";
 
 export default function LineRenderer({
   data,
-
   width,
-
   height,
-
-  color = ExecutiveChartTheme.colors.historical,
-
-  strokeWidth = ExecutiveChartTheme.chart.strokeWidth,
+  color =
+    ExecutiveChartTheme.colors
+      .historical,
+  strokeWidth =
+    ExecutiveChartTheme.chart
+      .strokeWidth,
 }: RendererProps) {
-  const chart = getChartDimensions(width, height);
+  const chart =
+    getChartDimensions(
+      width,
+      height,
+    );
 
-  const path = useMemo(() => {
-    const points = toChartPoints(
-      data,
+  const path =
+    useMemo(() => {
+      const points =
+        toChartPoints(
+          data,
+          chart.innerWidth,
+          chart.innerHeight,
+        ).map(point => ({
+          x:
+            point.x +
+            chart.paddingLeft,
 
-      chart.innerWidth,
+          y:
+            point.y +
+            chart.paddingTop,
+        }));
 
-      chart.innerHeight,
-    ).map((point) => ({
-      x: point.x + chart.paddingLeft,
+      return buildLinePath(points);
+    }, [data, chart]);
 
-      y: point.y + chart.paddingTop,
-    }));
-
-    return buildLinePath(points);
-  }, [data, chart]);
-
-  if (data.length < 2) {
+  if (data.length < 2)
     return null;
-  }
 
   return (
-    <Path path={path} color={color} style="stroke" strokeWidth={strokeWidth} />
+    <Path
+      path={path}
+      color={color}
+      style="stroke"
+      strokeWidth={
+        strokeWidth
+      }
+    />
   );
 }

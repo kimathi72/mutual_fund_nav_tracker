@@ -15,10 +15,18 @@ class BuildTrainingDatasetJob < ApplicationJob
         MutualFund.active
       end
 
+    Rails.logger.info(
+      "[BuildTrainingDatasetJob] Building dataset for #{scope.count} funds."
+    )
+
     Ml::BuildTrainingDatasetService.new(
       scope: scope
     ).call
 
     DatasetExportJob.perform_later(fund_ids)
+
+    Rails.logger.info(
+      "[BuildTrainingDatasetJob] Finished."
+    )
   end
 end

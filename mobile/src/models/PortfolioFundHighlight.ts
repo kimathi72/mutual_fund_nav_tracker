@@ -3,11 +3,11 @@ export interface PortfolioFundHighlight {
   fund_name: string;
   isin: string;
 
-  nav: string;
+  nav: number | string;
 
-  ytd_return: string;
+  ytd_return: number | string;
 
-  volatility: number;
+  volatility: number | string;
 
-  drawdown: string;
+  drawdown: number | string;
 }

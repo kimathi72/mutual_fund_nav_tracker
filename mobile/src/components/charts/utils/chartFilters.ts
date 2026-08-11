@@ -1,25 +1,43 @@
-import { TimeSeriesPoint } from "../types";
+import { ChartRange, TimeSeriesPoint } from "../types";
 
-export type ChartRange =
-  | "week"
-  | "month"
-  | "year";
 
 export function filterChartData(
-  history: TimeSeriesPoint[],
-  range: ChartRange
+  data: TimeSeriesPoint[],
+  range: ChartRange,
 ): TimeSeriesPoint[] {
+
+  if (data.length === 0)
+    return [];
+
   switch (range) {
-    case "week":
-      return history.slice(-7);
+    case "1W":
+      return data.slice(-7);
 
-    case "month":
-      return history.slice(-30);
+    case "1M":
+      return data.slice(-30);
 
-    case "year":
-      return history.slice(-365);
+    case "3M":
+      return data.slice(-90);
 
+    case "YTD":
+      return data.filter(item => {
+        const d =
+          new Date(item.date);
+
+        return (
+          d.getFullYear() ===
+          new Date().getFullYear()
+        );
+      });
+
+    case "1Y":
+      return data.slice(-365);
+
+    case "3Y":
+      return data.slice(-1095);
+
+    case "MAX":
     default:
-      return history;
+      return data;
   }
 }

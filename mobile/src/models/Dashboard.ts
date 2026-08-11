@@ -1,19 +1,13 @@
-import { PortfolioSummary } from "./PortfolioSummary";
-import { RankingReport } from "./RankingReport";
-import { PortfolioInsight } from "./PortfolioInsight";
-import  {FundSummary}  from "./FundSummary";
-import { ExecutiveBriefing } from "./ExecutiveBriefing";
+import type { PortfolioSummary } from './PortfolioSummary';
+import type { RankingReport } from './RankingReport';
+import type { PortfolioInsight } from './PortfolioInsight';
+import type { ExecutiveBriefing } from './ExecutiveBriefing';
+import type { FundSummary } from './FundSummary';
 
-export interface Dashboard {
-  generated_at: string;
-
+export interface DashboardResponse {
   summary: PortfolioSummary;
-
   rankings: RankingReport;
-
   portfolio_insight: PortfolioInsight;
-
-  briefing: ExecutiveBriefing | null;
-
+  briefing: ExecutiveBriefing;
   funds: FundSummary[];
 }

@@ -7,9 +7,17 @@ class GenerateForecastsJob < ApplicationJob
            wait: :polynomially_longer,
            attempts: 5
 
-  def perform(_fund_ids = nil)
+  def perform(fund_ids = nil)
+    Rails.logger.info(
+      "[GenerateForecastsJob] Generating forecasts..."
+    )
+
     Ml::GenerateForecastsService.call
 
     GenerateExecutiveBriefingJob.perform_later
+
+    Rails.logger.info(
+      "[GenerateForecastsJob] Finished. Executive briefing queued."
+    )
   end
 end

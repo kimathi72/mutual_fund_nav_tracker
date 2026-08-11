@@ -1,67 +1,131 @@
-import { TimeSeriesPoint } from "../types";
-import { ChartRange } from "./chartFilters";
+import {
+  ChartRange,
+  TimeSeriesPoint,
+} from "../types";
 
-export function buildXAxisLabels(
-  history: TimeSeriesPoint[],
+export type ChartTick = {
+  index: number;
+  label: string;
+};
+
+function formatDate(
+  date: Date,
   range: ChartRange
 ) {
-  if (!history.length) return [];
+  switch (range) {
+    case "1W":
+      return date.toLocaleDateString("en-US", {
+        weekday: "short",
+      });
 
-  const formatter =
-    new Intl.DateTimeFormat("en-GB", {
-      day:
-        range === "week"
-          ? "numeric"
-          : undefined,
+    case "1M":
+      return date.toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+      });
 
-      month:
-        range === "year"
-          ? "short"
-          : "short",
-    });
+    case "3M":
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+      });
 
-  let visibleTicks = 5;
+    case "YTD":
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+      });
 
-  if (range === "week")
-    visibleTicks = 7;
+    case "1Y":
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+      });
 
-  if (range === "year")
-    visibleTicks = 6;
+    case "3Y":
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+      });
+
+    case "MAX":
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+      });
+
+    default:
+      return "";
+  }
+}
+
+export function buildXAxisLabels(
+  data: TimeSeriesPoint[],
+  range: ChartRange
+): ChartTick[] {
+  if (!data.length) {
+    return [];
+  }
+
+  let divisions = 6;
+
+  switch (range) {
+    case "1W":
+      divisions = 7;
+      break;
+
+    case "1M":
+      divisions = 5;
+      break;
+
+    case "3M":
+      divisions = 6;
+      break;
+
+    case "YTD":
+      divisions = 7;
+      break;
+
+    case "1Y":
+      divisions = 6;
+      break;
+
+    case "3Y":
+      divisions = 4;
+      break;
+
+    case "MAX":
+      divisions = 5;
+      break;
+  }
 
   const step = Math.max(
     1,
-    Math.floor(
-      history.length /
-        (visibleTicks - 1)
-    )
+    Math.floor((data.length - 1) / (divisions - 1))
   );
 
-  const ticks = [];
+  const ticks: ChartTick[] = [];
 
   for (
     let i = 0;
-    i < history.length;
+    i < data.length;
     i += step
   ) {
     ticks.push({
       index: i,
-      label: formatter.format(
-        new Date(history[i].date)
+      label: formatDate(
+        new Date(data[i].date),
+        range
       ),
     });
   }
 
-  const last =
-    history.length - 1;
-
   if (
-    ticks[ticks.length - 1]
-      ?.index !== last
+    ticks[ticks.length - 1].index !==
+    data.length - 1
   ) {
     ticks.push({
-      index: last,
-      label: formatter.format(
-        new Date(history[last].date)
+      index: data.length - 1,
+      label: formatDate(
+        new Date(
+          data[data.length - 1].date
+        ),
+        range
       ),
     });
   }
