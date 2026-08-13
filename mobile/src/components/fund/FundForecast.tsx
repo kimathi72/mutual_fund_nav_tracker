@@ -92,37 +92,7 @@ export default function FundForecast({
   | 90d
   |
   |--------------------------------------------------------------------------
-  */
 
-  const predictionSeries =
-    useMemo<
-      PredictionHistoryPoint[]
-    >(
-      () =>
-        forecastSeries
-          .filter(
-            (point) =>
-              point.target_date &&
-              Number.isFinite(
-                Number(
-                  point.predicted_nav,
-                ),
-              ),
-          )
-          .map(
-            (point) => ({
-              date:
-                point.target_date,
-              value:
-                Number(
-                  point.predicted_nav,
-                ),
-            }),
-          ),
-      [forecastSeries],
-    );
-
-  /*
   |--------------------------------------------------------------------------
   | 1 Day predictions
   |--------------------------------------------------------------------------
@@ -256,19 +226,11 @@ export default function FundForecast({
         }
       >
         {report.predictions.map(
-          (
-            prediction: Forecast,
-          ) => (
+          (prediction: Forecast) => (
             <ForecastCard
-              key={
-                prediction.forecast_id
-              }
-              prediction={
-                prediction
-              }
-              currency={
-                currency
-              }
+              key={`${prediction.horizon}-${prediction.target_date}`}
+              prediction={prediction}
+              currency={currency}
             />
           ),
         )}
