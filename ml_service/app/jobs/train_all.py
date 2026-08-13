@@ -1,50 +1,50 @@
 from __future__ import annotations
 
-import logging
+from pathlib import Path
+
+from app.config import (
+    DATA_DIR,
+    MODEL_DIR,
+    HORIZONS,
+)
 
 from app.data.loader import load_dataset
-from app.services.training_service import TrainingService
-
-logging.basicConfig(level=logging.INFO)
-
-logger = logging.getLogger(__name__)
+from app.models.trainer import Trainer
 
 
 def main():
 
-    logger.info("Loading dataset...")
-
     dataframe = load_dataset()
 
-    logger.info(
-        "Dataset contains %s rows.",
-        len(dataframe),
-    )
+    results = []
 
-    trainer = TrainingService(
-        dataframe
-    )
+    for horizon_name in HORIZONS:
 
-    summary = trainer.train_all()
+        print()
+        print("=" * 80)
+        print(
+            f"TRAINING HORIZON: {horizon_name}"
+        )
+        print("=" * 80)
 
-    logger.info(
-        "=================================="
-    )
+        model_directory = (
+            MODEL_DIR
+            / horizon_name
+        )
 
-    logger.info(
-        "Training completed."
-    )
+        trainer = Trainer(
+            dataframe=dataframe,
+            model_directory=model_directory,
+            horizon=horizon_name,
+        )
 
-    logger.info(
-        "%s horizons trained.",
-        len(summary),
-    )
+        metrics = trainer.train()
 
-    logger.info(
-        "=================================="
-    )
+        results.append(
+            metrics
+        )
 
-    return summary
+    return results
 
 
 if __name__ == "__main__":

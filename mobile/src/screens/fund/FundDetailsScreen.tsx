@@ -30,9 +30,6 @@ export default function FundDetailsScreen({
     return <LoadingView />;
   }
 
-  console.log("Fund:", fund);
-  console.log("Query error:", error);
-
   if (error || !fund) {
     return (
       <ErrorView
@@ -44,15 +41,6 @@ export default function FundDetailsScreen({
       />
     );
   }
-  console.log("========== FUND CURRENCY DEBUG ==========");
-console.log("Fund ID:", id);
-console.log("Fund name:", fund?.name);
-console.log("Fund currency:", fund?.currency);
-console.log("Fund NAV:", fund?.nav);
-console.log("Performance:", fund?.performance);
-console.log("Latest NAV:", fund?.performance?.latest_nav);
-console.log("========================================");
-
   return (
     <AppScreen>
       <ScrollView showsVerticalScrollIndicator={false}>

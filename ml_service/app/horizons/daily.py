@@ -5,4 +5,4 @@ class DailyForecast(ForecastHorizon):
 
     NAME = "1d"
 
-    TARGET_DAYS = 1
+    TARGET_OBSERVATIONS = 1

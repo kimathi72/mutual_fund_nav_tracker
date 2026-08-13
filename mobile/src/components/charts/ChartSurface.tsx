@@ -1,91 +1,199 @@
 import React from "react";
 
-import { Platform, View, PanResponder } from "react-native";
+import {
+  Platform,
+  View,
+  PanResponder,
+  StyleSheet,
+} from "react-native";
 
-import { Canvas } from "@shopify/react-native-skia";
+import {
+  Canvas,
+  Group,
+} from "@shopify/react-native-skia";
 
-import Svg from "react-native-svg";
+import Svg, {
+  G,
+} from "react-native-svg";
 
-import { getChartDimensions } from "./utils/chartDimensions";
+import {
+  getChartDimensions,
+} from "./utils/chartDimensions";
 
 type Props = {
   width: number;
-
   height: number;
 
-  children: React.ReactNode;
+  children: (dimensions: {
+    width: number;
+    height: number;
+  }) => React.ReactNode;
 
-  onMove?: (x: number) => void;
+  onMove?: (
+    x: number,
+  ) => void;
 
   onEnd?: () => void;
 };
 
 export default function ChartSurface({
   width,
-
   height,
-
   children,
-
   onMove,
-
   onEnd,
 }: Props) {
-  const chart = getChartDimensions(width, height);
+  const chart =
+    getChartDimensions(
+      width,
+      height,
+    );
 
-  const responder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
+  const responder =
+    PanResponder.create({
+      onStartShouldSetPanResponder:
+        () => true,
 
-    onMoveShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder:
+        () => true,
 
-    onPanResponderGrant: (e) => {
-      onMove?.(e.nativeEvent.locationX);
-    },
+      onPanResponderGrant:
+        (event) => {
+          onMove?.(
+            event.nativeEvent.locationX,
+          );
+        },
 
-    onPanResponderMove: (e) => {
-      onMove?.(e.nativeEvent.locationX);
-    },
+      onPanResponderMove:
+        (event) => {
+          onMove?.(
+            event.nativeEvent.locationX,
+          );
+        },
 
-    onPanResponderRelease: () => {
-      onEnd?.();
-    },
+      onPanResponderRelease:
+        () => {
+          onEnd?.();
+        },
 
-    onPanResponderTerminate: () => {
-      onEnd?.();
-    },
-  });
+      onPanResponderTerminate:
+        () => {
+          onEnd?.();
+        },
+    });
 
-  if (Platform.OS === "web") {
+  if (
+    Platform.OS === "web"
+  ) {
     return (
-      <View {...responder.panHandlers}>
-        <Svg width={chart.width} height={chart.height}>
-          <g
-            transform={`translate(
+      <View
+        {...responder.panHandlers}
+        style={[
+          styles.webSurface,
+          {
+            width:
+              chart.width,
 
-              ${chart.paddingLeft},
-
-              ${chart.paddingTop}
-
-              )`}
+            height:
+              chart.height,
+          },
+        ]}
+      >
+        <Svg
+          width={chart.width}
+          height={chart.height}
+          viewBox={`0 0 ${chart.width} ${chart.height}`}
+          style={styles.svg}
+        >
+          <G
+            x={chart.paddingLeft}
+            y={chart.paddingTop}
           >
-            {children}
-          </g>
+            {children({
+              width:
+                chart.innerWidth,
+
+              height:
+                chart.innerHeight,
+            })}
+          </G>
         </Svg>
       </View>
     );
   }
 
   return (
-    <View {...responder.panHandlers}>
+    <View
+      {...responder.panHandlers}
+      style={[
+        styles.nativeSurface,
+        {
+          width:
+            chart.width,
+
+          height:
+            chart.height,
+        },
+      ]}
+    >
       <Canvas
         style={{
-          width: chart.width,
+          width:
+            chart.width,
 
-          height: chart.height,
+          height:
+            chart.height,
         }}
       >
-        {children}
+        <Group
+          transform={[
+            {
+              translateX:
+                chart.paddingLeft,
+            },
+            {
+              translateY:
+                chart.paddingTop,
+            },
+          ]}
+        >
+          {children({
+            width:
+              chart.innerWidth,
+
+            height:
+              chart.innerHeight,
+          })}
+        </Group>
       </Canvas>
     </View>
   );
 }
+
+const styles =
+  StyleSheet.create({
+    webSurface: {
+      position:
+        "relative",
+
+      overflow:
+        "hidden",
+    },
+
+    svg: {
+      position:
+        "absolute",
+
+      left: 0,
+
+      top: 0,
+    },
+
+    nativeSurface: {
+      position:
+        "relative",
+
+      overflow:
+        "hidden",
+    },
+  });

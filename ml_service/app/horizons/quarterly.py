@@ -5,4 +5,4 @@ class QuarterlyForecast(ForecastHorizon):
 
     NAME = "90d"
 
-    TARGET_DAYS = 90
+    TARGET_OBSERVATIONS = 90

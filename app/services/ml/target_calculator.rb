@@ -2,12 +2,21 @@
 
 module Ml
   class TargetCalculator
+    HORIZONS = {
+      target_nav_1d: 1,
+      target_nav_30d: 30,
+      target_nav_90d: 90
+    }.freeze
+
     def call(metrics, index)
-      next_metric = metrics[index + 1]
+      HORIZONS.to_h do |column, offset|
+        target_metric = metrics[index + offset]
 
-      return nil unless next_metric
-
-      next_metric.daily_nav.nav
+        [
+          column,
+          target_metric&.daily_nav&.nav
+        ]
+      end
     end
   end
 end

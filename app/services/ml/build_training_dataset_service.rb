@@ -2,23 +2,33 @@
 
 module Ml
   class BuildTrainingDatasetService < ApplicationService
-    LOOKBACK_DAYS = 35
+    LOOKBACK_OBSERVATIONS = 35
     INITIAL_IMPORT_DATE = Date.new(2025, 1, 1)
 
-    def initialize(scope: MutualFund.where(active: true))
+    TARGETS = {
+      "1d" => :target_nav_1d,
+      "30d" => :target_nav_30d,
+      "90d" => :target_nav_90d
+    }.freeze
+
+    def initialize(
+      scope: MutualFund.where(active: true)
+    )
       @scope = scope
     end
 
     def call
       Rails.logger.info(
-        "[BuildTrainingDatasetService] Processing #{scope.size} funds..."
+        "[BuildTrainingDatasetService] " \
+        "Processing #{scope.size} funds..."
       )
 
       each_fund do |fund|
         build_for_fund(fund)
-      rescue => e
+      rescue StandardError => e
         Rails.logger.error(
-          "[BuildTrainingDatasetService] #{fund.isin}: #{e.class} #{e.message}"
+          "[BuildTrainingDatasetService] " \
+          "#{fund.isin}: #{e.class}: #{e.message}"
         )
       end
 
@@ -32,6 +42,7 @@ module Ml
     private
 
     attr_reader :scope
+
     def each_fund(&block)
       if scope.respond_to?(:find_each)
         scope.find_each(&block)
@@ -39,26 +50,26 @@ module Ml
         Array(scope).each(&block)
       end
     end
-    
+
     def build_for_fund(fund)
       last_feature_date =
         MlTrainingRow
           .where(mutual_fund: fund)
           .maximum(:feature_date)
 
-      latest_metric_date =
-        DailyNavMetric
-          .joins(:daily_nav)
-          .where(daily_navs: { mutual_fund_id: fund.id })
-          .maximum("daily_navs.nav_date")
+      latest_nav_date =
+        DailyNav
+          .where(mutual_fund_id: fund.id)
+          .maximum(:nav_date)
 
-      return false unless latest_metric_date
+      return false unless latest_nav_date
 
       if last_feature_date.present? &&
-         last_feature_date >= latest_metric_date
+         last_feature_date >= latest_nav_date
 
         Rails.logger.info(
-          "[BuildTrainingDatasetService] #{fund.isin}: already up-to-date"
+          "[BuildTrainingDatasetService] " \
+          "#{fund.isin}: already up-to-date"
         )
 
         return false
@@ -66,43 +77,136 @@ module Ml
 
       start_date =
         if last_feature_date.present?
-          last_feature_date - LOOKBACK_DAYS.days
+          previous_observation_window_start(
+            fund,
+            last_feature_date
+          )
         else
           INITIAL_IMPORT_DATE
         end
 
-      metrics =
-        DailyNavMetric
-          .includes(:daily_nav)
-          .joins(:daily_nav)
+      navs =
+        DailyNav
           .where(mutual_fund_id: fund.id)
-          .where("daily_navs.nav_date >= ?", start_date)
-          .order("daily_navs.nav_date ASC")
+          .where(
+            "nav_date >= ?",
+            start_date
+          )
+          .order(:nav_date)
           .to_a
 
-      return false if metrics.empty?
+      return false if navs.empty?
 
-      build_rows(fund, metrics)
+      build_rows(
+        fund,
+        navs
+      )
 
       true
     end
 
-    def build_rows(fund, metrics)
-      feature_builder = Ml::FeatureRowBuilder.new
-      target_builder = Ml::TargetCalculator.new
+    def previous_observation_window_start(
+      fund,
+      feature_date
+    )
+      DailyNav
+        .where(mutual_fund_id: fund.id)
+        .where(
+          "nav_date < ?",
+          feature_date
+        )
+        .order(nav_date: :desc)
+        .limit(LOOKBACK_OBSERVATIONS)
+        .minimum(:nav_date) ||
+        feature_date
+    end
+
+    def build_rows(
+      fund,
+      navs
+    )
+      metrics_by_nav_id =
+        DailyNavMetric
+          .where(
+            daily_nav_id: navs.map(&:id)
+          )
+          .index_by(&:daily_nav_id)
 
       timestamp = Time.current
 
       rows =
-        metrics.each_with_index.map do |metric, index|
-          feature_builder
-            .call(metric)
-            .merge(
-              next_day_nav: target_builder.call(metrics, index),
-              created_at: timestamp,
-              updated_at: timestamp
-            )
-        end
+        navs.each_with_index.map do |daily_nav, index|
+
+          metric =
+            metrics_by_nav_id[
+              daily_nav.id
+            ]
+
+          next unless metric
+
+          {
+            mutual_fund_id: fund.id,
+
+            daily_nav_id: daily_nav.id,
+
+            feature_date:
+              daily_nav.nav_date,
+
+            nav:
+              daily_nav.nav,
+
+            return_1d:
+              metric.daily_return,
+
+            return_7d:
+              metric.weekly_return,
+
+            return_30d:
+              metric.monthly_return,
+
+            ma_7:
+              metric.moving_average_7,
+
+            ma_30:
+              metric.moving_average_30,
+
+            ma_90:
+              metric.moving_average_90,
+
+            volatility_30:
+              metric.volatility_30,
+
+            momentum:
+              metric.momentum,
+
+            target_nav_1d:
+              target_nav(
+                navs,
+                index,
+                1
+              ),
+
+            target_nav_30d:
+              target_nav(
+                navs,
+                index,
+                30
+              ),
+
+            target_nav_90d:
+              target_nav(
+                navs,
+                index,
+                90
+              ),
+
+            created_at: timestamp,
+
+            updated_at: timestamp
+          }
+        end.compact
+
+      return if rows.empty?
 
       MlTrainingRow.upsert_all(
         rows,
@@ -110,8 +214,23 @@ module Ml
       )
 
       Rails.logger.info(
-        "[BuildTrainingDatasetService] #{fund.isin}: #{rows.size} feature rows generated"
+        "[BuildTrainingDatasetService] " \
+        "#{fund.isin}: " \
+        "#{rows.size} training rows generated"
       )
+    end
+
+    def target_nav(
+      navs,
+      index,
+      observations
+    )
+      target =
+        navs[
+          index + observations
+        ]
+
+      target&.nav
     end
   end
 end

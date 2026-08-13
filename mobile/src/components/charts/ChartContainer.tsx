@@ -1,5 +1,11 @@
+// components/charts/ChartContainer.tsx
+
 import React from "react";
-import { View, StyleSheet } from "react-native";
+
+import {
+  View,
+  StyleSheet,
+} from "react-native";
 
 import ChartCard from "./ChartCard";
 import ChartToolbar from "./ChartToolbar";
@@ -10,22 +16,30 @@ import ChartSurface from "./ChartSurface";
 
 import useChartDimensions from "./hooks/useChartDimensions";
 
-import {
+import type {
   ChartRange,
   TimeSeriesPoint,
 } from "./types";
 
 type Props = {
   title: string;
+
   subtitle?: string;
+
   rightLabel?: string;
 
   data: TimeSeriesPoint[];
 
   range: ChartRange;
-  onRangeChange: (range: ChartRange) => void;
 
-  onMove?: (x: number) => void;
+  onRangeChange: (
+    range: ChartRange,
+  ) => void;
+
+  onMove?: (
+    x: number,
+  ) => void;
+
   onEnd?: () => void;
 
   children: (dimensions: {
@@ -45,7 +59,11 @@ export default function ChartContainer({
   onEnd,
   children,
 }: Props) {
-  const { width, height } = useChartDimensions();
+  const {
+    width,
+    height,
+  } =
+    useChartDimensions();
 
   return (
     <ChartCard
@@ -55,33 +73,58 @@ export default function ChartContainer({
     >
       <ChartToolbar
         value={range}
-        onChange={onRangeChange}
+        onChange={
+          onRangeChange
+        }
       />
 
-      <View style={styles.chartRow}>
+      <View
+        style={
+          styles.chartRow
+        }
+      >
         <ChartYAxis
           data={data}
           width={54}
           height={height}
         />
 
-        <View style={styles.surfaceContainer}>
-          <ChartGrid
-            width={width}
-            height={height}
-          />
-
-          <ChartSurface
-            width={width}
-            height={height}
-            onMove={onMove}
-            onEnd={onEnd}
+        <View
+          style={
+            styles.surfaceContainer
+          }
+        >
+          <View
+            style={[
+              styles.surfaceLayer,
+              {
+                width,
+                height,
+              },
+            ]}
           >
-            {children({
-              width,
-              height,
-            })}
-          </ChartSurface>
+            <ChartGrid
+              width={width}
+              height={height}
+            />
+
+            <ChartSurface
+              width={width}
+              height={height}
+              onMove={onMove}
+              onEnd={onEnd}
+            >
+              {({
+                width: innerWidth,
+                height: innerHeight,
+              }) =>
+                children({
+                  width: innerWidth,
+                  height: innerHeight,
+                })
+              }
+            </ChartSurface>
+          </View>
 
           <ChartXAxis
             width={width}
@@ -94,18 +137,31 @@ export default function ChartContainer({
   );
 }
 
-const styles = StyleSheet.create({
-  chartRow: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "flex-start",
-    minWidth: 0,
-  },
+const styles =
+  StyleSheet.create({
+    chartRow: {
+      width: "100%",
 
-  surfaceContainer: {
-    flex: 1,
-    minWidth: 0,
-    width: 0,
-    overflow: "hidden",
-  },
-});
+      flexDirection:
+        "row",
+
+      alignItems:
+        "flex-start",
+
+      minWidth: 0,
+    },
+
+    surfaceContainer: {
+      flex: 1,
+
+      minWidth: 0,
+
+      overflow:
+        "hidden",
+    },
+
+    surfaceLayer: {
+      position:
+        "relative",
+    },
+  });

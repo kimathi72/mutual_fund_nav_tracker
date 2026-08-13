@@ -1,80 +1,182 @@
+// components/charts/VolatilityChart.tsx
 
-import React, { useMemo, useState } from "react";
+import React, {
+  useMemo,
+  useState,
+} from "react";
 
 import ChartContainer from "./ChartContainer";
-import { AreaRenderer } from "./renderers";
+import AreaRenderer from "./renderers/AreaRenderer";
 
-import ExecutiveChartTheme from "./ExecutiveChartTheme";
-
-import {
+import type {
   ChartRange,
   TimeSeriesPoint,
 } from "./types";
 
-import { filterChartData } from "./utils/chartFilters";
-
-import type { VolatilityPoint } from "@/models/VolatilityPoint";
+import type {
+  VolatilityPoint,
+} from "@/models/VolatilityPoint";
+import ExecutiveChartTheme from "./ExecutiveChartTheme";
 
 type Props = {
   history: VolatilityPoint[];
 };
 
+const RANGE_DAYS: Record<
+  ChartRange,
+  number | null
+> = {
+  "1W": 7,
+  "1M": 30,
+  "3M": 90,
+  "6M": 180,
+  "1Y": 365,
+  ALL: null,
+};
+
+function getTime(
+  date: string,
+): number {
+  const time =
+    new Date(date).getTime();
+
+  return Number.isFinite(time)
+    ? time
+    : NaN;
+}
+
+function normalizeHistory(
+  history: VolatilityPoint[],
+): TimeSeriesPoint[] {
+  return (history ?? [])
+    .map((point) => {
+      const date =
+        String(point.date ?? "");
+
+      const value =
+        Number(point.volatility);
+
+      return {
+        date,
+        value,
+        time: getTime(date),
+      };
+    })
+    .filter(
+      (point) =>
+        Boolean(point.date) &&
+        Number.isFinite(point.time) &&
+        Number.isFinite(point.value),
+    )
+    .sort(
+      (a, b) =>
+        a.time - b.time,
+    )
+    .map(
+      ({
+        date,
+        value,
+      }) => ({
+        date,
+        value,
+      }),
+    );
+}
+
+function filterByRange(
+  data: TimeSeriesPoint[],
+  range: ChartRange,
+): TimeSeriesPoint[] {
+  if (!data.length) {
+    return [];
+  }
+
+  if (range === "ALL") {
+    return data;
+  }
+
+  const days =
+    RANGE_DAYS[range];
+
+  if (days == null) {
+    return data;
+  }
+
+  const latest =
+    getTime(
+      data[data.length - 1].date,
+    );
+
+  if (!Number.isFinite(latest)) {
+    return data;
+  }
+
+  const cutoff =
+    latest -
+    days *
+      24 *
+      60 *
+      60 *
+      1000;
+
+  return data.filter(
+    (point) =>
+      getTime(point.date) >=
+      cutoff,
+  );
+}
+
 export default function VolatilityChart({
   history,
 }: Props) {
   const [range, setRange] =
-    useState<ChartRange>("1M");
+    useState<ChartRange>(
+      "1M",
+    );
 
-  /**
-   * Convert the API volatility history into
-   * the generic time-series format used by
-   * the charting system.
-   *
-   * VolatilityPoint:
-   * {
-   *   date: string;
-   *   volatility: number;
-   * }
-   *
-   * TimeSeriesPoint:
-   * {
-   *   date: string;
-   *   value: number;
-   * }
-   */
-  const chartHistory = useMemo<TimeSeriesPoint[]>(
-    () =>
-      (history ?? [])
-        .filter((point) => {
-          const value = Number(point.volatility);
+  const normalized =
+    useMemo(
+      () =>
+        normalizeHistory(
+          history,
+        ),
+      [history],
+    );
 
-          return (
-            Boolean(point.date) &&
-            Number.isFinite(value)
-          );
-        })
-        .map((point) => ({
-          date: point.date,
-          value: Number(point.volatility),
-        })),
-    [history],
-  );
-
-  const filtered = useMemo(
-    () =>
-      filterChartData(
-        chartHistory,
+  const filtered =
+    useMemo(
+      () =>
+        filterByRange(
+          normalized,
+          range,
+        ),
+      [
+        normalized,
         range,
-      ),
-    [chartHistory, range],
-  );
+      ],
+    );
 
-  /**
-   * A time-series chart needs at least
-   * two observations to draw a meaningful
-   * line/area.
-   */
-  if (filtered.length < 2) {
+  if (
+    filtered.length < 2
+  ) {
+    if (__DEV__) {
+      console.warn(
+        "[VolatilityChart] Not enough valid points",
+        {
+          received:
+            history?.length ?? 0,
+
+          normalized:
+            normalized.length,
+
+          filtered:
+            filtered.length,
+
+          range,
+        },
+      );
+    }
+
     return null;
   }
 
@@ -84,18 +186,24 @@ export default function VolatilityChart({
       subtitle={`${filtered.length} observations`}
       data={filtered}
       range={range}
-      onRangeChange={setRange}
+      onRangeChange={
+        setRange
+      }
     >
-      {({ width, height }) => (
+      {({
+        width,
+        height,
+      }) => (
         <AreaRenderer
           data={filtered}
           width={width}
           height={height}
           color={
-            ExecutiveChartTheme.colors
+            ExecutiveChartTheme
+              .colors
               .volatility
           }
-          fillColor="rgba(245,158,11,0.18)"
+          fillColor="rgba(245, 158, 11, 0.16)"
         />
       )}
     </ChartContainer>

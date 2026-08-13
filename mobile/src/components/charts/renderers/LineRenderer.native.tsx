@@ -3,10 +3,11 @@ import React, {
 } from "react";
 
 import {
+  DashPathEffect,
   Path,
 } from "@shopify/react-native-skia";
 
-import {
+import type {
   RendererProps,
 } from "../types";
 
@@ -17,10 +18,6 @@ import {
 import {
   buildLinePath,
 } from "../utils/chartPath";
-
-import {
-  getChartDimensions,
-} from "../utils/chartDimensions";
 
 import ExecutiveChartTheme
   from "../ExecutiveChartTheme";
@@ -35,44 +32,47 @@ export default function LineRenderer({
   strokeWidth =
     ExecutiveChartTheme.chart
       .strokeWidth,
+  dashed = false,
 }: RendererProps) {
-  const chart =
-    getChartDimensions(
-      width,
-      height,
-    );
-
-  const path =
-    useMemo(() => {
-      const points =
+  const points =
+    useMemo(
+      () =>
         toChartPoints(
           data,
-          chart.innerWidth,
-          chart.innerHeight,
-        ).map(point => ({
-          x:
-            point.x +
-            chart.paddingLeft,
+          width,
+          height,
+        ),
+      [
+        data,
+        width,
+        height,
+      ],
+    );
 
-          y:
-            point.y +
-            chart.paddingTop,
-        }));
-
-      return buildLinePath(points);
-    }, [data, chart]);
-
-  if (data.length < 2)
+  if (
+    points.length < 2
+  ) {
     return null;
+  }
+
+  const path =
+    buildLinePath(points);
 
   return (
     <Path
       path={path}
       color={color}
       style="stroke"
-      strokeWidth={
-        strokeWidth
-      }
-    />
+      strokeWidth={strokeWidth}
+      strokeCap="round"
+      strokeJoin="round"
+    >
+      {dashed && (
+        <DashPathEffect
+          intervals={[8, 6]}
+          phase={0}
+        />
+      )}
+    </Path>
   );
 }

@@ -2,20 +2,39 @@ import {
   useWindowDimensions,
 } from "react-native";
 
+const Y_AXIS_WIDTH = 54;
+
+const HORIZONTAL_MARGIN = 32;
+
+const MAX_CHART_WIDTH = 900;
+
 export default function useChartDimensions() {
   const { width } =
     useWindowDimensions();
 
-  return {
-    width: Math.min(
-      width - 32,
-      900
-    ),
+  const availableWidth =
+    Math.min(
+      width -
+        HORIZONTAL_MARGIN,
+      MAX_CHART_WIDTH,
+    );
 
-    height:
-      width < 430
-        ? 180
-        : 240,
+  const chartWidth =
+    Math.max(
+      1,
+      availableWidth -
+        Y_AXIS_WIDTH,
+    );
+
+  const chartHeight =
+    width < 430
+      ? 180
+      : 240;
+
+  return {
+    width: chartWidth,
+
+    height: chartHeight,
 
     padding:
       width < 430

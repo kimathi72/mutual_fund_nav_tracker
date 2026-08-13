@@ -1,43 +1,22 @@
 from __future__ import annotations
 
-import pandas as pd
-
 from pathlib import Path
 
+import pandas as pd
+
+from app.config import HORIZONS
+from app.data.training_frame import TrainingFrameBuilder
 from app.data.validation import validate_dataset
-
-from app.horizons import HORIZONS
-
 from app.models.trainer import Trainer
-
 from app.utils.persistence import (
-    save_training_summary,
     save_latest_training,
+    save_training_summary,
 )
 
 
 class TrainingService:
     """
-    Trains every forecasting horizon.
-
-    Produces
-
-        models/
-            1d/
-            30d/
-            90d/
-            365d/
-
-        artifacts/
-            metrics/
-                1d_metrics.json
-                30d_metrics.json
-                90d_metrics.json
-                365d_metrics.json
-
-            reports/
-                training_summary.json
-                latest_training.json
+    Trains all configured forecasting horizons.
     """
 
     def __init__(
@@ -52,61 +31,61 @@ class TrainingService:
         )
 
     # --------------------------------------------------
+    # Train all horizons
+    # --------------------------------------------------
 
     def train_all(self):
 
         summary = []
 
-        for horizon in HORIZONS:
-
-            print(
-                f"\n=============================="
+        frame_builder = (
+            TrainingFrameBuilder(
+                self.dataframe
             )
+        )
 
-            print(
-                f"Training {horizon.NAME}"
-            )
+        for horizon_name in HORIZONS:
 
+            print()
+            print("=" * 80)
             print(
-                f"=============================="
+                f"Building training frame: "
+                f"{horizon_name}"
             )
+            print("=" * 80)
 
             training_frame = (
-                horizon.build_training_frame(
-                    self.dataframe
+                frame_builder.build(
+                    horizon_name
                 )
             )
+
             if training_frame.empty:
+
                 print(
-                    f"Skipping {horizon.NAME}: insufficient training data."
+                    f"Skipping {horizon_name}: "
+                    "insufficient training data."
                 )
+
                 continue
+
+            print(
+                f"{horizon_name}: "
+                f"{len(training_frame)} rows"
+            )
 
             trainer = Trainer(
                 dataframe=training_frame,
-                model_directory=Path("models")
-                / horizon.NAME,
+                model_directory=(
+                    Path("models")
+                    / horizon_name
+                ),
             )
 
             metrics = trainer.train()
 
             summary.append(
-                {
-                    "horizon": metrics.horizon,
-                    "model_version": metrics.model_version,
-                    "trained_at": metrics.trained_at,
-                    "sample_count": metrics.sample_count,
-                    "rmse": metrics.rmse,
-                    "mae": metrics.mae,
-                    "mape": metrics.mape,
-                    "r2": metrics.r2,
-                    "prediction_interval_coverage":
-                        metrics.prediction_interval_coverage,
-                    "average_interval_width":
-                        metrics.average_interval_width,
-                    "confidence_score":
-                        metrics.confidence_score,
-                }
+                metrics.to_dict()
             )
 
         save_training_summary(

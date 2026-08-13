@@ -13,3 +13,5 @@ xgboost==3.0.4
 joblib==1.5.1
 
 python-multipart==0.0.20
+
+requests

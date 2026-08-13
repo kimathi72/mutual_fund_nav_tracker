@@ -6,29 +6,29 @@ import joblib
 import pandas as pd
 
 from sklearn.model_selection import TimeSeriesSplit
-
 from xgboost import XGBRegressor
 
 from app.config import (
     FEATURE_COLUMNS,
-    TARGET_COLUMN,
+    TARGET_COLUMNS,
     RANDOM_STATE,
 )
 
-from app.models.evaluator import (
-    Evaluator,
-)
-
-from app.utils.persistence import (
-    save_metrics,
-)
+from app.models.evaluator import Evaluator
+from app.utils.persistence import save_metrics
 
 
 class Trainer:
     """
-    Trains three quantile XGBoost models
-    (lower, median, upper) using
-    TimeSeries cross validation.
+    Trains three quantile XGBoost models for one horizon.
+
+    Models:
+
+        lower  = 10th percentile
+        median = 50th percentile
+        upper  = 90th percentile
+
+    Targets are actual future NAV values.
     """
 
     QUANTILES = {
@@ -43,7 +43,14 @@ class Trainer:
         model_directory: Path,
     ):
 
-        self.df = dataframe
+        self.df = (
+            dataframe
+            .copy()
+            .sort_values(
+                ["isin", "nav_date"]
+            )
+            .reset_index(drop=True)
+        )
 
         self.model_directory = Path(
             model_directory
@@ -58,6 +65,17 @@ class Trainer:
             self.model_directory.name
         )
 
+        if self.horizon not in TARGET_COLUMNS:
+            raise ValueError(
+                f"Unsupported horizon: {self.horizon}"
+            )
+
+        self.target_column = (
+            TARGET_COLUMNS[self.horizon]
+        )
+
+    # --------------------------------------------------
+    # Train
     # --------------------------------------------------
 
     def train(self):
@@ -67,24 +85,44 @@ class Trainer:
         ]
 
         y = self.df[
-            TARGET_COLUMN
+            self.target_column
         ]
+
+        if X.empty:
+            raise ValueError(
+                f"No training rows for {self.horizon}"
+            )
+
+        if y.isna().any():
+            raise ValueError(
+                f"Training target {self.target_column} "
+                "contains NULL values."
+            )
+
         print("=" * 80)
-        print("Training horizon:", self.horizon)
+
+        print(
+            f"Training horizon: {self.horizon}"
+        )
+
+        print(
+            f"Target column: {self.target_column}"
+        )
+
+        print(
+            f"Training rows: {len(self.df)}"
+        )
 
         print("\nTarget statistics")
-        print(y.describe())
 
-        print("\nFirst targets")
-        print(y.head())
-
-        print("\nLast targets")
-        print(y.tail())
+        print(
+            y.describe()
+        )
 
         print("=" * 80)
 
         splitter = TimeSeriesSplit(
-            n_splits=5,
+            n_splits=5
         )
 
         evaluator = Evaluator()
@@ -119,8 +157,6 @@ class Trainer:
                 test_index
             ]
 
-            models = {}
-
             predictions = {}
 
             for (
@@ -137,10 +173,6 @@ class Trainer:
                     y_train,
                 )
 
-                models[
-                    model_name
-                ] = model
-
                 predictions[
                     model_name
                 ] = model.predict(
@@ -148,19 +180,14 @@ class Trainer:
                 )
 
             result = evaluator.evaluate(
-
                 horizon=self.horizon,
-
                 actual=y_test,
-
                 median_prediction=predictions[
                     "median"
                 ],
-
                 lower_prediction=predictions[
                     "lower"
                 ],
-
                 upper_prediction=predictions[
                     "upper"
                 ],
@@ -178,16 +205,9 @@ class Trainer:
             metrics
         )
 
-        print(
-            f"Saved metrics for {self.horizon}"
-        )
-
-        #
-        # Retrain on the
-        # full dataset.
-        #
-
-        final_models = {}
+        # --------------------------------------------------
+        # Production models
+        # --------------------------------------------------
 
         for (
             model_name,
@@ -204,33 +224,28 @@ class Trainer:
             )
 
             joblib.dump(
-
                 model,
-
                 self.model_directory
                 / f"{model_name}.pkl",
-
             )
 
-            final_models[
-                model_name
-            ] = model
-
         print(
-            f"Saved production models for {self.horizon}"
+            f"Saved production models for "
+            f"{self.horizon}"
         )
 
         return metrics
 
     # --------------------------------------------------
+    # XGBoost
+    # --------------------------------------------------
 
+    @staticmethod
     def build_model(
-        self,
         alpha: float,
     ):
 
         return XGBRegressor(
-
             objective="reg:quantileerror",
 
             quantile_alpha=alpha,

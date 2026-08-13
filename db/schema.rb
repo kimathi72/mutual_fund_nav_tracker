@@ -10,28 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_29_093057) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_11_200047) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "daily_nav_metrics", force: :cascade do |t|
     t.bigint "daily_nav_id", null: false
     t.bigint "mutual_fund_id", null: false
-    t.decimal "daily_return", precision: 12, scale: 8
-    t.decimal "weekly_return", precision: 12, scale: 8
-    t.decimal "monthly_return", precision: 12, scale: 8
-    t.decimal "ytd_return", precision: 12, scale: 8
+    t.decimal "return_1d", precision: 12, scale: 8
+    t.decimal "return_7d", precision: 12, scale: 8
+    t.decimal "return_30d", precision: 12, scale: 8
     t.decimal "volatility_30", precision: 12, scale: 8
-    t.decimal "drawdown", precision: 12, scale: 8
-    t.decimal "moving_average_7", precision: 18, scale: 6
-    t.decimal "moving_average_30", precision: 18, scale: 6
+    t.decimal "ma_7", precision: 18, scale: 6
+    t.decimal "ma_30", precision: 18, scale: 6
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "ma_90", precision: 18, scale: 8
+    t.decimal "momentum", precision: 18, scale: 8
     t.index ["daily_nav_id"], name: "index_daily_nav_metrics_on_daily_nav_id", unique: true
-    t.index ["mutual_fund_id", "drawdown"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_drawdown"
-    t.index ["mutual_fund_id", "monthly_return"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_monthly_return"
+    t.index ["mutual_fund_id", "return_30d"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_return_30d"
     t.index ["mutual_fund_id", "volatility_30"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_volatility_30"
-    t.index ["mutual_fund_id", "ytd_return"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_ytd_return"
     t.index ["mutual_fund_id"], name: "index_daily_nav_metrics_on_mutual_fund_id"
   end
 
@@ -88,8 +86,15 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_29_093057) do
     t.datetime "predicted_at"
     t.string "horizon"
     t.decimal "expected_return_pct"
+    t.decimal "actual_nav", precision: 18, scale: 8
+    t.decimal "absolute_error", precision: 18, scale: 8
+    t.decimal "percentage_error", precision: 18, scale: 8
+    t.boolean "direction_correct"
+    t.datetime "scored_at"
     t.index ["mutual_fund_id", "horizon", "target_date", "predicted_at"], name: "idx_forecasts_unique", unique: true
     t.index ["mutual_fund_id"], name: "index_forecasts_on_mutual_fund_id"
+    t.index ["scored_at"], name: "index_forecasts_on_scored_at"
+    t.index ["target_date", "scored_at"], name: "index_forecasts_on_target_date_and_scored_at"
   end
 
   create_table "ml_models", force: :cascade do |t|
@@ -109,17 +114,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_29_093057) do
     t.bigint "daily_nav_id", null: false
     t.date "feature_date", null: false
     t.decimal "nav", precision: 18, scale: 8
-    t.decimal "daily_return", precision: 18, scale: 8
-    t.decimal "weekly_return", precision: 18, scale: 8
-    t.decimal "monthly_return", precision: 18, scale: 8
-    t.decimal "ytd_return", precision: 18, scale: 8
-    t.decimal "moving_average_7", precision: 18, scale: 8
-    t.decimal "moving_average_30", precision: 18, scale: 8
+    t.decimal "return_1d", precision: 18, scale: 8
+    t.decimal "return_7d", precision: 18, scale: 8
+    t.decimal "return_30d", precision: 18, scale: 8
+    t.decimal "ma_7", precision: 18, scale: 8
+    t.decimal "ma_30", precision: 18, scale: 8
     t.decimal "volatility_30", precision: 18, scale: 8
-    t.decimal "drawdown", precision: 18, scale: 8
-    t.decimal "next_day_nav", precision: 18, scale: 8
+    t.decimal "target_nav_1d", precision: 18, scale: 8
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "ma_90", precision: 18, scale: 8
+    t.decimal "momentum", precision: 18, scale: 8
+    t.decimal "target_nav_30d", precision: 18, scale: 8
+    t.decimal "target_nav_90d", precision: 18, scale: 8
     t.index ["daily_nav_id"], name: "index_ml_training_rows_on_daily_nav_id"
     t.index ["mutual_fund_id", "feature_date"], name: "idx_ml_training_rows_unique", unique: true
     t.index ["mutual_fund_id"], name: "index_ml_training_rows_on_mutual_fund_id"

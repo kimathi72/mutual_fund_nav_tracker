@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+
 FEATURE_COLUMNS = [
     "nav",
     "return_1d",
@@ -15,36 +16,75 @@ FEATURE_COLUMNS = [
 ]
 
 
-def build_features(dataframe: pd.DataFrame) -> pd.DataFrame:
+def build_features(
+    dataframe: pd.DataFrame,
+) -> pd.DataFrame:
     """
-    Build ML features independently for each fund.
+    Build features independently for each mutual fund.
 
-    Every rolling statistic, return and momentum calculation
-    is isolated per ISIN.
+    All features are calculated using observations available
+    at the feature date or earlier.
+
+    Returns are represented as decimal fractions.
+
+    Example:
+
+        1% return  -> 0.01
+        -2% return -> -0.02
     """
 
     df = dataframe.copy()
 
     if "date" in df.columns and "nav_date" not in df.columns:
-        df = df.rename(columns={"date": "nav_date"})
+        df = df.rename(
+            columns={"date": "nav_date"}
+        )
 
-    df["nav_date"] = pd.to_datetime(df["nav_date"])
+    df["nav_date"] = pd.to_datetime(
+        df["nav_date"]
+    )
 
-    df = df.sort_values(
-        ["isin", "nav_date"]
-    ).reset_index(drop=True)
+    df["nav"] = pd.to_numeric(
+        df["nav"],
+        errors="coerce",
+    )
+
+    df = (
+        df
+        .dropna(
+            subset=[
+                "isin",
+                "nav_date",
+                "nav",
+            ]
+        )
+        .sort_values(
+            ["isin", "nav_date"]
+        )
+        .reset_index(drop=True)
+    )
 
     groups = []
 
-    for isin, fund in df.groupby("isin", sort=False):
+    for isin, fund in df.groupby(
+        "isin",
+        sort=False,
+    ):
 
         fund = fund.copy()
 
-        fund["return_1d"] = fund["nav"].pct_change(1)
+        # Decimal fractions, NOT percentages.
+        fund["return_1d"] = (
+            fund["nav"].pct_change(1)
+        )
 
-        fund["return_7d"] = fund["nav"].pct_change(7)
+        fund["return_7d"] = (
+            fund["nav"].pct_change(7)
+        )
 
-        fund["return_30d"] = fund["nav"].pct_change(30)
+        fund["return_30d"] = (
+            fund["nav"].pct_change(30)
+        )
 
         fund["ma_7"] = (
             fund["nav"]
@@ -75,33 +115,52 @@ def build_features(dataframe: pd.DataFrame) -> pd.DataFrame:
             - fund["nav"].shift(30)
         )
 
-        fund = fund.dropna()
-
         groups.append(fund)
 
-    result = (
-        pd.concat(groups, ignore_index=True)
-        .sort_values(["isin", "nav_date"])
+    if not groups:
+        return pd.DataFrame(
+            columns=[
+                *df.columns,
+                *[
+                    column
+                    for column in FEATURE_COLUMNS
+                    if column not in df.columns
+                ],
+            ]
+        )
+
+    return (
+        pd.concat(
+            groups,
+            ignore_index=True,
+        )
+        .sort_values(
+            ["isin", "nav_date"]
+        )
         .reset_index(drop=True)
     )
 
-    return result
 
-
-def build_prediction_features(history: pd.DataFrame) -> pd.DataFrame:
+def build_prediction_features(
+    history: pd.DataFrame,
+) -> pd.DataFrame:
     """
-    Builds inference features for a single fund.
+    Build features for inference.
 
-    Predictor passes one ISIN at a time.
+    `history` must contain observations available up to
+    the forecast origin.
+
+    The final row represents the forecast origin.
     """
 
-    df = history.copy()
+    df = build_features(history)
 
-    if "date" in df.columns:
-        df = df.rename(columns={"date": "nav_date"})
+    if df.empty:
+        raise ValueError(
+            "Unable to build prediction features: "
+            "history produced no feature rows."
+        )
 
-    df["nav_date"] = pd.to_datetime(df["nav_date"])
-
-    df = build_features(df)
-
-    return df[FEATURE_COLUMNS]
+    return df[
+        FEATURE_COLUMNS
+    ]

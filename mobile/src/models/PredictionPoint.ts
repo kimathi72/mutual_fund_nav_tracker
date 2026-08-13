@@ -1,15 +1,46 @@
+// models/PredictionPoint.ts
+
+export type PredictionHorizon =
+  | "1d"
+  | "30d"
+  | "90d";
+
 export interface PredictionPoint {
+  /**
+   * When this prediction was generated.
+   *
+   * Used to determine which duplicate
+   * prediction is the newest.
+   */
   generated_at: string;
 
+  /**
+   * Forecast target date.
+   */
   target_date: string;
 
-  horizon: string;
+  /**
+   * Prediction horizon.
+   */
+  horizon: PredictionHorizon;
 
-  predicted_nav: number;
+  /**
+   * Predicted NAV.
+   */
+  predicted_nav: number | string;
 
-  lower_bound: number;
+  /**
+   * Lower prediction bound.
+   */
+  lower_bound: number | string | null;
 
-  upper_bound: number;
+  /**
+   * Upper prediction bound.
+   */
+  upper_bound: number | string | null;
 
-  confidence: number;
+  /**
+   * Model confidence.
+   */
+  confidence: number | string | null;
 }

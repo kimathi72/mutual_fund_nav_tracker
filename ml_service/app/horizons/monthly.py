@@ -5,4 +5,4 @@ class MonthlyForecast(ForecastHorizon):
 
     NAME = "30d"
 
-    TARGET_DAYS = 30
+    TARGET_OBSERVATIONS = 30

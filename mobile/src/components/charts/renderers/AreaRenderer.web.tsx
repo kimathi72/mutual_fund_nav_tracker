@@ -1,68 +1,107 @@
-import React, { useMemo } from "react";
-import Svg, {
+// components/charts/renderers/AreaRenderer.web.tsx
+
+import React, {
+  useMemo,
+} from "react";
+
+import {
   Path,
 } from "react-native-svg";
 
-import { AreaRendererProps } from "../types";
+import type {
+  AreaRendererProps,
+} from "../types";
 
-import { toChartPoints } from "../utils/chartMath";
-import { buildAreaSvgPath } from "../utils/chartArea";
+import {
+  toChartPoints,
+} from "../utils/chartMath";
 
-import ExecutiveChartTheme from "../ExecutiveChartTheme";
+import {
+  buildAreaSvgPath,
+} from "../utils/chartArea";
+
+import ExecutiveChartTheme
+  from "../ExecutiveChartTheme";
 
 export default function AreaRenderer({
   data,
   width,
   height,
-  color = ExecutiveChartTheme.colors.historical,
-  fillColor = ExecutiveChartTheme.colors.surface,
+  color =
+    ExecutiveChartTheme.colors.historical,
+  fillColor =
+    ExecutiveChartTheme.colors.surface,
 }: AreaRendererProps) {
-  const points = useMemo(
-    () =>
-      toChartPoints(
+  const points =
+    useMemo(
+      () =>
+        toChartPoints(
+          data,
+          width,
+          height,
+        ),
+      [
         data,
         width,
-        height
-      ),
-    [data, width, height]
-  );
+        height,
+      ],
+    );
 
-  if (points.length < 2) {
+  const linePath =
+    useMemo(
+      () =>
+        points
+          .map(
+            (point, index) =>
+              `${
+                index === 0
+                  ? "M"
+                  : "L"
+              } ${point.x} ${point.y}`,
+          )
+          .join(" "),
+      [points],
+    );
+
+  const areaPath =
+    useMemo(
+      () =>
+        buildAreaSvgPath(
+          points,
+          height,
+        ),
+      [
+        points,
+        height,
+      ],
+    );
+
+  if (
+    points.length < 2
+  ) {
     return null;
   }
 
-  const line = points
-    .map((p, i) =>
-      `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`
-    )
-    .join(" ");
-
-  const area = buildAreaSvgPath(
-    points,
-    height
-  );
-
   return (
-    <Svg
-      width={width}
-      height={height}
-      style={{
-        position: "absolute",
-      }}
-    >
+    <>
+      {/* Filled volatility area */}
       <Path
-        d={area}
+        d={areaPath}
         fill={fillColor}
       />
 
+      {/* Volatility line */}
       <Path
-        d={line}
+        d={linePath}
+        fill="none"
         stroke={color}
         strokeWidth={
-          ExecutiveChartTheme.chart.strokeWidth
+          ExecutiveChartTheme.chart
+            .strokeWidth
         }
-        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-    </Svg>
+    </>
   );
 }

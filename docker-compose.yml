@@ -147,6 +147,7 @@ services:
     environment:
       DATASET_PATH: /app/exports/mutual_funds_dataset.csv
       MODEL_PATH: /app/models/model.pkl
+      RAILS_API_URL: http://web:3000
 
 
 volumes:

@@ -6,17 +6,13 @@ import {
   Polyline,
 } from "react-native-svg";
 
-import {
+import type {
   RendererProps,
 } from "../types";
 
 import {
   toChartPoints,
 } from "../utils/chartMath";
-
-import {
-  getChartDimensions,
-} from "../utils/chartDimensions";
 
 import ExecutiveChartTheme
   from "../ExecutiveChartTheme";
@@ -33,47 +29,43 @@ export default function LineRenderer({
       .strokeWidth,
   dashed = false,
 }: RendererProps) {
-  const chart =
-    getChartDimensions(
-      width,
-      height,
-    );
-
   const points =
     useMemo(
       () =>
         toChartPoints(
           data,
-          chart.innerWidth,
-          chart.innerHeight,
-        ).map(point => ({
-          x:
-            point.x +
-            chart.paddingLeft,
-
-          y:
-            point.y +
-            chart.paddingTop,
-        })),
-      [data, chart],
+          width,
+          height,
+        ),
+      [
+        data,
+        width,
+        height,
+      ],
     );
 
-  if (points.length < 2)
+  if (
+    points.length < 2
+  ) {
     return null;
+  }
+
+  const pointString =
+    points
+      .map(
+        (point) =>
+          `${point.x},${point.y}`,
+      )
+      .join(" ");
 
   return (
     <Polyline
-      points={points
-        .map(
-          p =>
-            `${p.x},${p.y}`,
-        )
-        .join(" ")}
+      points={pointString}
       fill="none"
       stroke={color}
-      strokeWidth={
-        strokeWidth
-      }
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
       strokeDasharray={
         dashed
           ? "8 6"

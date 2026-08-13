@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DATA_DIR = BASE_DIR / "exports"
@@ -8,12 +9,13 @@ MODEL_DIR = BASE_DIR / "models"
 
 ARTIFACT_DIR = BASE_DIR / "artifacts"
 
+
 HORIZONS = {
     "1d": 1,
     "30d": 30,
     "90d": 90,
-    "365d": 365,
 }
+
 
 QUANTILES = {
     "lower": 0.10,
@@ -21,9 +23,12 @@ QUANTILES = {
     "upper": 0.90,
 }
 
+
 RANDOM_STATE = 42
 
+
 TEST_SIZE = 0.20
+
 
 FEATURE_COLUMNS = [
     "nav",
@@ -37,4 +42,9 @@ FEATURE_COLUMNS = [
     "momentum",
 ]
 
-TARGET_COLUMN = "future_nav"
+
+TARGET_COLUMNS = {
+    "1d": "target_nav_1d",
+    "30d": "target_nav_30d",
+    "90d": "target_nav_90d",
+}
