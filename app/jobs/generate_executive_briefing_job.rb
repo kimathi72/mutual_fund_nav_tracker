@@ -15,10 +15,17 @@ class GenerateExecutiveBriefingJob < ApplicationJob
     dashboard =
       Reporting::Dashboard::DashboardDataLoaderService.call
 
+    funds =
+      dashboard.funds.map do |fund|
+        Reporting::Dashboard::Builders::ExecutiveFundBuilder.call(
+          fund: fund
+        )
+      end
+
     summary =
       Reporting::Portfolio::PortfolioSummaryService.call(
         report_date: dashboard.report_date,
-        funds: dashboard.funds
+        funds: funds
       )
 
     portfolio_insight =
@@ -30,7 +37,7 @@ class GenerateExecutiveBriefingJob < ApplicationJob
       Llm::ExecutiveBriefingService.call(
         summary: summary,
         portfolio_insights: portfolio_insight,
-        funds: dashboard.funds
+        funds: funds
       )
 
     unless response.present?

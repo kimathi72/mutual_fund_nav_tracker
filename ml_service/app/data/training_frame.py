@@ -18,21 +18,27 @@ from app.data.target_builder import (
 
 class TrainingFrameBuilder:
     """
-    Builds the supervised-learning dataframe for one horizon.
+    Builds the supervised-learning dataframe for one forecast horizon.
 
     Pipeline:
 
-        NAV CSV
-          ↓
-        features
-          ↓
-        all future targets
-          ↓
-        select requested horizon
-          ↓
-        drop rows without known targets
-          ↓
-        Trainer
+        raw NAV dataset
+              |
+              +----> feature_builder
+              |
+              +----> target_builder
+              |
+              +----> merge on (isin, nav_date)
+              |
+              +----> drop incomplete rows
+              |
+              +----> training frame
+
+    Targets are generated in Python from the NAV history.
+
+    The target_* columns that may already exist in the Rails CSV
+    are deliberately ignored. This prevents stale/incomplete
+    Rails targets from affecting model training.
     """
 
     def __init__(
@@ -40,10 +46,6 @@ class TrainingFrameBuilder:
         dataframe: pd.DataFrame,
     ):
         self.dataframe = dataframe.copy()
-
-    # --------------------------------------------------
-    # Build
-    # --------------------------------------------------
 
     def build(
         self,
@@ -57,12 +59,13 @@ class TrainingFrameBuilder:
                 f"{list(TARGET_COLUMNS.keys())}"
             )
 
-        target_column = TARGET_COLUMNS[
-            horizon
-        ]
+        target_column = TARGET_COLUMNS[horizon]
 
         # --------------------------------------------------
-        # Features
+        # Build features.
+        #
+        # build_features() removes any existing target
+        # columns before calculating the features.
         # --------------------------------------------------
 
         features = build_features(
@@ -80,10 +83,12 @@ class TrainingFrameBuilder:
             )
 
         # --------------------------------------------------
-        # Targets
+        # Build authoritative future targets from the raw
+        # NAV observations.
         #
-        # Build ALL targets once, then select the
-        # requested horizon.
+        # 1d  = next observation
+        # 30d = 30th subsequent observation
+        # 90d = 90th subsequent observation
         # --------------------------------------------------
 
         targets = (
@@ -102,7 +107,7 @@ class TrainingFrameBuilder:
         ].copy()
 
         # --------------------------------------------------
-        # Join features + selected target
+        # Join features to targets.
         # --------------------------------------------------
 
         frame = features.merge(
@@ -115,16 +120,12 @@ class TrainingFrameBuilder:
         )
 
         # --------------------------------------------------
-        # Only rows with complete features and a known
-        # future target can train the model.
+        # Only observations with:
         #
-        # The final:
+        #   - complete features
+        #   - known future target
         #
-        #   1 observation for 1d
-        #   30 observations for 30d
-        #   90 observations for 90d
-        #
-        # naturally have NULL targets.
+        # are usable for supervised training.
         # --------------------------------------------------
 
         frame = frame.dropna(

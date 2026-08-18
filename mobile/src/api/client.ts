@@ -1,7 +1,13 @@
 import axios from "axios";
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+if (!API_URL) {
+  console.warn("EXPO_PUBLIC_API_URL is not configured");
+}
+
 const api = axios.create({
-  baseURL: "http://localhost:3000/api/v1",
+  baseURL: API_URL,
   timeout: 15000,
   headers: {
     Accept: "application/json",
@@ -11,16 +17,9 @@ const api = axios.create({
 
 api.interceptors.response.use(
   (response) => response,
-
   (error) => {
-    console.error(
-      "API Error:",
-      error.response?.status,
-      error.response?.data
-    );
-
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

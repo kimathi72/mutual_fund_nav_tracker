@@ -76,7 +76,6 @@ export default function DashboardScreen() {
         <PortfolioHealthCard
           insight={data.portfolio_insight}
         />
-        <RiskAnalysisSection summary={data.summary} funds={data.funds} />
 
         <KPIGrid
           summary={data.summary}
@@ -88,6 +87,8 @@ export default function DashboardScreen() {
         <RankingTabs
           rankings={data.rankings}
         />
+                <RiskAnalysisSection summary={data.summary} funds={data.funds} />
+
 
 {/* 
         <AreaPerformanceChart

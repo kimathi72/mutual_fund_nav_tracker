@@ -20,8 +20,8 @@ const ExecutiveChartTheme = {
   chart: {
     paddingTop: 20,
     paddingBottom: 32,
-    paddingLeft: 56,
-    paddingRight: 24,
+    paddingLeft: 0,
+    paddingRight: 0,
     strokeWidth: 3,
     gridLines: 5,
     pointRadius: 4,
