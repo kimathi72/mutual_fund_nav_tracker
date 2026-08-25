@@ -1,0 +1,556 @@
+.
+├── .dockerignore
+├── .env
+├── .env.example
+├── .gitattributes
+├── .gitignore
+├── .rspec
+├── .ruby-version
+├── Dockerfile
+├── Gemfile
+├── LICENSE
+├── README.md
+├── Rakefile
+├── app
+│   ├── channels
+│   │   └── application_cable
+│   │       ├── channel.rb
+│   │       └── connection.rb
+│   ├── controllers
+│   │   ├── api
+│   │   │   └── v1
+│   │   │       ├── base_controller.rb
+│   │   │       ├── dashboard_controller.rb
+│   │   │       ├── forecasts_controller.rb
+│   │   │       ├── funds_controller.rb
+│   │   │       ├── health_controller.rb
+│   │   │       ├── rankings_controller.rb
+│   │   │       └── reports_controller.rb
+│   │   ├── application_controller.rb
+│   │   └── concerns
+│   │       ├── .keep
+│   │       └── api_error_handler.rb
+│   ├── jobs
+│   │   ├── application_job.rb
+│   │   ├── build_training_dataset_job.rb
+│   │   ├── calculate_daily_metrics_job.rb
+│   │   ├── dataset_export_job.rb
+│   │   ├── generate_executive_briefing_job.rb
+│   │   ├── generate_forecasts_job.rb
+│   │   ├── import_historical_navs_job.rb
+│   │   └── train_model_job.rb
+│   ├── mailers
+│   │   └── application_mailer.rb
+│   ├── models
+│   │   ├── application_record.rb
+│   │   ├── concerns
+│   │   │   └── .keep
+│   │   ├── daily_nav.rb
+│   │   ├── daily_nav_metric.rb
+│   │   ├── executive_briefing.rb
+│   │   ├── forecast.rb
+│   │   ├── ml_model.rb
+│   │   ├── ml_training_row.rb
+│   │   └── mutual_fund.rb
+│   ├── serializers
+│   │   ├── application_serializer.rb
+│   │   ├── dashboard_serializer.rb
+│   │   ├── executive_briefing_serializer.rb
+│   │   ├── executive_fund_serializer.rb
+│   │   ├── executive_insight_serializer.rb
+│   │   ├── forecast_report_serializer.rb
+│   │   ├── forecast_serializer.rb
+│   │   ├── fund_ranking_serializer.rb
+│   │   ├── fund_serializer.rb
+│   │   ├── fund_summary_serializer.rb
+│   │   ├── performance_report_serializer.rb
+│   │   ├── portfolio_insight_serializer.rb
+│   │   ├── portfolio_summary_serializer.rb
+│   │   ├── ranking_serializer.rb
+│   │   └── risk_report_serializer.rb
+│   ├── services
+│   │   ├── analytics
+│   │   │   ├── calculate_daily_metrics_service.rb
+│   │   │   ├── calculators
+│   │   │   │   ├── base_calculator.rb
+│   │   │   │   ├── daily_return_calculator.rb
+│   │   │   │   ├── drawdown_calculator.rb
+│   │   │   │   ├── monthly_return_calculator.rb
+│   │   │   │   ├── moving_average_calculator.rb
+│   │   │   │   ├── volatility_calculator.rb
+│   │   │   │   ├── weekly_return_calculator.rb
+│   │   │   │   └── ytd_return_calculator.rb
+│   │   │   ├── confidence_calculator.rb
+│   │   │   ├── drawdown_calculator.rb
+│   │   │   ├── forecast_calculator.rb
+│   │   │   ├── moving_average_calculator.rb
+│   │   │   ├── nav_series.rb
+│   │   │   ├── returns_calculator.rb
+│   │   │   ├── statistics.rb
+│   │   │   └── volatility_calculator.rb
+│   │   ├── application_service.rb
+│   │   ├── eodhd
+│   │   │   ├── candidate_ranker.rb
+│   │   │   ├── client.rb
+│   │   │   ├── historical_nav_client.rb
+│   │   │   └── symbol_lookup.rb
+│   │   ├── external_api
+│   │   │   └── base_client.rb
+│   │   ├── fund_details_service.rb
+│   │   ├── llm
+│   │   │   ├── client.rb
+│   │   │   ├── executive_briefing.rb
+│   │   │   ├── executive_briefing_lookup_service.rb
+│   │   │   ├── executive_briefing_persistence_service.rb
+│   │   │   ├── executive_briefing_service.rb
+│   │   │   └── providers
+│   │   │       ├── base_provider.rb
+│   │   │       ├── gemini_provider.rb
+│   │   │       └── groq_provider.rb
+│   │   ├── market_data
+│   │   │   ├── backfill_last_nav_dates_service.rb
+│   │   │   ├── import_historical_navs_service.rb
+│   │   │   └── sync_market_data_service.rb
+│   │   ├── ml
+│   │   │   ├── build_training_dataset_service.rb
+│   │   │   ├── client.rb
+│   │   │   ├── dataset_export_service.rb
+│   │   │   ├── feature_row_builder.rb
+│   │   │   ├── forecast_import_service.rb
+│   │   │   ├── generate_forecasts_service.rb
+│   │   │   ├── target_calculator.rb
+│   │   │   └── train_model_service.rb
+│   │   ├── openfigi
+│   │   │   └── client.rb
+│   │   ├── reporting
+│   │   │   ├── dashboard
+│   │   │   │   ├── dashboard_data_loader_service.rb
+│   │   │   │   └── executive_dashboard_service.rb
+│   │   │   ├── forecast
+│   │   │   │   └── forecast_report_service.rb
+│   │   │   ├── fund_time_series_service.rb
+│   │   │   ├── insights
+│   │   │   │   ├── executive_insight_service.rb
+│   │   │   │   ├── portfolio_executive_insight.rb
+│   │   │   │   └── portfolio_executive_insight_service.rb
+│   │   │   ├── intelligence
+│   │   │   │   └── portfolio_intelligence_service.rb
+│   │   │   ├── performance
+│   │   │   │   └── performance_report_service.rb
+│   │   │   ├── portfolio
+│   │   │   │   └── portfolio_summary_service.rb
+│   │   │   ├── ranking
+│   │   │   │   └── ranking_report_service.rb
+│   │   │   ├── reporting_date_service.rb
+│   │   │   └── risk
+│   │   │       └── risk_report_service.rb
+│   │   └── yahoo_finance
+│   │       └── client.rb
+│   ├── value_objects
+│   │   ├── eodhd
+│   │   │   ├── instrument.rb
+│   │   │   └── lookup_result.rb
+│   │   └── openfigi
+│   │       └── mapping.rb
+│   ├── view_models
+│   │   ├── dashboard_data.rb
+│   │   ├── executive_dashboard.rb
+│   │   ├── executive_fund.rb
+│   │   ├── executive_insight.rb
+│   │   ├── forecast_report.rb
+│   │   ├── fund_ranking.rb
+│   │   ├── fund_summary.rb
+│   │   ├── performance_report.rb
+│   │   ├── portfolio_summary.rb
+│   │   ├── ranking_report.rb
+│   │   └── risk_report.rb
+│   └── views
+│       └── layouts
+│           ├── mailer.html.erb
+│           └── mailer.text.erb
+├── artifacts
+│   └── training_dataset.csv
+├── bin
+│   ├── bundle
+│   ├── docker-entrypoint
+│   ├── rails
+│   ├── rake
+│   └── setup
+├── config
+│   ├── application.rb
+│   ├── boot.rb
+│   ├── cable.yml
+│   ├── credentials.yml.enc
+│   ├── database.yml
+│   ├── environment.rb
+│   ├── environments
+│   │   ├── development.rb
+│   │   ├── production.rb
+│   │   └── test.rb
+│   ├── initializers
+│   │   ├── cors.rb
+│   │   ├── external_services.rb
+│   │   ├── filter_parameter_logging.rb
+│   │   ├── inflections.rb
+│   │   └── sidekiq.rb
+│   ├── locales
+│   │   └── en.yml
+│   ├── master.key
+│   ├── puma.rb
+│   ├── routes.rb
+│   ├── schedule.yml
+│   └── sidekiq.yml
+├── config.ru
+├── daily_nav_history.csv
+├── db
+│   ├── migrate
+│   │   ├── 20260707104442_create_mutual_funds.rb
+│   │   ├── 20260707104649_create_daily_navs.rb
+│   │   ├── 20260707184549_add_openfigi_fields_to_mutual_funds.rb
+│   │   ├── 20260708091227_add_analytics_fields_to_daily_navs.rb
+│   │   ├── 20260708110035_add_provider_fields_to_daily_navs.rb
+│   │   ├── 20260708125519_add_sync_metadata_to_mutual_funds.rb
+│   │   ├── 20260708132048_create_daily_nav_metrics.rb
+│   │   ├── 20260709081053_add_reporting_indexes.rb
+│   │   ├── 20260709131240_create_ml_training_rows.rb
+│   │   ├── 20260709133048_create_forecasts.rb
+│   │   ├── 20260710072959_remove_model_name_from_forecasts.rb
+│   │   ├── 20260710073723_add_unique_index_to_forecasts.rb
+│   │   ├── 20260710074417_add_confidence_score_to_forecasts.rb
+│   │   ├── 20260713164344_create_executive_briefings.rb
+│   │   ├── 20260713190214_create_ml_models.rb
+│   │   ├── 20260720093545_add_columns_to_forecasts.rb
+│   │   ├── 20260720093705_remove_columns_from_forecasts.rb
+│   │   └── 20260720094036_update_forecast_schema.rb
+│   ├── schema.rb
+│   ├── seeds
+│   │   └── mutual_funds.yml
+│   └── seeds.rb
+├── docker-compose.yml
+├── entrypoint.sh
+├── exports
+│   └── mutual_funds_dataset.csv
+├── lib
+│   └── tasks
+│       └── .keep
+├── ml_service
+│   ├── .dockerignore
+│   ├── Dockerfile
+│   ├── app
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── config.cpython-312.pyc
+│   │   │   ├── dataset.cpython-312.pyc
+│   │   │   ├── main.cpython-312.pyc
+│   │   │   ├── predictor.cpython-312.pyc
+│   │   │   ├── schemas.cpython-312.pyc
+│   │   │   └── trainer.cpython-312.pyc
+│   │   ├── api
+│   │   │   ├── __pycache__
+│   │   │   │   ├── routes.cpython-312.pyc
+│   │   │   │   └── schemas.cpython-312.pyc
+│   │   │   ├── routes.py
+│   │   │   └── schemas.py
+│   │   ├── config.py
+│   │   ├── data
+│   │   │   ├── __pycache__
+│   │   │   │   ├── feature_builder.cpython-312.pyc
+│   │   │   │   ├── loader.cpython-312.pyc
+│   │   │   │   ├── target_builder.cpython-312.pyc
+│   │   │   │   └── validation.cpython-312.pyc
+│   │   │   ├── feature_builder.py
+│   │   │   ├── loader.py
+│   │   │   ├── preprocessing.py
+│   │   │   ├── target_builder.py
+│   │   │   └── validation.py
+│   │   ├── dataset.py
+│   │   ├── exports
+│   │   ├── horizons
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── base.cpython-312.pyc
+│   │   │   │   ├── daily.cpython-312.pyc
+│   │   │   │   ├── monthly.cpython-312.pyc
+│   │   │   │   ├── quarterly.cpython-312.pyc
+│   │   │   │   └── yearly.cpython-312.pyc
+│   │   │   ├── base.py
+│   │   │   ├── daily.py
+│   │   │   ├── monthly.py
+│   │   │   ├── quarterly.py
+│   │   │   └── yearly.py
+│   │   ├── jobs
+│   │   │   ├── __pycache__
+│   │   │   │   └── train_all.cpython-312.pyc
+│   │   │   ├── retrain.py
+│   │   │   └── train_all.py
+│   │   ├── main.py
+│   │   ├── models
+│   │   │   ├── __pycache__
+│   │   │   │   ├── evaluator.cpython-312.pyc
+│   │   │   │   ├── predictor.cpython-312.pyc
+│   │   │   │   └── trainer.cpython-312.pyc
+│   │   │   ├── evaluator.py
+│   │   │   ├── predictor.py
+│   │   │   ├── registry.py
+│   │   │   └── trainer.py
+│   │   ├── services
+│   │   │   ├── __pycache__
+│   │   │   │   ├── forecast_service.cpython-312.pyc
+│   │   │   │   ├── prediction_service.cpython-312.pyc
+│   │   │   │   └── training_service.cpython-312.pyc
+│   │   │   ├── forecast_service.py
+│   │   │   ├── prediction_service.py
+│   │   │   └── training_service.py
+│   │   ├── train.py
+│   │   └── utils
+│   │       ├── __pycache__
+│   │       │   └── persistence.cpython-312.pyc
+│   │       ├── dates.py
+│   │       ├── metric.py
+│   │       └── persistence.py
+│   ├── artifacts
+│   │   ├── logs
+│   │   └── metrics
+│   │       ├── 1d_metrics.json
+│   │       ├── 30d_metrics.json
+│   │       ├── 90d_metrics.json
+│   │       └── reports
+│   │           ├── latest_training.json
+│   │           └── training_summary.json
+│   ├── exports
+│   ├── models
+│   │   ├── 1d
+│   │   │   ├── lower.pkl
+│   │   │   ├── median.pkl
+│   │   │   └── upper.pkl
+│   │   ├── 30d
+│   │   │   ├── lower.pkl
+│   │   │   ├── median.pkl
+│   │   │   └── upper.pkl
+│   │   ├── 365d
+│   │   ├── 90d
+│   │   │   ├── lower.pkl
+│   │   │   ├── median.pkl
+│   │   │   └── upper.pkl
+│   │   └── model.pkl
+│   ├── notebooks
+│   ├── requirements.txt
+│   └── test_predictions.py
+├── mobile
+│   ├── .claude
+│   │   └── settings.json
+│   ├── .expo
+│   │   ├── README.md
+│   │   ├── dev
+│   │   │   └── logs
+│   │   ├── devices.json
+│   │   ├── static-tmp
+│   │   │   └── _error.js
+│   │   ├── types
+│   │   │   └── router.d.ts
+│   │   └── web
+│   │       └── cache
+│   │           └── production
+│   │               └── images
+│   │                   └── favicon
+│   │                       └── favicon-a4e030697a7571b3e95d31860e4da55d2f98e5e861e2b55e414f45a8556828ba-contain-transparent
+│   ├── .gitignore
+│   ├── .vscode
+│   │   ├── extensions.json
+│   │   └── settings.json
+│   ├── AGENTS.md
+│   ├── CLAUDE.md
+│   ├── LICENSE
+│   ├── README.md
+│   ├── app.json
+│   ├── assets
+│   │   ├── expo.icon
+│   │   │   ├── Assets
+│   │   │   │   └── expo-symbol 2.svg
+│   │   │   └── icon.json
+│   │   └── images
+│   │       └── tabIcons
+│   ├── example
+│   │   ├── scripts
+│   │   │   └── reset-project.js
+│   │   └── src
+│   │       ├── app
+│   │       │   ├── _layout.tsx
+│   │       │   ├── explore.tsx
+│   │       │   └── index.tsx
+│   │       ├── components
+│   │       │   ├── animated-icon.module.css
+│   │       │   ├── animated-icon.tsx
+│   │       │   ├── animated-icon.web.tsx
+│   │       │   ├── app-tabs.tsx
+│   │       │   ├── app-tabs.web.tsx
+│   │       │   ├── external-link.tsx
+│   │       │   ├── hint-row.tsx
+│   │       │   ├── themed-text.tsx
+│   │       │   ├── themed-view.tsx
+│   │       │   ├── ui
+│   │       │   │   └── collapsible.tsx
+│   │       │   └── web-badge.tsx
+│   │       ├── constants
+│   │       │   └── theme.ts
+│   │       ├── global.css
+│   │       └── hooks
+│   │           ├── use-color-scheme.ts
+│   │           ├── use-color-scheme.web.ts
+│   │           └── use-theme.ts
+│   ├── expo-env.d.ts
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── src
+│   │   ├── App.js
+│   │   ├── api
+│   │   │   ├── briefing.ts
+│   │   │   ├── client.ts
+│   │   │   ├── dashboard.ts
+│   │   │   ├── forecast.ts
+│   │   │   ├── fund.ts
+│   │   │   ├── index.ts
+│   │   │   ├── portfolio.ts
+│   │   │   └── rankings.ts
+│   │   ├── app
+│   │   │   ├── _layout.tsx
+│   │   │   ├── briefing.tsx
+│   │   │   ├── fund
+│   │   │   │   └── [id].tsx
+│   │   │   ├── index.tsx
+│   │   │   └── rankings.tsx
+│   │   ├── components
+│   │   │   ├── charts
+│   │   │   │   ├── AreaPerformanceChart.tsx
+│   │   │   │   ├── ChartCard.tsx
+│   │   │   │   ├── ChartSection.tsx
+│   │   │   │   ├── ChartSurface.tsx
+│   │   │   │   ├── ChartTooltip.tsx
+│   │   │   │   ├── ExecutiveChartTheme.ts
+│   │   │   │   ├── ForecastChart.tsx
+│   │   │   │   ├── NavHistoryChart.tsx
+│   │   │   │   ├── RiskHeatMap.tsx
+│   │   │   │   ├── SparkLine.tsx
+│   │   │   │   ├── VolatilityChart.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── useChartAnimation.ts
+│   │   │   │   │   ├── useChartScale.ts
+│   │   │   │   │   └── useTooltip.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── renderers
+│   │   │   │   │   ├── AreaRenderer.native.tsx
+│   │   │   │   │   ├── AreaRenderer.web.tsx
+│   │   │   │   │   ├── CrossHairRenderer.native.tsx
+│   │   │   │   │   ├── CrossHairRenderer.web.tsx
+│   │   │   │   │   ├── HeatMapRenderer.native.tsx
+│   │   │   │   │   ├── HeatMapRenderer.web.tsx
+│   │   │   │   │   ├── LineRenderer.native.tsx
+│   │   │   │   │   ├── LineRenderer.web.tsx
+│   │   │   │   │   ├── SparklineRenderer.tsx
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── utils
+│   │   │   │       ├── chartArea.native.ts
+│   │   │   │       ├── chartArea.ts
+│   │   │   │       ├── chartColors.ts
+│   │   │   │       ├── chartMath.ts
+│   │   │   │       ├── chartPath.ts
+│   │   │   │       └── interpolation.ts
+│   │   │   ├── common
+│   │   │   │   ├── AppCard.tsx
+│   │   │   │   ├── AppScreen.tsx
+│   │   │   │   ├── AppText.tsx
+│   │   │   │   ├── EmptyState.tsx
+│   │   │   │   ├── ErrorView.tsx
+│   │   │   │   ├── LoadingView.tsx
+│   │   │   │   └── SectionHeader.tsx
+│   │   │   ├── dashboard
+│   │   │   │   ├── DashboardHeader.tsx
+│   │   │   │   ├── ExecutiveBriefingCard.tsx
+│   │   │   │   ├── ForecastCard.tsx
+│   │   │   │   ├── FundCard.tsx
+│   │   │   │   ├── FundCarousel.tsx
+│   │   │   │   ├── KPICard.tsx
+│   │   │   │   ├── KPIGrid.tsx
+│   │   │   │   ├── KPITrendCard.tsx
+│   │   │   │   ├── PortfolioHealthCard.tsx
+│   │   │   │   ├── RiskOverviewCard.tsx
+│   │   │   │   ├── TopMoversSection.tsx
+│   │   │   │   ├── TopPerformerCard.tsx
+│   │   │   │   └── index.ts
+│   │   │   └── fund
+│   │   │       ├── FundForecast.tsx
+│   │   │       ├── FundHeader.tsx
+│   │   │       ├── FundInsight.tsx
+│   │   │       ├── FundPerformance.tsx
+│   │   │       └── FundRisk.tsx
+│   │   ├── constants
+│   │   │   ├── colors.ts
+│   │   │   ├── spacing.ts
+│   │   │   ├── theme.ts
+│   │   │   └── typography.ts
+│   │   ├── hooks
+│   │   │   ├── useDashboard.ts
+│   │   │   ├── useForecasts.ts
+│   │   │   ├── useFundDetails.ts
+│   │   │   └── useRankings.ts
+│   │   ├── models
+│   │   │   ├── Dashboard.ts
+│   │   │   ├── ExecutiveBriefing.ts
+│   │   │   ├── ExecutiveFund.ts
+│   │   │   ├── ExecutiveInsight.ts
+│   │   │   ├── Forecast.ts
+│   │   │   ├── FundDetails.ts
+│   │   │   ├── FundRanking.ts
+│   │   │   ├── PerformanceReport.ts
+│   │   │   ├── PortfolioInsight.ts
+│   │   │   ├── PortfolioSummary.ts
+│   │   │   ├── RankingReport.ts
+│   │   │   └── RiskReport.ts
+│   │   ├── providers
+│   │   │   └── QueryProvider.tsx
+│   │   ├── screens
+│   │   │   ├── briefing
+│   │   │   │   └── ExecutiveBriefingScreen.tsx
+│   │   │   ├── dashboard
+│   │   │   │   └── DashboardScreen.tsx
+│   │   │   ├── fund
+│   │   │   │   └── FundDetailsScreen.tsx
+│   │   │   └── rankings
+│   │   │       └── RankingScreen.tsx
+│   │   ├── services
+│   │   └── utils
+│   │       ├── formatCurrency.ts
+│   │       ├── formatDate.ts
+│   │       ├── formatPercentage.ts
+│   │       ├── riskColor.ts
+│   │       ├── statusColor.ts
+│   │       └── trendColor.ts
+│   └── tsconfig.json
+├── mutual_fund_nav_history_2026-01-01_to_2026-07-17.csv
+├── project_structure.txt
+├── public
+│   └── robots.txt
+├── spec
+│   ├── factories
+│   │   ├── daily_nav_metrics.rb
+│   │   ├── executive_briefings.rb
+│   │   ├── forecasts.rb
+│   │   ├── ml_training_rows.rb
+│   │   └── mutual_fund.rb
+│   ├── models
+│   │   ├── daily_nav_metric_spec.rb
+│   │   ├── executive_briefing_spec.rb
+│   │   ├── forecast_spec.rb
+│   │   └── ml_training_row_spec.rb
+│   ├── rails_helper.rb
+│   └── spec_helper.rb
+├── storage
+│   └── .keep
+├── test.txt
+└── vendor
+    └── .keep
+
+136 directories, 418 files

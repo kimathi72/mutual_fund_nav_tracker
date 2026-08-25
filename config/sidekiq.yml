@@ -1,0 +1,10 @@
+:concurrency: 5
+
+:queues:
+  - critical
+  - market_data
+  - analytics
+  - machine_learning
+  - reporting
+  - default
+  - mailers

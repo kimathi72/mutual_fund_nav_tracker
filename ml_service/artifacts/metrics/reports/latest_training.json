@@ -1,0 +1,41 @@
+[
+    {
+        "horizon": "1d",
+        "model_version": "xgboost-q-v2",
+        "trained_at": "2026-08-04T10:41:57.006981",
+        "sample_count": 206,
+        "rmse": 7.696553550298407,
+        "mae": 6.272971784519826,
+        "mape": 29.447464384787548,
+        "r2": 0.3837604493827177,
+        "prediction_interval_coverage": 0.4097087378640777,
+        "average_interval_width": 16.84925611615181,
+        "confidence_score": 0.7393951416015625
+    },
+    {
+        "horizon": "30d",
+        "model_version": "xgboost-q-v2",
+        "trained_at": "2026-08-04T10:45:12.019167",
+        "sample_count": 172,
+        "rmse": 9.684886847809484,
+        "mae": 8.349881800054508,
+        "mape": 32.28736825044893,
+        "r2": -1.693604763009597,
+        "prediction_interval_coverage": 0.24302325581395348,
+        "average_interval_width": 3.8820693254470826,
+        "confidence_score": 0.8539175271987915
+    },
+    {
+        "horizon": "90d",
+        "model_version": "xgboost-q-v2",
+        "trained_at": "2026-08-04T10:48:28.568923",
+        "sample_count": 102,
+        "rmse": 10.557592758591847,
+        "mae": 8.639740646015241,
+        "mape": 25.221499530664946,
+        "r2": -10.901857322225403,
+        "prediction_interval_coverage": 0.2529411764705882,
+        "average_interval_width": 21.581134653091432,
+        "confidence_score": 0.7211668133735657
+    }
+]
