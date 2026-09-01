@@ -1,23 +1,27 @@
+
 # frozen_string_literal: true
 
 module Analytics
   class ReturnsCalculator
-    attr_reader :series
+    BASELINE_DATE = Date.new(2026, 6, 30)
 
-    def initialize(records)
-      @series = NavSeries.new(records)
-    end
+    attr_reader :series
 
     ####################################################
     # Public API
     ####################################################
+
+    def initialize(records)
+      @series = NavSeries.new(records)
+    end
 
     def calculate
       {
         daily: daily_return,
         weekly: weekly_return,
         monthly: monthly_return,
-        ytd: ytd_return
+        ytd: ytd_return,
+        since_30_june_2026: return_since_30_june_2026
       }
     end
 
@@ -53,6 +57,23 @@ module Analytics
       )
     end
 
+    def return_since_30_june_2026
+      latest = series.latest
+
+      return nil unless latest
+      return nil if latest.date < BASELINE_DATE
+
+      baseline =
+        series.series.find do |record|
+          record.date == BASELINE_DATE
+        end
+
+      return_between(
+        baseline,
+        latest
+      )
+    end
+
     private
 
     ####################################################
@@ -66,7 +87,7 @@ module Analytics
         end_point.nav - start_point.nav
       ) / start_point.nav.to_d
     end
-    
+
     ####################################################
     # Validation
     ####################################################
