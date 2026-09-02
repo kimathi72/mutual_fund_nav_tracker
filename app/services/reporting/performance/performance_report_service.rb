@@ -19,10 +19,13 @@ module Reporting
           nav_date: latest_nav.nav_date,
           latest_nav: latest_nav.nav,
           currency: fund.currency,
+
           daily_return: returns[:daily],
           weekly_return: returns[:weekly],
           monthly_return: returns[:monthly],
           ytd_return: returns[:ytd],
+          return_since_30_june_2026: returns[:since_30_june_2026],
+
           moving_average_7: moving_averages[:ma7],
           moving_average_30: moving_averages[:ma30]
         )
@@ -76,6 +79,7 @@ module Reporting
           weekly_return: nil,
           monthly_return: nil,
           ytd_return: nil,
+          return_since_30_june_2026: nil,
           moving_average_7: nil,
           moving_average_30: nil
         )

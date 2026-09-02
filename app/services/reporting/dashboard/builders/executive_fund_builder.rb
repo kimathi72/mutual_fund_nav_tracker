@@ -22,7 +22,7 @@ module Reporting
               weekly_return: performance.weekly_return,
               monthly_return: performance.monthly_return,
               ytd_return: performance.ytd_return,
-
+              return_since_30_june_2026: performance.return_since_30_june_2026,
               volatility: risk.volatility_30,
               drawdown: risk.drawdown,
 
@@ -48,7 +48,7 @@ module Reporting
             weekly_return: summary.weekly_return,
             monthly_return: summary.monthly_return,
             ytd_return: summary.ytd_return,
-
+            return_since_30_june_2026: summary.return_since_30_june_2026,
             volatility: summary.volatility,
             drawdown: summary.drawdown,
 

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 
 module Reporting
   module Ranking
@@ -38,10 +37,6 @@ module Reporting
 
       attr_reader :report_date, :funds, :limit
 
-      #####################################################
-      # Overall ranking
-      #####################################################
-
       def top_overall
         funds
           .sort_by do |fund|
@@ -50,25 +45,27 @@ module Reporting
           .first(limit)
       end
 
-      #####################################################
-      # Existing rankings
-      #####################################################
-
       def top(attribute)
         funds
-          .select { |f| f.public_send(attribute).present? }
-          .sort_by { |f| -f.public_send(attribute).to_f }
+          .select do |fund|
+            fund.public_send(attribute).present?
+          end
+          .sort_by do |fund|
+            -fund.public_send(attribute).to_f
+          end
           .first(limit)
       end
 
       def bottom(attribute)
         funds
-          .select { |f| f.public_send(attribute).present? }
-          .sort_by { |f| f.public_send(attribute).to_f }
+          .select do |fund|
+            fund.public_send(attribute).present?
+          end
+          .sort_by do |fund|
+            fund.public_send(attribute).to_f
+          end
           .first(limit)
       end
-
-      #####################################################
 
       def rankings(records)
         records.each_with_index.map do |fund, index|
@@ -86,9 +83,14 @@ module Reporting
             weekly_return: fund.weekly_return,
             monthly_return: fund.monthly_return,
             ytd_return: fund.ytd_return,
+            return_since_30_june_2026:
+              fund.return_since_30_june_2026,
 
             volatility: fund.volatility,
-            drawdown: fund.drawdown
+            drawdown: fund.drawdown,
+
+            portfolio_score:
+              PortfolioScore.new(fund).score
           )
         end
       end

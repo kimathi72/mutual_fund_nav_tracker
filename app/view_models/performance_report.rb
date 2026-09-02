@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class PerformanceReport
   attr_reader \
     :fund_id,
@@ -12,6 +10,7 @@ class PerformanceReport
     :weekly_return,
     :monthly_return,
     :ytd_return,
+    :return_since_30_june_2026,
     :moving_average_7,
     :moving_average_30
 
@@ -26,6 +25,7 @@ class PerformanceReport
     weekly_return:,
     monthly_return:,
     ytd_return:,
+    return_since_30_june_2026:,
     moving_average_7:,
     moving_average_30:
   )
@@ -35,10 +35,13 @@ class PerformanceReport
     @nav_date = nav_date
     @latest_nav = latest_nav
     @currency = currency
+
     @daily_return = daily_return
     @weekly_return = weekly_return
     @monthly_return = monthly_return
     @ytd_return = ytd_return
+    @return_since_30_june_2026 = return_since_30_june_2026
+
     @moving_average_7 = moving_average_7
     @moving_average_30 = moving_average_30
 

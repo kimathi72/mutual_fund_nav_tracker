@@ -51,3 +51,6 @@ gem "redis"
 gem "httparty"
 gem "dotenv-rails", groups: [:development, :test]
 gem "nokogiri"
+gem "prawn"
+gem "prawn-table"
+gem "matrix"

@@ -82,6 +82,8 @@ services:
       YAHOO_FINANCE_BASE_URL: ${YAHOO_FINANCE_BASE_URL}
 
       ML_SERVICE_URL: http://ml:8000
+      ML_OPEN_TIMEOUT: ${ML_OPEN_TIMEOUT:-5}
+      ML_READ_TIMEOUT: ${ML_READ_TIMEOUT:-600}
 
 
   sidekiq:
