@@ -11,16 +11,20 @@ class BrevoEmailService
     to:,
     subject:,
     html_content:,
+    cc: nil,
     text_content: nil,
     reply_to: nil,
-    tags: nil
+    tags: nil,
+    attachments: nil
   )
-    @to = to
+    @to = Array(to)
     @subject = subject
     @html_content = html_content
+    @cc = cc ? Array(cc) : nil
     @text_content = text_content
     @reply_to = reply_to
     @tags = tags
+    @attachments = attachments
   end
 
   def call
@@ -58,16 +62,16 @@ class BrevoEmailService
         )
       },
 
-      to: [
-        {
-          email: @to
-        }
-      ],
+      to: @to.map { |email| { email: email } },
 
       subject: @subject,
 
       htmlContent: @html_content
     }
+
+    if @cc.present?
+      body[:cc] = @cc.map { |email| { email: email } }
+    end
 
     body[:textContent] = @text_content if @text_content.present?
 
@@ -78,6 +82,15 @@ class BrevoEmailService
     end
 
     body[:tags] = @tags if @tags.present?
+
+    if @attachments.present?
+      body[:attachment] = @attachments.map do |att|
+        {
+          name: att[:name],
+          content: att[:content] # Base64 encoded string
+        }
+      end
+    end
 
     body
   end

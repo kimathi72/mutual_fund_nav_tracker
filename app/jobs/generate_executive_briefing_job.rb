@@ -53,9 +53,15 @@ class GenerateExecutiveBriefingJob < ApplicationJob
       prompt: nil,
       response: response
     ).call
-
+    
     Rails.logger.info(
       "[GenerateExecutiveBriefingJob] Finished."
+    )
+    # Chain to PDF Generation Job
+    GenerateExecutiveReportPdfJob.perform_later(summary.report_date || Date.current)
+
+    Rails.logger.info(
+      "[GenerateExecutiveBriefingJob] Enqueued GenerateExecutiveReportPdfJob."
     )
   end
 end

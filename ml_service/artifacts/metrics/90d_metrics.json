@@ -1,13 +1,13 @@
 {
     "horizon": "90d",
     "model_version": "xgboost-q-v2",
-    "trained_at": "2026-09-02T20:15:43.970750",
-    "sample_count": 127,
-    "rmse": 11.68532923913676,
-    "mae": 9.27370507604644,
-    "mape": 29.882208180453592,
-    "r2": -132.99684576128044,
-    "prediction_interval_coverage": 0.2929133858267717,
-    "average_interval_width": 16.98044662475586,
-    "confidence_score": 0.7260804772377014
+    "trained_at": "2026-09-03T13:30:36.341196",
+    "sample_count": 128,
+    "rmse": 12.618971630641623,
+    "mae": 10.62051771834135,
+    "mape": 40.23202790301157,
+    "r2": -132.7130809726527,
+    "prediction_interval_coverage": 0.1921875,
+    "average_interval_width": 16.981750345230104,
+    "confidence_score": 0.7253668546676636
 }
