@@ -5,7 +5,6 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from app.config import FEATURE_COLUMNS
 from app.data.feature_builder import (
     build_prediction_features,
 )
@@ -27,11 +26,7 @@ class Predictor:
         self,
         model_root: str = "models",
     ):
-
-        self.model_root = Path(
-            model_root
-        )
-
+        self.model_root = Path(model_root)
         self.cache = {}
 
     def _load_model(
@@ -39,23 +34,24 @@ class Predictor:
         horizon_name: str,
         quantile: str,
     ):
-
         key = (
             horizon_name,
             quantile,
         )
 
         if key not in self.cache:
-
             path = (
                 self.model_root
                 / horizon_name
                 / f"{quantile}.pkl"
             )
 
-            self.cache[key] = (
-                joblib.load(path)
-            )
+            if not path.exists():
+                raise FileNotFoundError(
+                    f"Model not found: {path}"
+                )
+
+            self.cache[key] = joblib.load(path)
 
         return self.cache[key]
 
@@ -64,7 +60,6 @@ class Predictor:
         history: pd.DataFrame,
         horizon,
     ):
-
         history = (
             history
             .copy()
@@ -72,14 +67,9 @@ class Predictor:
             .reset_index(drop=True)
         )
 
-        features = (
-            build_prediction_features(
-                history
-            )
-        )
+        features = build_prediction_features(history)
 
         if features.empty:
-
             raise ValueError(
                 f"Insufficient history for "
                 f"{horizon.NAME} forecast"
@@ -97,17 +87,14 @@ class Predictor:
             + horizon.TARGET_OBSERVATIONS
         )
 
-        # For a live forecast the future
+        # For a live forecast, the future
         # observation does not exist yet.
         target_date = None
 
         if target_index < len(history):
-
             target_date = (
                 pd.Timestamp(
-                    history.iloc[
-                        target_index
-                    ]["nav_date"]
+                    history.iloc[target_index]["nav_date"]
                 )
                 .date()
                 .isoformat()
@@ -157,7 +144,6 @@ class Predictor:
         ) * 100
 
         return {
-
             "horizon": horizon.NAME,
 
             "target_observations": (
@@ -181,9 +167,7 @@ class Predictor:
                 8,
             ),
 
-            "confidence_score": (
-                confidence
-            ),
+            "confidence_score": confidence,
 
             "expected_return_pct": round(
                 expected_return,
@@ -199,23 +183,29 @@ class Predictor:
         self,
         history: pd.DataFrame,
     ):
-
         forecasts = []
 
         for horizon in HORIZONS:
 
+            # HORIZON IS AN OBJECT.
+            # The model directory uses its NAME:
+            #
+            # models/1d
+            # models/30d
+            # models/90d
+            #
+            horizon_name = horizon.NAME
+
             model_path = (
                 self.model_root
-                / horizon
+                / horizon_name
             )
 
             if not model_path.exists():
-
                 print(
-                    f"Skipping {horizon}: "
+                    f"Skipping {horizon_name}: "
                     "no trained model."
                 )
-
                 continue
 
             forecasts.append(
@@ -233,7 +223,6 @@ class Predictor:
         lower: float,
         upper: float,
     ):
-
         width = (
             upper - lower
         )

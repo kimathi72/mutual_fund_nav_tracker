@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 
 class FundSummary
   attr_reader \
@@ -11,6 +10,7 @@ class FundSummary
     :weekly_return,
     :monthly_return,
     :ytd_return,
+    :return_since_30_june_2026,
     :volatility,
     :drawdown,
     :recommendation,
@@ -28,6 +28,7 @@ class FundSummary
     weekly_return:,
     monthly_return:,
     ytd_return:,
+    return_since_30_june_2026:,
     volatility:,
     drawdown:,
     recommendation:,
@@ -45,6 +46,7 @@ class FundSummary
     @weekly_return = weekly_return
     @monthly_return = monthly_return
     @ytd_return = ytd_return
+    @return_since_30_june_2026 = return_since_30_june_2026
 
     @volatility = volatility
     @drawdown = drawdown
@@ -52,7 +54,6 @@ class FundSummary
     @recommendation = recommendation
     @market_outlook = market_outlook
     @opportunity_score = opportunity_score
-
     @portfolio_score = portfolio_score
 
     freeze

@@ -58,16 +58,20 @@ export default function ChartSurface({
         () => true,
 
       onPanResponderGrant:
-        (event) => {
+        event => {
           onMove?.(
-            event.nativeEvent.locationX,
+            event.nativeEvent
+              .locationX -
+              chart.paddingLeft,
           );
         },
 
       onPanResponderMove:
-        (event) => {
+        event => {
           onMove?.(
-            event.nativeEvent.locationX,
+            event.nativeEvent
+              .locationX -
+              chart.paddingLeft,
           );
         },
 
@@ -185,7 +189,6 @@ const styles =
         "absolute",
 
       left: 0,
-
       top: 0,
     },
 

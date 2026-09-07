@@ -45,6 +45,20 @@ class TargetBuilder:
         """
 
         df = self.df.copy()
+        
+        if "feature_date" in df.columns and "nav_date" not in df.columns:
+            df = df.rename(
+                columns={
+                    "feature_date": "nav_date",
+                }
+            )
+
+        elif "date" in df.columns and "nav_date" not in df.columns:
+            df = df.rename(
+                columns={
+                    "date": "nav_date",
+                }
+            )
 
         if "date" in df.columns and "nav_date" not in df.columns:
             df = df.rename(

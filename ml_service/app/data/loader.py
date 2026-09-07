@@ -10,7 +10,7 @@ import pandas as pd
 DEFAULT_DATASET = Path(
     os.getenv(
         "DATASET_PATH",
-        "/app/exports/mutual_funds_dataset.csv",
+        "/app/exports/mutual_funds_training_dataset.csv",
     )
 )
 
@@ -21,11 +21,8 @@ def resolve_dataset():
 
         DEFAULT_DATASET,
 
-        Path("/app/exports/mutual_funds_dataset.csv"),
+        Path("/app/exports/mutual_funds_training_dataset.csv"),
 
-        Path("/app/exports/training_dataset.csv"),
-
-        Path("exports/mutual_funds_dataset.csv"),
 
     ]
 
@@ -63,17 +60,13 @@ def load_dataset(
 ):
 
     if dataset_path is None:
-
         dataset_path = resolve_dataset()
 
-
     dataset_path = Path(dataset_path)
-
 
     dataframe = pd.read_csv(
         dataset_path
     )
-
 
     dataframe.columns = (
         dataframe.columns
@@ -81,6 +74,14 @@ def load_dataset(
         .str.lower()
     )
 
+    # Rails training export uses feature_date.
+    # Normalize it to nav_date for the Python ML pipeline.
+    if "feature_date" in dataframe.columns:
+        dataframe = dataframe.rename(
+            columns={
+                "feature_date": "nav_date"
+            }
+        )
 
     required = {
         "isin",
@@ -88,32 +89,26 @@ def load_dataset(
         "nav",
     }
 
-
     missing = (
         required
         -
         set(dataframe.columns)
     )
 
-
     if missing:
-
         raise ValueError(
             f"Missing columns {missing}"
         )
-
 
     dataframe["nav_date"] = pd.to_datetime(
         dataframe["nav_date"],
         errors="coerce",
     )
 
-
     dataframe["nav"] = pd.to_numeric(
         dataframe["nav"],
         errors="coerce",
     )
-
 
     dataframe = dataframe.dropna(
         subset=[
@@ -123,14 +118,12 @@ def load_dataset(
         ]
     )
 
-
     dataframe = dataframe.sort_values(
         [
             "isin",
             "nav_date",
         ]
     )
-
 
     return dataframe.reset_index(
         drop=True

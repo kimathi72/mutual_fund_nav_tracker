@@ -2,18 +2,21 @@
 
 module Llm
   class ExecutiveBriefing
-    attr_reader :generated_by,
+    attr_reader :provider,
+                :model,
                 :generated_at,
                 :briefing,
                 :error
 
     def initialize(
-      generated_by:,
+      provider:,
+      model:,
       briefing:,
       generated_at: Time.current,
       error: nil
     )
-      @generated_by = generated_by
+      @provider = provider
+      @model = model
       @generated_at = generated_at
       @briefing = briefing
       @error = error

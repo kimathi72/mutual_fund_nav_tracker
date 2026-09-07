@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 
 module Reporting
   module Portfolio
@@ -86,7 +85,10 @@ module Reporting
       end
 
       def average_from(records, attribute)
-        values = records.map(&attribute).compact
+        values =
+          records
+            .map(&attribute)
+            .compact
 
         return nil if values.empty?
 
@@ -102,8 +104,11 @@ module Reporting
           isin: fund.isin,
           nav: fund.nav,
           ytd_return: fund.ytd_return,
+          return_since_30_june_2026:
+            fund.return_since_30_june_2026,
           volatility: fund.volatility,
-          drawdown: fund.drawdown
+          drawdown: fund.drawdown,
+          portfolio_score: fund.portfolio_score
         )
       end
 
@@ -111,20 +116,25 @@ module Reporting
         PortfolioSummary.new(
           report_date: report_date,
           total_funds: 0,
+
           average_daily_return: nil,
           average_weekly_return: nil,
           average_monthly_return: nil,
           average_ytd_return: nil,
           average_volatility: nil,
+
           best_performer: nil,
           worst_performer: nil,
           highest_risk: nil,
           lowest_risk: nil,
+
           buy_count: 0,
           hold_count: 0,
           sell_count: 0,
+
           bullish_count: 0,
           bearish_count: 0,
+
           average_opportunity_score: 0
         )
       end

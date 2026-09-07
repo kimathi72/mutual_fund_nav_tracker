@@ -1,3 +1,4 @@
+
 # frozen_string_literal: true
 
 module Analytics
@@ -26,7 +27,9 @@ module Analytics
             "#{e.class}: #{e.message}"
           )
 
-          Rails.logger.error(e.backtrace.first(10).join("\n"))
+          Rails.logger.error(
+            e.backtrace.first(10).join("\n")
+          )
         end
       end
 
@@ -68,7 +71,8 @@ module Analytics
 
       unless latest_nav_date
         Rails.logger.warn(
-          "[CalculateDailyMetricsService] #{fund.isin}: no NAV records found"
+          "[CalculateDailyMetricsService] #{fund.isin}: " \
+          "no NAV records found"
         )
 
         return false
@@ -163,13 +167,19 @@ module Analytics
         daily_nav_id: nav.id,
         mutual_fund_id: fund.id,
 
-        # Actual DailyNavMetric columns
+        # Existing return metrics
         return_1d: returns[:daily],
         return_7d: returns[:weekly],
         return_30d: returns[:monthly],
 
+        # Return from the fixed reporting baseline:
+        # 30 June 2026
+        return_since_30_june_2026: returns[:since_30_june_2026],
+
+        # Existing volatility metric
         volatility_30: volatility,
 
+        # Existing moving averages
         ma_7: averages[:ma7],
         ma_30: averages[:ma30],
 
@@ -186,12 +196,11 @@ module Analytics
       return if rows.empty?
 
       DailyNavMetric.transaction(requires_new: true) do
-        # We calculate the complete historical metric series from scratch.
+        # Metrics are rebuilt from the complete NAV history for the fund.
         #
-        # Deleting and rebuilding inside the same transaction means that
-        # if upsert_all fails, the existing metrics are restored by the
-        # database transaction rollback instead of leaving the fund with
-        # zero metrics.
+        # The delete and upsert happen inside the same transaction.
+        # If upsert_all fails, the transaction rolls back and the
+        # previous metrics remain intact.
         DailyNavMetric
           .where(mutual_fund_id: fund.id)
           .delete_all

@@ -1,63 +1,53 @@
 import ExecutiveChartTheme from "../ExecutiveChartTheme";
 
-export interface ChartDimensions{
+export interface ChartDimensions {
+  width: number;
+  height: number;
 
-    width:number;
+  paddingTop: number;
+  paddingBottom: number;
+  paddingLeft: number;
+  paddingRight: number;
 
-    height:number;
-
-    paddingTop:number;
-
-    paddingBottom:number;
-
-    paddingLeft:number;
-
-    paddingRight:number;
-
-    innerWidth:number;
-
-    innerHeight:number;
-
+  innerWidth: number;
+  innerHeight: number;
 }
 
 export function getChartDimensions(
+  width: number,
+  height: number,
+): ChartDimensions {
+  const chart =
+    ExecutiveChartTheme.chart;
 
-    width:number,
+  const innerWidth =
+    width -
+    chart.paddingLeft -
+    chart.paddingRight;
 
-    height:number
+  const innerHeight =
+    height -
+    chart.paddingTop -
+    chart.paddingBottom;
 
-):ChartDimensions{
+  return {
+    width,
+    height,
 
-    const chart=ExecutiveChartTheme.chart;
+    paddingTop:
+      chart.paddingTop,
 
-    const innerWidth=
-        width-
-        chart.paddingLeft-
-        chart.paddingRight;
+    paddingBottom:
+      chart.paddingBottom,
 
-    const innerHeight=
-        height-
-        chart.paddingTop-
-        chart.paddingBottom;
+    paddingLeft:
+      chart.paddingLeft,
 
-    return{
+    paddingRight:
+      chart.paddingRight,
 
-        width,
+    innerWidth,
 
-        height,
-
-        paddingTop:chart.paddingTop,
-
-        paddingBottom:chart.paddingBottom,
-
-        paddingLeft:chart.paddingLeft,
-
-        paddingRight:chart.paddingRight,
-
-        innerWidth,
-
-        innerHeight
-
-    };
-
+    innerHeight,
+  };
 }

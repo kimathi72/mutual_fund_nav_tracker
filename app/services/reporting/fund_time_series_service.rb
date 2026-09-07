@@ -1,13 +1,16 @@
-# app/services/reporting/fund_time_series_service.rb
-
-# frozen_string_literal: true
 
 module Reporting
   class FundTimeSeriesService < ApplicationService
-    HISTORY_DAYS = 90
+    BASELINE_DATE = Date.new(2026, 6, 30)
 
-    def initialize(fund:)
+    def initialize(
+      fund:,
+      from_date: BASELINE_DATE,
+      to_date: nil
+    )
       @fund = fund
+      @from_date = from_date
+      @to_date = to_date
     end
 
     def call
@@ -20,40 +23,56 @@ module Reporting
 
     private
 
-    attr_reader :fund
+    attr_reader :fund, :from_date, :to_date
+
+    def effective_to_date
+      to_date || fund.daily_navs.maximum(:nav_date)
+    end
 
     def nav_history
       fund.daily_navs
-          .last(HISTORY_DAYS)
-          .map do |nav|
-        {
-          date: nav.nav_date,
-          value: nav.nav.to_f
-        }
-      end
+        .where(
+          nav_date: from_date..effective_to_date
+        )
+        .order(:nav_date)
+        .map do |nav|
+          {
+            date: nav.nav_date,
+            value: nav.nav.to_f
+          }
+        end
     end
 
     def volatility_history
       fund.daily_nav_metrics
-          .last(HISTORY_DAYS)
-          .map do |metric|
-        {
-          date: metric.daily_nav.nav_date,
-          value: metric.volatility_30.to_f
-        }
-      end
+        .joins(:daily_nav)
+        .where(
+          daily_navs: {
+            nav_date: from_date..effective_to_date
+          }
+        )
+        .order("daily_navs.nav_date ASC")
+        .map do |metric|
+          {
+            date: metric.daily_nav.nav_date,
+            value: metric.volatility_30.to_f
+          }
+        end
     end
 
     def forecast_series
       fund.forecasts
-          .last(30)
-          .map do |forecast|
-        {
-          date: forecast.target_date,
-          value: forecast.predicted_nav.to_f,
-          confidence: forecast.confidence_score.to_f
-        }
-      end
+        .where(
+          target_date: from_date..(effective_to_date + 30.days)
+        )
+        .order(:target_date)
+        .map do |forecast|
+          {
+            date: forecast.target_date,
+            value: forecast.predicted_nav.to_f,
+            confidence: forecast.confidence_score.to_f
+          }
+        end
     end
   end
 end

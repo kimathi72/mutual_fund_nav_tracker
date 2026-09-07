@@ -5,10 +5,10 @@ module Ml
     LOOKBACK_OBSERVATIONS = 35
     INITIAL_IMPORT_DATE = Date.new(2025, 1, 1)
 
-    TARGETS = {
-      "1d" => :target_nav_1d,
-      "30d" => :target_nav_30d,
-      "90d" => :target_nav_90d
+    TARGET_HORIZONS = {
+      target_nav_1d: 1,
+      target_nav_30d: 30,
+      target_nav_90d: 90
     }.freeze
 
     def initialize(
@@ -28,7 +28,8 @@ module Ml
       rescue StandardError => e
         Rails.logger.error(
           "[BuildTrainingDatasetService] " \
-          "#{fund.isin}: #{e.class}: #{e.message}"
+          "#{fund.isin}: #{e.class}: #{e.message}\n" \
+          "#{e.backtrace&.first(5)&.join("\n")}"
         )
       end
 
@@ -52,24 +53,32 @@ module Ml
     end
 
     def build_for_fund(fund)
-      last_feature_date =
-        MlTrainingRow
-          .where(mutual_fund: fund)
-          .maximum(:feature_date)
-
       latest_nav_date =
         DailyNav
           .where(mutual_fund_id: fund.id)
           .maximum(:nav_date)
 
-      return false unless latest_nav_date
+      unless latest_nav_date
+        Rails.logger.info(
+          "[BuildTrainingDatasetService] " \
+          "#{fund.isin}: no NAV data"
+        )
+
+        return false
+      end
+
+      last_feature_date =
+        MlTrainingRow
+          .where(mutual_fund_id: fund.id)
+          .maximum(:feature_date)
 
       if last_feature_date.present? &&
          last_feature_date >= latest_nav_date
 
         Rails.logger.info(
           "[BuildTrainingDatasetService] " \
-          "#{fund.isin}: already up-to-date"
+          "#{fund.isin}: already up-to-date " \
+          "(#{last_feature_date})"
         )
 
         return false
@@ -88,14 +97,18 @@ module Ml
       navs =
         DailyNav
           .where(mutual_fund_id: fund.id)
-          .where(
-            "nav_date >= ?",
-            start_date
-          )
+          .where("nav_date >= ?", start_date)
           .order(:nav_date)
           .to_a
 
-      return false if navs.empty?
+      if navs.empty?
+        Rails.logger.info(
+          "[BuildTrainingDatasetService] " \
+          "#{fund.isin}: no NAVs from #{start_date}"
+        )
+
+        return false
+      end
 
       build_rows(
         fund,
@@ -109,104 +122,100 @@ module Ml
       fund,
       feature_date
     )
-      DailyNav
-        .where(mutual_fund_id: fund.id)
-        .where(
-          "nav_date < ?",
-          feature_date
-        )
-        .order(nav_date: :desc)
-        .limit(LOOKBACK_OBSERVATIONS)
-        .minimum(:nav_date) ||
-        feature_date
+      previous_dates =
+        DailyNav
+          .where(mutual_fund_id: fund.id)
+          .where("nav_date < ?", feature_date)
+          .order(nav_date: :desc)
+          .limit(LOOKBACK_OBSERVATIONS)
+          .pluck(:nav_date)
+
+      previous_dates.min || feature_date
     end
 
-    def build_rows(
-      fund,
-      navs
-    )
+    def build_rows(fund, navs)
       metrics_by_nav_id =
         DailyNavMetric
-          .where(
-            daily_nav_id: navs.map(&:id)
-          )
+          .where(daily_nav_id: navs.map(&:id))
           .index_by(&:daily_nav_id)
 
       timestamp = Time.current
 
       rows =
-        navs.each_with_index.map do |daily_nav, index|
-
+        navs.each_with_index.filter_map do |daily_nav, index|
           metric =
-            metrics_by_nav_id[
-              daily_nav.id
-            ]
+            metrics_by_nav_id[daily_nav.id]
 
-          next unless metric
+          unless metric
+            Rails.logger.warn(
+              "[BuildTrainingDatasetService] " \
+              "#{fund.isin}: missing metric for " \
+              "#{daily_nav.nav_date}"
+            )
+
+            next
+          end
 
           {
             mutual_fund_id: fund.id,
 
             daily_nav_id: daily_nav.id,
 
-            feature_date:
-              daily_nav.nav_date,
+            feature_date: daily_nav.nav_date,
 
-            nav:
-              daily_nav.nav,
+            nav: daily_nav.nav,
 
-            return_1d:
-              metric.daily_return,
+            return_1d: metric.return_1d,
 
-            return_7d:
-              metric.weekly_return,
+            return_7d: metric.return_7d,
 
-            return_30d:
-              metric.monthly_return,
+            return_30d: metric.return_30d,
 
-            ma_7:
-              metric.moving_average_7,
+            ma_7: metric.ma_7,
 
-            ma_30:
-              metric.moving_average_30,
+            ma_30: metric.ma_30,
 
-            ma_90:
-              metric.moving_average_90,
+            ma_90: metric.ma_90,
 
-            volatility_30:
-              metric.volatility_30,
+            volatility_30: metric.volatility_30,
 
-            momentum:
-              metric.momentum,
+            momentum: metric.momentum,
 
             target_nav_1d:
               target_nav(
                 navs,
                 index,
-                1
+                TARGET_HORIZONS[:target_nav_1d]
               ),
 
             target_nav_30d:
               target_nav(
                 navs,
                 index,
-                30
+                TARGET_HORIZONS[:target_nav_30d]
               ),
 
             target_nav_90d:
               target_nav(
                 navs,
                 index,
-                90
+                TARGET_HORIZONS[:target_nav_90d]
               ),
 
             created_at: timestamp,
 
             updated_at: timestamp
           }
-        end.compact
+        end
 
-      return if rows.empty?
+      if rows.empty?
+        Rails.logger.info(
+          "[BuildTrainingDatasetService] " \
+          "#{fund.isin}: no training rows generated"
+        )
+
+        return
+      end
 
       MlTrainingRow.upsert_all(
         rows,
@@ -215,22 +224,12 @@ module Ml
 
       Rails.logger.info(
         "[BuildTrainingDatasetService] " \
-        "#{fund.isin}: " \
-        "#{rows.size} training rows generated"
+        "#{fund.isin}: #{rows.size} training rows generated"
       )
     end
 
-    def target_nav(
-      navs,
-      index,
-      observations
-    )
-      target =
-        navs[
-          index + observations
-        ]
-
-      target&.nav
+    def target_nav(navs, index, observations)
+      navs[index + observations]&.nav
     end
   end
 end

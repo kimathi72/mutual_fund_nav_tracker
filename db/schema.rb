@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_11_200047) do
+ActiveRecord::Schema[7.1].define(version: 2026_09_01_084842) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -27,8 +27,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_11_200047) do
     t.datetime "updated_at", null: false
     t.decimal "ma_90", precision: 18, scale: 8
     t.decimal "momentum", precision: 18, scale: 8
+    t.decimal "return_since_30_june_2026", precision: 12, scale: 8
     t.index ["daily_nav_id"], name: "index_daily_nav_metrics_on_daily_nav_id", unique: true
     t.index ["mutual_fund_id", "return_30d"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_return_30d"
+    t.index ["mutual_fund_id", "return_since_30_june_2026"], name: "idx_daily_nav_metrics_fund_return_since_30_june"
     t.index ["mutual_fund_id", "volatility_30"], name: "index_daily_nav_metrics_on_mutual_fund_id_and_volatility_30"
     t.index ["mutual_fund_id"], name: "index_daily_nav_metrics_on_mutual_fund_id"
   end
@@ -75,7 +77,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_11_200047) do
 
   create_table "forecasts", force: :cascade do |t|
     t.bigint "mutual_fund_id", null: false
-    t.date "target_date", null: false
+    t.date "target_date"
     t.decimal "predicted_nav", precision: 18, scale: 8
     t.decimal "lower_bound", precision: 18, scale: 8
     t.decimal "upper_bound", precision: 18, scale: 8

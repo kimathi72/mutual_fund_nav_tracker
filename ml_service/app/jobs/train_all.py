@@ -1,20 +1,22 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from app.config import (
-    DATA_DIR,
     MODEL_DIR,
     HORIZONS,
 )
 
 from app.data.loader import load_dataset
+from app.data.training_frame import TrainingFrameBuilder
 from app.models.trainer import Trainer
 
 
 def main():
 
     dataframe = load_dataset()
+
+    frame_builder = TrainingFrameBuilder(
+        dataframe
+    )
 
     results = []
 
@@ -23,9 +25,25 @@ def main():
         print()
         print("=" * 80)
         print(
-            f"TRAINING HORIZON: {horizon_name}"
+            f"BUILDING TRAINING FRAME: {horizon_name}"
         )
         print("=" * 80)
+
+        training_frame = frame_builder.build(
+            horizon_name
+        )
+
+        if training_frame.empty:
+            print(
+                f"Skipping {horizon_name}: "
+                "insufficient training data."
+            )
+            continue
+
+        print(
+            f"{horizon_name}: "
+            f"{len(training_frame)} rows"
+        )
 
         model_directory = (
             MODEL_DIR
@@ -33,9 +51,8 @@ def main():
         )
 
         trainer = Trainer(
-            dataframe=dataframe,
+            dataframe=training_frame,
             model_directory=model_directory,
-            horizon=horizon_name,
         )
 
         metrics = trainer.train()

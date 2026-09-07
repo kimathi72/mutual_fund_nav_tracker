@@ -39,11 +39,11 @@ module Llm
                 :response
 
     def provider
-      response.generated_by.to_s.partition("-").first
+      response.provider
     end
 
     def model
-      response.generated_by
+      response.model
     end
 
     def status

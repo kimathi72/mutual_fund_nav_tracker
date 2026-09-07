@@ -20,9 +20,13 @@ class FundRankingSerializer < ApplicationSerializer
       weekly_return: ranking.weekly_return,
       monthly_return: ranking.monthly_return,
       ytd_return: ranking.ytd_return,
+      return_since_30_june_2026:
+        ranking.return_since_30_june_2026,
 
       volatility: ranking.volatility,
-      drawdown: ranking.drawdown
+      drawdown: ranking.drawdown,
+
+      portfolio_score: ranking.portfolio_score
     }
   end
 

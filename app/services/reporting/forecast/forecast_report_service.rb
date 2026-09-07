@@ -23,12 +23,20 @@ module Reporting
         @latest_nav ||= fund.latest_daily_nav
       end
 
+      # Return the most recent forecast for each horizon.
+      #
+      # We use predicted_at rather than created_at because forecasts
+      # may have been backfilled into the database after their actual
+      # prediction dates.
       def latest_forecasts
         @latest_forecasts ||=
           fund
             .forecasts
-            .latest_run
-            .index_by(&:horizon)
+            .where(horizon: HORIZONS)
+            .sort_by { |forecast| forecast.predicted_at || Time.at(0) }
+            .reverse
+            .group_by(&:horizon)
+            .transform_values(&:first)
       end
 
       def prediction_reports
@@ -42,7 +50,6 @@ module Reporting
 
       def build_prediction(forecast, horizon)
         return empty_prediction(horizon) unless forecast
-
 
         ForecastReport::Prediction.new(
           horizon: horizon,
@@ -92,7 +99,6 @@ module Reporting
           model_version: nil,
 
           trend: "Unavailable",
-
           recommendation: "Unavailable"
         )
       end

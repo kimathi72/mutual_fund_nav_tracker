@@ -24,6 +24,11 @@ class CalculateDailyMetricsJob < ApplicationJob
       .new(scope: scope)
       .call
 
+    Rails.logger.info(
+      "[CalculateDailyMetricsJob] Metrics calculated successfully " \
+      "including return_since_30_june_2026."
+    )
+
     BuildTrainingDatasetJob.perform_later(fund_ids)
 
     Rails.logger.info(

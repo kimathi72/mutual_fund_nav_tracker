@@ -1,6 +1,6 @@
-// components/charts/ChartContainer.tsx
-
-import React from "react";
+import React, {
+  useState,
+} from "react";
 
 import {
   View,
@@ -60,10 +60,17 @@ export default function ChartContainer({
   children,
 }: Props) {
   const {
-    width,
     height,
-  } =
-    useChartDimensions();
+  } = useChartDimensions();
+
+  /*
+   * This is the actual width available to the
+   * chart AFTER the Y-axis has taken its 56px.
+   */
+  const [
+    surfaceWidth,
+    setSurfaceWidth,
+  ] = useState(0);
 
   return (
     <ChartCard
@@ -85,7 +92,7 @@ export default function ChartContainer({
       >
         <ChartYAxis
           data={data}
-          width={54}
+          width={56}
           height={height}
         />
 
@@ -93,44 +100,71 @@ export default function ChartContainer({
           style={
             styles.surfaceContainer
           }
+          onLayout={(event) => {
+            const measuredWidth =
+              event.nativeEvent
+                .layout.width;
+
+            setSurfaceWidth(
+              measuredWidth,
+            );
+          }}
         >
-          <View
-            style={[
-              styles.surfaceLayer,
-              {
-                width,
-                height,
-              },
-            ]}
-          >
-            <ChartGrid
-              width={width}
-              height={height}
-            />
+          {surfaceWidth > 0 && (
+            <>
+              <View
+                style={[
+                  styles.surfaceLayer,
+                  {
+                    width:
+                      surfaceWidth,
 
-            <ChartSurface
-              width={width}
-              height={height}
-              onMove={onMove}
-              onEnd={onEnd}
-            >
-              {({
-                width: innerWidth,
-                height: innerHeight,
-              }) =>
-                children({
-                  width: innerWidth,
-                  height: innerHeight,
-                })
-              }
-            </ChartSurface>
-          </View>
+                    height,
+                  },
+                ]}
+              >
+                <ChartGrid
+                  width={
+                    surfaceWidth
+                  }
+                  height={height}
+                />
 
-          <ChartXAxis
-            width={width}
-            data={data}
-            range={range}
-          />
+                <ChartSurface
+                  width={
+                    surfaceWidth
+                  }
+                  height={height}
+                  onMove={onMove}
+                  onEnd={onEnd}
+                >
+                  {({
+                    width:
+                      innerWidth,
+
+                    height:
+                      innerHeight,
+                  }) =>
+                    children({
+                      width:
+                        innerWidth,
+
+                      height:
+                        innerHeight,
+                    })
+                  }
+                </ChartSurface>
+              </View>
+
+              <ChartXAxis
+                width={
+                  surfaceWidth
+                }
+                data={data}
+                range={range}
+              />
+            </>
+          )}
         </View>
       </View>
     </ChartCard>
@@ -163,5 +197,7 @@ const styles =
     surfaceLayer: {
       position:
         "relative",
+
+      width: "100%",
     },
   });

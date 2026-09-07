@@ -9,7 +9,8 @@ module Llm
 
       base_uri "https://api.groq.com/openai/v1"
 
-      MODEL = "llama-3.3-70b-versatile"
+      PROVIDER = "groq"
+      MODEL = "openai/gpt-oss-120b"
 
       def generate(prompt)
         response =
@@ -37,8 +38,8 @@ module Llm
           model: MODEL,
           messages: [
             {
-                "role": "system",
-                "content": "You are the Chief Investment Officer of a multinational asset management firm. Write concise executive briefings for board members."
+              role: "system",
+              content: "You are the Chief Investment Officer of a multinational asset management firm. Write concise executive briefings for board members."
             },
             {
               role: "user",
@@ -61,7 +62,8 @@ module Llm
           )
 
         Llm::ExecutiveBriefing.new(
-          generated_by: MODEL,
+          provider: PROVIDER,
+          model: MODEL,
           generated_at: Time.current,
           briefing: text
         )
@@ -69,7 +71,8 @@ module Llm
 
       def error(response)
         Llm::ExecutiveBriefing.new(
-          generated_by: MODEL,
+          provider: PROVIDER,
+          model: MODEL,
           generated_at: Time.current,
           briefing: nil,
           error: response.body
